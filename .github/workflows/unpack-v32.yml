@@ -1,0 +1,40 @@
+name: Unpack v32 preview
+
+on:
+  push:
+    paths:
+      - 'transfer/v32.html.gz.b64'
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Decode and verify v32
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d transfer/v32.html.gz.b64 > /tmp/v32.html.gz
+          gzip -dc /tmp/v32.html.gz > v32.html
+          echo "a0acbfa8062649e9b773cf4abe8d9f62958fe3f2cf508895318f321cfe659f35  v32.html" | sha256sum -c -
+          grep -q 'Прототип v32 · Полный конфигуратор' v32.html
+          grep -q '<option value="wallPanel">Стеновые панели</option>' v32.html
+          grep -q '<option value="hardware">Фурнитура</option>' v32.html
+      - name: Commit v32.html
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add v32.html
+          if git diff --cached --quiet; then
+            echo "v32.html already current"
+            exit 0
+          fi
+          git commit -m "Publish full v32 preview"
+          git push origin HEAD:main
