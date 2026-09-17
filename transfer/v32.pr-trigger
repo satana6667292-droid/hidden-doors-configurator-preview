@@ -1,1 +1,1 @@
-trigger full v32 preview build
+trigger full v32 preview build retry 2
