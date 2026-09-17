@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'scripts/apply_v33_dictionaries.py'
+      - 'scripts/fix_v33_ral_input.py'
   workflow_dispatch:
 
 permissions:
@@ -15,7 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build v33
-        run: python scripts/apply_v33_dictionaries.py
+        run: |
+          python scripts/apply_v33_dictionaries.py
+          python scripts/fix_v33_ral_input.py
       - name: Commit generated preview
         run: |
           git config user.name "github-actions[bot]"
