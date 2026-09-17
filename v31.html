@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hidden Doors — v31 · Стеновые панели</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--dark:#111827;--ok:#166534;--okbg:#f0fdf4;--warn:#92400e;--warnbg:#fffbeb;--err:#991b1b;--errbg:#fef2f2;--blue:#1d4ed8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text)}
+.wrap{max-width:1240px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:16px}h1{margin:0 0 5px;font-size:26px}.sub{font-size:13px;color:var(--muted)}.badge{background:#eef2ff;color:#3730a3;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:850;white-space:nowrap}
+.productbar,.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}.productbar{padding:14px;margin-bottom:16px}.grid{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}.card{padding:18px}.section{border-top:1px solid var(--line);padding-top:15px;margin-top:15px}.section:first-child{border-top:0;padding-top:0;margin-top:0}.section-title{font-size:13px;font-weight:850;text-transform:uppercase;letter-spacing:.03em;color:#374151;margin-bottom:11px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{display:block;font-size:12px;font-weight:750;color:#374151;margin-bottom:6px}select,input,textarea{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:11px 12px;font-size:14px;background:#fff;outline:none}textarea{min-height:84px;resize:vertical}.mini{font-size:12px;color:var(--muted);line-height:1.45;margin-top:6px}.hidden{display:none!important}
+.side-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.side{background:#f9fafb;border:1px solid var(--line);border-radius:12px;padding:11px}.side b{font-size:12px;display:block;margin-bottom:7px}.filebox{margin-top:11px;border:1px dashed #cbd5e1;border-radius:12px;padding:12px;background:#fafafa}.file-preview{display:flex;gap:12px;align-items:flex-start;margin-top:10px}.file-preview img{max-width:220px;max-height:220px;object-fit:contain;border:1px solid var(--line);border-radius:10px;background:#fff}.file-name{font-size:12px;color:#4b5563;line-height:1.5}
+.result{background:#f9fafb;border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:10px}.cap{font-size:10px;color:var(--muted);font-weight:850;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}.val{font-size:13px;line-height:1.55;word-break:break-word}.status{border-radius:12px;padding:11px 12px;font-size:13px;line-height:1.45;margin-bottom:12px}.ok{background:var(--okbg);border:1px solid #bbf7d0;color:#14532d}.warn{background:var(--warnbg);border:1px solid #fde68a;color:var(--warn)}.err{background:var(--errbg);border:1px solid #fecaca;color:var(--err)}.panel-scheme{border:1px solid var(--line);border-radius:14px;background:#fafafa;padding:20px;display:flex;justify-content:center;margin-bottom:14px}.panel-shape{width:210px;height:360px;background:#fff;border:2px solid #9ca3af;position:relative;box-shadow:0 6px 18px rgba(17,24,39,.06)}.edge{position:absolute;font-size:10px;font-weight:850;color:#374151;background:#fff;padding:3px 5px;border-radius:6px;border:1px solid var(--line)}.edge.top{top:-12px;left:50%;transform:translateX(-50%)}.edge.bottom{bottom:-12px;left:50%;transform:translateX(-50%)}.edge.left{left:-24px;top:50%;transform:rotate(-90deg) translateY(-50%)}.edge.right{right:-28px;top:50%;transform:rotate(90deg) translateY(-50%)}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.fields,.side-grid{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.wrap{padding:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div><h1>Hidden Doors — Конфигуратор</h1><div class="sub">Прототип v31 · новый раздел «Стеновые панели»</div></div><div class="badge">v31 · WALL PANELS</div></div>
+  <div class="productbar">
+    <div class="fields">
+      <div class="full"><label>Раздел каталога</label><select id="catalogSection"><option>Двери</option><option selected>Стеновые панели</option><option>Погонаж</option><option>Фурнитура</option><option>Дополнительные элементы двери</option><option>Монтаж и комплектующие</option></select></div>
+    </div>
+    <div class="mini">В этом preview интерактивно реализован новый раздел «Стеновые панели». Остальные разделы остаются в полном приватном конфигураторе v31.</div>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="section">
+        <div class="section-title">Стеновая панель</div>
+        <div class="fields">
+          <div><label>Тип изделия</label><input value="Стеновая панель" disabled></div>
+          <div><label>Толщина МДФ, мм</label><select id="thickness"><option>4</option><option>6</option><option>8</option><option selected>10</option><option>16</option><option>19</option></select></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Размер панели</div>
+        <div class="fields">
+          <div><label>Длина, мм</label><input id="length" type="number" min="1" max="2780" step="1" value="2780"></div>
+          <div><label>Ширина, мм</label><input id="width" type="number" min="18" max="950" step="1" value="950"></div>
+        </div>
+        <div class="mini">Любое целое значение в миллиметрах. Длина — до 2780 мм, ширина — от 18 до 950 мм.</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Материал / покрытие</div>
+        <div class="fields"><div class="full"><label>Материал</label><select id="finish"><option>Плёнка</option><option>Шпон</option><option>Эмаль по RAL</option></select></div></div>
+        <div id="filmWrap" class="fields" style="margin-top:10px">
+          <div><label>Каталог плёнки</label><select id="filmCatalog"><option>Каталог плёнок 36</option><option>Основной каталог плёнок</option></select></div>
+          <div><label>Плёнка</label><select id="film"></select></div>
+        </div>
+        <div id="veneerWrap" class="hidden" style="margin-top:10px"><label>Шпон / порода / артикул</label><input id="veneer" placeholder="Например: дуб натуральный"></div>
+        <div id="ralWrap" class="hidden" style="margin-top:10px"><label>RAL</label><select id="ral"><option>RAL 9003</option><option>RAL 9016</option><option>RAL 9005</option><option>RAL 7035</option><option>RAL 7047</option></select></div>
+        <div id="generalFilmNote" class="mini hidden">Основной каталог в рабочем конфигураторе берётся из его справочника. В этом отдельном public-preview локальные данные основного справочника недоступны.</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Фрезеровка</div>
+        <label>Исполнение</label><select id="milling"><option>Глухая / без фрезеровки</option><option>Фрезеровка по эскизу заказчика</option></select>
+        <div id="millingCustom" class="hidden" style="margin-top:10px">
+          <div class="fields">
+            <div><label>Код / название эскиза</label><input id="millingCode" placeholder="Например: Проект Иванов — панель 03"></div>
+            <div><label>Комментарий к фрезеровке</label><textarea id="millingNote" placeholder="Глубина, шаг, привязки, пожелания"></textarea></div>
+          </div>
+          <div class="filebox"><label>Эскиз заказчика</label><input id="millingFile" type="file" accept="image/png,image/jpeg,image/webp,application/pdf"><div class="mini">Картинка показывается прямо здесь. В рабочей версии файл будет вложением к позиции/заказу.</div><div class="file-preview"><img id="previewImg" class="hidden" alt="Эскиз"><div id="fileName" class="file-name">Файл не выбран</div></div></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Запил 45° для стыковки</div>
+        <div class="side-grid">
+          <div class="side"><b>Верхняя сторона</b><select id="mTop"><option>Нет</option><option>45° внутренний</option><option>45° внешний</option></select></div>
+          <div class="side"><b>Правая сторона</b><select id="mRight"><option>Нет</option><option>45° внутренний</option><option>45° внешний</option></select></div>
+          <div class="side"><b>Нижняя сторона</b><select id="mBottom"><option>Нет</option><option>45° внутренний</option><option>45° внешний</option></select></div>
+          <div class="side"><b>Левая сторона</b><select id="mLeft"><option>Нет</option><option>45° внутренний</option><option>45° внешний</option></select></div>
+        </div>
+        <div class="mini">Каждая сторона независима: можно выбрать одну, две, три или все четыре; внутренний и внешний запил можно сочетать.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="status" class="status ok">Конфигурация проходит текущие правила.</div>
+      <div class="panel-scheme"><div class="panel-shape"><span id="sTop" class="edge top">Верх: нет</span><span id="sRight" class="edge right">Право: нет</span><span id="sBottom" class="edge bottom">Низ: нет</span><span id="sLeft" class="edge left">Лево: нет</span></div></div>
+      <div class="result"><div class="cap">Полное наименование</div><div id="fullName" class="val"></div></div>
+      <div class="result"><div class="cap">Ключ уникальности / SKU identity</div><div id="canonical" class="val"></div></div>
+      <div class="result"><div class="cap">Комментарий</div><div id="summary" class="val"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const FILMS36=['Эмалит Белый — TF 77 IE X 01','Эмалит Крем — TF 77 IE X 03','Эмалит Серый — TF 77 IE X 04','Light Grey — TF 66 IE CX 02','Dark Grey — TF 66 IE CX 04','Графит шагрень — AG 1027','Смоки шагрень — AG 1028','Белая шагрень — AG 1021','Белоснежная шагрень — AG 1020','Латте шагрень — AG 1024','Лайт грей шагрень — AG 1026','Капучино шагрень — AG 1023','Холст Сапфировый — TF 50 IE X 03','Холст Брюле — TF 19 IE XY 74','Мескалина — AG 1090'];
+const GENERAL=[];
+const $=id=>document.getElementById(id);
+function fillFilms(){const general=$('filmCatalog').value==='Основной каталог плёнок',vals=general?GENERAL:FILMS36;$('film').innerHTML=vals.length?vals.map(v=>`<option>${v}</option>`).join(''):'<option value="">— данные основного каталога не загружены в preview —</option>';$('generalFilmNote').classList.toggle('hidden',!general)}
+function finishText(){const t=$('finish').value;if(t==='Плёнка')return `Плёнка: ${$('film').value||'—'} (${$('filmCatalog').value})`;if(t==='Шпон')return `Шпон: ${$('veneer').value.trim()||'—'}`;return `Эмаль: ${$('ral').value}`}
+function millingText(){if($('milling').value==='Глухая / без фрезеровки')return 'без фрезеровки';return `по эскизу заказчика${$('millingCode').value.trim()?` (${$('millingCode').value.trim()})`:''}`}
+function miterPairs(){return [['Верх',$('mTop').value],['Право',$('mRight').value],['Низ',$('mBottom').value],['Лево',$('mLeft').value]]}
+function miterText(){const a=miterPairs().filter(x=>x[1]!=='Нет');return a.length?a.map(x=>`${x[0]} — ${x[1]}`).join('; '):'нет'}
+function validate(){const e=[],w=[];const L=+$('length').value,W=+$('width').value;if(!Number.isFinite(L)||L<1||L>2780)e.push('Длина должна быть от 1 до 2780 мм.');if(!Number.isFinite(W)||W<18||W>950)e.push('Ширина должна быть от 18 до 950 мм.');if($('finish').value==='Плёнка'&&!$('film').value)e.push('Выберите плёнку.');if($('finish').value==='Шпон'&&!$('veneer').value.trim())e.push('Укажите шпон / породу / артикул.');if($('milling').value==='Фрезеровка по эскизу заказчика'){if(!$('millingCode').value.trim())e.push('Укажите код или название эскиза.');if(!$('millingFile').files.length)w.push('Эскиз пока не прикреплён.')}return {e,w}}
+function render(){const fin=finishText(),mill=millingText(),mit=miterText();$('fullName').textContent=`Стеновая панель / МДФ ${$('thickness').value} мм / ${$('length').value}x${$('width').value} мм / ${fin} / Фрезеровка: ${mill} / Запил 45°: ${mit}`;const key=['WALLPANEL',$('thickness').value,$('length').value,$('width').value,$('finish').value,$('finish').value==='Плёнка'?$('filmCatalog').value:'',$('finish').value==='Плёнка'?$('film').value:'',$('finish').value==='Шпон'?$('veneer').value.trim():'',$('finish').value==='Эмаль по RAL'?$('ral').value:'',$('milling').value,$('milling').value==='Фрезеровка по эскизу заказчика'?$('millingCode').value.trim():'',...miterPairs().flat()].join('|').toUpperCase().replace(/\s+/g,' ').trim();$('canonical').textContent=key;$('summary').textContent='Файл эскиза и свободный комментарий не меняют SKU. Уникальность определяют размеры, толщина, покрытие, код фрезеровки и состояние запила каждой стороны.';const v=validate(),st=$('status');if(v.e.length){st.className='status err';st.innerHTML='<b>Нужно исправить:</b><br>'+v.e.join('<br>')}else if(v.w.length){st.className='status warn';st.innerHTML='<b>Можно продолжить, но есть предупреждение:</b><br>'+v.w.join('<br>')}else{st.className='status ok';st.textContent='Конфигурация проходит текущие правила.'}const abbr=x=>x==='Нет'?'нет':x.replace('45° ','45° ');$('sTop').textContent='Верх: '+abbr($('mTop').value);$('sRight').textContent='Право: '+abbr($('mRight').value);$('sBottom').textContent='Низ: '+abbr($('mBottom').value);$('sLeft').textContent='Лево: '+abbr($('mLeft').value)}
+function updateFinish(){const t=$('finish').value;$('filmWrap').classList.toggle('hidden',t!=='Плёнка');$('veneerWrap').classList.toggle('hidden',t!=='Шпон');$('ralWrap').classList.toggle('hidden',t!=='Эмаль по RAL');render()}
+function updateMilling(){$('millingCustom').classList.toggle('hidden',$('milling').value!=='Фрезеровка по эскизу заказчика');render()}
+$('filmCatalog').addEventListener('change',()=>{fillFilms();render()});$('finish').addEventListener('change',updateFinish);$('milling').addEventListener('change',updateMilling);$('millingFile').addEventListener('change',e=>{const f=e.target.files[0],img=$('previewImg');if(!f){$('fileName').textContent='Файл не выбран';img.classList.add('hidden');render();return}$('fileName').textContent=`${f.name} · ${Math.max(1,Math.round(f.size/1024))} КБ`;if(f.type.startsWith('image/')){const r=new FileReader();r.onload=()=>{img.src=r.result;img.classList.remove('hidden')};r.readAsDataURL(f)}else{img.classList.add('hidden')}render()});document.querySelectorAll('select,input,textarea').forEach(el=>{if(!['finish','filmCatalog','milling','millingFile'].includes(el.id))el.addEventListener('input',render);if(!['finish','filmCatalog','milling','millingFile'].includes(el.id))el.addEventListener('change',render)});$('catalogSection').addEventListener('change',()=>{if($('catalogSection').value!=='Стеновые панели'){alert('В этом preview интерактивно вынесен новый раздел «Стеновые панели». Полный каталог остаётся в приватной v31.');$('catalogSection').value='Стеновые панели'}});fillFilms();updateFinish();updateMilling();render();
+</script>
+</body>
+</html>
