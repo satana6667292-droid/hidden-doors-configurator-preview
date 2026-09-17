@@ -3,7 +3,7 @@ name: Unpack v32 preview
 on:
   push:
     paths:
-      - 'transfer/v32.html.gz.b64'
+      - 'transfer/v32.ready'
 
 permissions:
   contents: write
@@ -19,7 +19,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          base64 -d transfer/v32.html.gz.b64 > /tmp/v32.html.gz
+          cat transfer/v32.part*.b64 > /tmp/v32.html.gz.b64
+          base64 -d /tmp/v32.html.gz.b64 > /tmp/v32.html.gz
           gzip -dc /tmp/v32.html.gz > v32.html
           echo "a0acbfa8062649e9b773cf4abe8d9f62958fe3f2cf508895318f321cfe659f35  v32.html" | sha256sum -c -
           grep -q 'Прототип v32 · Полный конфигуратор' v32.html
