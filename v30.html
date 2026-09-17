@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hidden Doors — Каталог 36 · v30</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--blue:#1d4ed8}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text)}.wrap{max-width:1180px;margin:0 auto;padding:24px}.head{margin-bottom:18px}.head h1{margin:0 0 5px;font-size:25px}.sub{font-size:13px;color:var(--muted)}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:12px;font-weight:800;color:#374151;margin-bottom:6px}select,input{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:11px 12px;font-size:14px;background:#fff}.note{margin-top:12px;padding:10px 12px;border:1px dashed #cbd5e1;border-radius:12px;background:#f9fafb;color:#4b5563;font-size:12px;line-height:1.5}.preview{display:grid;grid-template-columns:minmax(220px,360px) 1fr;gap:18px;margin-top:18px;align-items:center}.media{min-height:390px;border:1px solid var(--line);border-radius:14px;background:#fafafa;display:flex;align-items:center;justify-content:center;padding:12px;overflow:hidden}.media img{width:100%;max-height:520px;object-fit:contain}.info h2{margin:0 0 12px;font-size:22px}.meta{font-size:13px;line-height:1.75;color:#4b5563}.meta b{color:#111827}.result{margin-top:14px;padding:12px 14px;border-radius:12px;background:#f9fafb;border:1px solid var(--line)}.cap{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}.val{font-size:13px;line-height:1.55;word-break:break-word}.link{display:inline-block;margin-top:12px;font-size:13px;font-weight:800;color:var(--blue);text-decoration:none}.link:hover{text-decoration:underline}@media(max-width:760px){.fields,.preview{grid-template-columns:1fr}.media{min-height:300px}.wrap{padding:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><h1>Hidden Doors — Дверь 36 мм</h1><div class="sub">Прототип v30 · Коллекция → Группа → Модель · 39 привязанных рендеров</div></div>
+  <div class="card">
+    <div class="fields">
+      <div class="field"><label>Тип изделия</label><input value="Дверь 36 мм" disabled></div>
+      <div class="field"><label>Коллекция</label><select id="collection"></select></div>
+      <div class="field"><label>Группа</label><select id="group"></select></div>
+      <div class="field"><label>Модель</label><select id="model"></select></div>
+    </div>
+    <div class="note">Коллекция — верхний уровень: <b>Классика</b> или <b>LINE</b>. Затем выбирается группа (MODENA, SIENA, LUCCA и т. д.), затем конкретная модель. Изображение привязано к модели.</div>
+    <div class="preview">
+      <div class="media"><img id="image" alt="Рендер модели"></div>
+      <div class="info">
+        <h2 id="previewTitle"></h2>
+        <div class="meta" id="meta"></div>
+        <a class="link" id="driveLink" target="_blank" rel="noopener">Открыть исходный рендер на Google Drive ↗</a>
+        <div class="result"><div class="cap">Длинное наименование</div><div class="val" id="fullName"></div></div>
+        <div class="result"><div class="cap">SKU identity / canonical key</div><div class="val" id="canonical"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const COLLECTIONS=[
+ {name:'Классика',sort:1,groups:['MODENA','SIENA','LUCCA']},
+ {name:'LINE',sort:2,groups:['AXIS','VECTOR','RHYTHM','ARC','FLUTE']}
+];
+const GROUPS=[
+ {group:'MODENA',models:[
+  ['MODENA 01',1,'Frame 102_Magnolia.png','1QTqAZx30jLMxePBj64ZNnqiXNw3g_o2l'],
+  ['MODENA 02',2,'Frame 1_Magnolia.png','1Yyc7zKvc7hyaM6fBRVxvJVKlUIhXKxca'],
+  ['MODENA 03',3,'Door 1.png','1EIIhXfvnDIaHTHcY8CfUu-xx22Ky0CqP'],
+  ['MODENA 04',4,'Frame 201_Magnolia.png','1RCJHUMJl7q9LdyDvtqiAvucva4ez21zm'],
+  ['MODENA 05',5,'Frame 2_Magnolia.png','1KBV7vKcle2jHxiqpwmZm3bmIsOFH2PGK'],
+  ['MODENA 06',6,'M_Door 23.png','13jS8P1BQACGQFfNtqF95uPWzgBXNwORG']]},
+ {group:'SIENA',models:[
+  ['SIENA 01',1,'Frame KR_Magnolia.png','1_Or4sr9OCDbMoR-dnLyYlb0vnoPUMixE'],
+  ['SIENA 02',2,'Frame KR 001_Magnolia.png','1JR5fjyUVbEuAWJKUFZg7gxwuH6XbnrRj'],
+  ['SIENA 03',3,'Band 00_Magnolia.png','1ym8A29u3VEgdfzaxyxrmUIka4u5hXoG5'],
+  ['SIENA 04',4,'M_Door 20.png','1ok5gU_--Zs843j4cvNhTPabxaREG4r7d'],
+  ['SIENA 05',5,'M_Door 15.png','1Gzg_fxDR8gmsyCiypmsTwrpB6AoZZ1uA']]},
+ {group:'LUCCA',models:[
+  ['LUCCA 01',1,'Band 52_Magnolia.png','102mk5fyOF1ICJwtj_LmMxCxb1LPQ7Yfc'],
+  ['LUCCA 02',2,'Frame Line_Magnolia.png','1syHQKZo9PddgEmBS49gb6uDN64fY1_e5'],
+  ['LUCCA 03',3,'Band 551_Magnolia.png','1i3UXP5pmVtuFWgAGenqeCO2Rg2xgag8N'],
+  ['LUCCA 04',4,'Band 51_Magnolia.png','1VWJJ9lF4vTFsWxSK9eEgOz0ihXtdnSa6'],
+  ['LUCCA 05',5,'Band 50_Magnolia.png','1J54Ojn_Z_c2FQZXTQVd-C5xF_eesFnaL']]},
+ {group:'AXIS',models:[
+  ['AXIS 01',1,'Line 10_Magnolia.png','1lJoan-QJVpVwXBYGkZrACPAKuLyx4vDf'],
+  ['AXIS 02',2,'Line 19_Magnolia.png','1KcJH8-C2bvj44-vG4ce7kQk7FX2HX1zP'],
+  ['AXIS 03',3,'Line 90_Magnolia.png','1L1YVgvb2HMTrAMttyUswpbztVy6TB0Rh'],
+  ['AXIS 04',4,'Line S16_Magnolia.png','1xtP1vO4c_SrHXy5VK52mTph6wzopfN3V'],
+  ['AXIS 05',5,'Line B_Magnolia.png','1lR1kjntWFzuIdN_pjVzn1yF4HFZzHQEZ'],
+  ['AXIS 06',6,'Door 2.png','1ATyWMLroqpQuoyEbH1Vru6aUMyLK-khV']]},
+ {group:'VECTOR',models:[
+  ['VECTOR 01',1,'Line 3_Magnolia.png','1sWOzfGkdKgdMmV8LB7AD29Vj2MBGrzlU'],
+  ['VECTOR 02',2,'Line A_Magnolia.png','1eAM6AYKMTQD3Q3qHMgiJvsCyiD-FfBuJ'],
+  ['VECTOR 03',3,'Line S_Magnolia.png','1YO5o-ClyLLk8wLcmmuR07JhoPyXaJ40B'],
+  ['VECTOR 04',4,'M_Door 31.png','1EskWZEJe_YAJ1DeNoTnhLiHk-guYKg83'],
+  ['VECTOR 05',5,'M_Door 30.png','1-hvUtOquwz5f852YztNGOiYiQqd3VhMr']]},
+ {group:'RHYTHM',models:[
+  ['RHYTHM 01',1,'M_Door 29.png','1r789z3swAhHkWRUpTJu_FP7bFg5Np67I'],
+  ['RHYTHM 02',2,'Line U_Magnolia.png','1HO0MIRVqtQgX08iedLAVP4LpfONdevy5'],
+  ['RHYTHM 03',3,'Line Geo_Magnolia.png','1WMit9-cAznX1MpoHdy_6MPMLhQi0GiXE'],
+  ['RHYTHM 04',4,'Line Fence_Magnolia.png','1s3uhHx-b83MwG8_b_7YHRFLcrWBS5I8R'],
+  ['RHYTHM 05',5,'Line Scales_Magnolia.png','1g60mLANDAgYUNhLCUTYTYbSZyZs1-S2T']]},
+ {group:'ARC',models:[
+  ['ARC 01',1,'M_Door 26.png','133v_Hm-zxJVUowrrJWNK9P0ENj5i-hFd'],
+  ['ARC 02',2,'M_Door 27.png','1cjhJruzJeS7eWKpR0rjj8sZXtf7JAT3U'],
+  ['ARC 03',3,'M_Door 42.png','1dOkz35oxZgZFWwHkooEnO_SbWJ5LjzVe'],
+  ['ARC 04',4,'M_Door 43.png','1-e9vd0tVJOf7UY_4NlrG0P4k_4iURNXt']]},
+ {group:'FLUTE',models:[
+  ['FLUTE 01',1,'M_Door 25.png','1NnEq45o3zzCuA5xW8b0eyyHyBaFFWaXt'],
+  ['FLUTE 02',2,'M_Door 24.png','1SfkjjXj52D_5Wy_h67ys1NMjOqccRW63'],
+  ['FLUTE 03',3,'M_Door 28.png','1AuNSw-5wuBRYZms8iViFD96yc8AExw8s']]}
+];
+const $=id=>document.getElementById(id),collection=$('collection'),group=$('group'),model=$('model');
+function currentCollection(){return COLLECTIONS.find(x=>x.name===collection.value)||COLLECTIONS[0]}
+function currentGroup(){return GROUPS.find(x=>x.group===group.value)||GROUPS[0]}
+function fillCollections(){collection.innerHTML=[...COLLECTIONS].sort((a,b)=>a.sort-b.sort).map(x=>`<option>${x.name}</option>`).join('');fillGroups()}
+function fillGroups(){const c=currentCollection();group.innerHTML=c.groups.map(x=>`<option>${x}</option>`).join('');fillModels()}
+function fillModels(){const g=currentGroup();model.innerHTML=[...g.models].sort((a,b)=>a[1]-b[1]).map(x=>`<option>${x[0]}</option>`).join('');render()}
+function metaFor(){const c=currentCollection(),g=currentGroup(),m=g.models.find(x=>x[0]===model.value)||g.models[0];return {collection:c.name,collectionSort:c.sort,group:g.group,groupSort:c.groups.indexOf(g.group)+1,name:m[0],modelSort:m[1],source:m[2],id:m[3]}}
+function render(){const m=metaFor(),img=`https://drive.google.com/thumbnail?id=${encodeURIComponent(m.id)}&sz=w1200`,drive=`https://drive.google.com/file/d/${encodeURIComponent(m.id)}/view`;$('image').src=img;$('image').alt=`${m.collection} ${m.group} ${m.name}`;$('previewTitle').textContent=`${m.collection} / ${m.group} / ${m.name}`;$('meta').innerHTML=`<div><b>Коллекция:</b> ${m.collection}</div><div><b>Группа:</b> ${m.group}</div><div><b>Модель:</b> ${m.name}</div><div><b>Исходный рендер:</b> ${m.source}</div><div><b>Порядок:</b> коллекция ${m.collectionSort}, группа ${m.groupSort}, модель ${m.modelSort}</div>`;$('driveLink').href=drive;$('fullName').textContent=`Дверь / 36 мм / Коллекция: ${m.collection} / Группа: ${m.group} / Модель: ${m.name}`;$('canonical').textContent=`LEAF36|36|${m.collection}|${m.group}|${m.name}`}
+collection.addEventListener('change',fillGroups);group.addEventListener('change',fillModels);model.addEventListener('change',render);fillCollections();
+</script>
+</body>
+</html>
