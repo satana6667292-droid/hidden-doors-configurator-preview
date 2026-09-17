@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hidden Doors — v29 · Каталог 36</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--dark:#111827;--ok:#166534;--okbg:#f0fdf4;--blue:#1d4ed8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text)}
+.wrap{max-width:1180px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:18px}h1{font-size:26px;margin:0 0 5px}.sub{color:var(--muted);font-size:14px;line-height:1.5}.badge{display:inline-flex;border-radius:999px;padding:6px 10px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:800;white-space:nowrap}.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.8fr);gap:18px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}.card h2{font-size:17px;margin:0 0 14px}.section{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}.section:first-of-type{border-top:0;padding-top:0;margin-top:0}.section-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#374151;margin-bottom:10px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px}select,input{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:11px 12px;font-size:14px;background:#fff}.note{background:#f9fafb;border:1px dashed #cbd5e1;border-radius:12px;padding:11px 12px;font-size:12px;line-height:1.5;color:#4b5563}.preview{border:1px solid var(--line);border-radius:14px;padding:14px;background:#f9fafb}.media{min-height:430px;background:#fff;border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:12px}.media img{width:100%;max-height:560px;object-fit:contain;display:block}.title{font-size:20px;font-weight:900;margin-top:14px}.meta{font-size:12px;line-height:1.65;color:#4b5563;margin-top:7px}.meta b{color:#111827}.status{margin-top:14px;border:1px solid #bbf7d0;background:var(--okbg);color:#14532d;border-radius:12px;padding:11px 12px;font-size:13px;line-height:1.45}.result{background:#f9fafb;border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin-top:10px}.cap{font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}.val{font-size:13px;line-height:1.45;word-break:break-word}.link{display:inline-block;margin-top:10px;font-size:12px;font-weight:800;color:var(--blue);text-decoration:none}.link:hover{text-decoration:underline}.small{font-size:11px;color:#9ca3af;margin-top:7px}@media(max-width:850px){.grid{grid-template-columns:1fr}.top{display:block}.badge{margin-top:10px}.fields{grid-template-columns:1fr}.media{min-height:300px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Hidden Doors — Конфигуратор</h1><div class="sub">Прототип v29 · проверка каталога дверей 36 мм: коллекции, модели, сортировка и привязанные рендеры.</div></div>
+    <div class="badge">v29 · 39 моделей</div>
+  </div>
+  <div class="grid">
+    <section class="card">
+      <h2>Конфигурация</h2>
+      <div class="section">
+        <div class="section-title">Дверь 36</div>
+        <div class="fields">
+          <div><label>Тип изделия</label><input value="Дверь 36 мм" disabled></div>
+          <div><label>Коллекция</label><select id="collection"></select></div>
+          <div class="full"><label>Модель</label><select id="model"></select></div>
+        </div>
+        <div class="note" style="margin-top:12px">Коллекции и модели идут в согласованном порядке каталога от 16.09.2026. При смене коллекции список моделей перестраивается автоматически.</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Размер</div>
+        <div class="fields"><div><label>Высота, мм</label><select id="height"><option>1800</option><option>1850</option><option>1900</option><option selected>2000</option></select></div><div><label>Ширина, мм</label><select id="width"><option>600</option><option>650</option><option>700</option><option>750</option><option selected>800</option><option>850</option><option>900</option></select></div></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Покрытие</div>
+        <div class="fields"><div><label>Тип покрытия</label><select id="cover"><option selected>ПВХ-пленка</option><option>Грунт под покраску</option></select></div><div><label>ПВХ-плёнка</label><select id="film"><option>Эмалит Белый — TF 77 IE X 01</option><option>Эмалит Крем — TF 77 IE X 03</option><option>Эмалит Серый — TF 77 IE X 04</option><option>Графит шагрень — AG 1027</option><option>Олива — AG 1050</option></select></div></div>
+      </div>
+      <div class="status"><b>Конфигурация проходит текущие правила.</b><br>Рендер — справочный атрибут модели и не участвует в формировании SKU.</div>
+      <div class="result"><div class="cap">Полное наименование</div><div class="val" id="fullName"></div></div>
+      <div class="result"><div class="cap">Ключ уникальности</div><div class="val" id="key"></div></div>
+    </section>
+    <section class="card">
+      <h2>Рендер выбранной модели</h2>
+      <div class="preview">
+        <div class="media"><img id="image" alt="Рендер модели" referrerpolicy="no-referrer"></div>
+        <div class="title" id="previewTitle"></div>
+        <div class="meta" id="meta"></div>
+        <a class="link" id="driveLink" target="_blank" rel="noopener">Открыть исходный рендер на Google Drive ↗</a>
+        <div class="small">Если браузер блокирует thumbnail Google Drive, исходник всё равно можно открыть по ссылке выше.</div>
+      </div>
+    </section>
+  </div>
+</div>
+<script>
+const CATALOG=[
+ {collection:'MODENA',sort:1,models:[['MODENA 01',1,'Frame 102_Magnolia.png','1QTqAZx30jLMxePBj64ZNnqiXNw3g_o2l'],['MODENA 02',2,'Frame 1_Magnolia.png','1Yyc7zKvc7hyaM6fBRVxvJVKlUIhXKxca'],['MODENA 03',3,'Door 1.png','1EIIhXfvnDIaHTHcY8CfUu-xx22Ky0CqP'],['MODENA 04',4,'Frame 201_Magnolia.png','1RCJHUMJl7q9LdyDvtqiAvucva4ez21zm'],['MODENA 05',5,'Frame 2_Magnolia.png','1KBV7vKcle2jHxiqpwmZm3bmIsOFH2PGK'],['MODENA 06',6,'M_Door 23.png','13jS8P1BQACGQFfNtqF95uPWzgBXNwORG']]},
+ {collection:'SIENA',sort:2,models:[['SIENA 01',1,'Frame KR_Magnolia.png','1_Or4sr9OCDbMoR-dnLyYlb0vnoPUMixE'],['SIENA 02',2,'Frame KR 001_Magnolia.png','1JR5fjyUVbEuAWJKUFZg7gxwuH6XbnrRj'],['SIENA 03',3,'Band 00_Magnolia.png','1ym8A29u3VEgdfzaxyxrmUIka4u5hXoG5'],['SIENA 04',4,'M_Door 20.png','1ok5gU_--Zs843j4cvNhTPabxaREG4r7d'],['SIENA 05',5,'M_Door 15.png','1Gzg_fxDR8gmsyCiypmsTwrpB6AoZZ1uA']]},
+ {collection:'LUCCA',sort:3,models:[['LUCCA 01',1,'Band 52_Magnolia.png','102mk5fyOF1ICJwtj_LmMxCxb1LPQ7Yfc'],['LUCCA 02',2,'Frame Line_Magnolia.png','1syHQKZo9PddgEmBS49gb6uDN64fY1_e5'],['LUCCA 03',3,'Band 551_Magnolia.png','1i3UXP5pmVtuFWgAGenqeCO2Rg2xgag8N'],['LUCCA 04',4,'Band 51_Magnolia.png','1VWJJ9lF4vTFsWxSK9eEgOz0ihXtdnSa6'],['LUCCA 05',5,'Band 50_Magnolia.png','1J54Ojn_Z_c2FQZXTQVd-C5xF_eesFnaL']]},
+ {collection:'AXIS',sort:4,models:[['AXIS 01',1,'Line 10_Magnolia.png','1lJoan-QJVpVwXBYGkZrACPAKuLyx4vDf'],['AXIS 02',2,'Line 19_Magnolia.png','1KcJH8-C2bvj44-vG4ce7kQk7FX2HX1zP'],['AXIS 03',3,'Line 90_Magnolia.png','1L1YVgvb2HMTrAMttyUswpbztVy6TB0Rh'],['AXIS 04',4,'Line S16_Magnolia.png','1xtP1vO4c_SrHXy5VK52mTph6wzopfN3V'],['AXIS 05',5,'Line B_Magnolia.png','1lR1kjntWFzuIdN_pjVzn1yF4HFZzHQEZ'],['AXIS 06',6,'Door 2.png','1ATyWMLroqpQuoyEbH1Vru6aUMyLK-khV']]},
+ {collection:'VECTOR',sort:5,models:[['VECTOR 01',1,'Line 3_Magnolia.png','1sWOzfGkdKgdMmV8LB7AD29Vj2MBGrzlU'],['VECTOR 02',2,'Line A_Magnolia.png','1eAM6AYKMTQD3Q3qHMgiJvsCyiD-FfBuJ'],['VECTOR 03',3,'Line S_Magnolia.png','1YO5o-ClyLLk8wLcmmuR07JhoPyXaJ40B'],['VECTOR 04',4,'M_Door 31.png','1EskWZEJe_YAJ1DeNoTnhLiHk-guYKg83'],['VECTOR 05',5,'M_Door 30.png','1-hvUtOquwz5f852YztNGOiYiQqd3VhMr']]},
+ {collection:'RHYTHM',sort:6,models:[['RHYTHM 01',1,'M_Door 29.png','1r789z3swAhHkWRUpTJu_FP7bFg5Np67I'],['RHYTHM 02',2,'Line U_Magnolia.png','1HO0MIRVqtQgX08iedLAVP4LpfONdevy5'],['RHYTHM 03',3,'Line Geo_Magnolia.png','1WMit9-cAznX1MpoHdy_6MPMLhQi0GiXE'],['RHYTHM 04',4,'Line Fence_Magnolia.png','1s3uhHx-b83MwG8_b_7YHRFLcrWBS5I8R'],['RHYTHM 05',5,'Line Scales_Magnolia.png','1g60mLANDAgYUNhLCUTYTYbSZyZs1-S2T']]},
+ {collection:'ARC',sort:7,models:[['ARC 01',1,'M_Door 26.png','133v_Hm-zxJVUowrrJWNK9P0ENj5i-hFd'],['ARC 02',2,'M_Door 27.png','1cjhJruzJeS7eWKpR0rjj8sZXtf7JAT3U'],['ARC 03',3,'M_Door 42.png','1dOkz35oxZgZFWwHkooEnO_SbWJ5LjzVe'],['ARC 04',4,'M_Door 43.png','1-e9vd0tVJOf7UY_4NlrG0P4k_4iURNXt']]},
+ {collection:'FLUTE',sort:8,models:[['FLUTE 01',1,'M_Door 25.png','1NnEq45o3zzCuA5xW8b0eyyHyBaFFWaXt'],['FLUTE 02',2,'M_Door 24.png','1SfkjjXj52D_5Wy_h67ys1NMjOqccRW63'],['FLUTE 03',3,'M_Door 28.png','1AuNSw-5wuBRYZms8iViFD96yc8AExw8s']]}
+];
+const $=id=>document.getElementById(id);const col=$('collection'),model=$('model');
+function fillCollections(){col.innerHTML=CATALOG.sort((a,b)=>a.sort-b.sort).map(c=>`<option>${c.collection}</option>`).join('');fillModels()}
+function currentCollection(){return CATALOG.find(c=>c.collection===col.value)||CATALOG[0]}
+function fillModels(){const c=currentCollection();model.innerHTML=c.models.sort((a,b)=>a[1]-b[1]).map(m=>`<option>${m[0]}</option>`).join('');render()}
+function metaFor(){const c=currentCollection();const m=c.models.find(x=>x[0]===model.value)||c.models[0];return {collection:c.collection,collectionSort:c.sort,name:m[0],modelSort:m[1],source:m[2],id:m[3]}}
+function render(){const m=metaFor();const img=`https://drive.google.com/thumbnail?id=${encodeURIComponent(m.id)}&sz=w1200`;const drive=`https://drive.google.com/file/d/${encodeURIComponent(m.id)}/view`;$('image').src=img;$('previewTitle').textContent=`${m.collection} / ${m.name}`;$('meta').innerHTML=`<div><b>Коллекция:</b> ${m.collection}</div><div><b>Модель:</b> ${m.name}</div><div><b>Исходный рендер:</b> ${m.source}</div><div><b>Порядок:</b> коллекция ${m.collectionSort}, модель ${m.modelSort}</div>`;$('driveLink').href=drive;const cover=$('cover').value==='ПВХ-пленка'?`ПВХ-пленка: ${$('film').value}`:'Грунт под покраску';$('film').disabled=$('cover').value!=='ПВХ-пленка';$('fullName').textContent=`Дверь / 36 мм / Коллекция: ${m.collection} / Модель: ${m.name} / ${$('height').value}x${$('width').value} / ${cover}`;$('key').textContent=`LEAF36|36|${m.collection}|${m.name}|${$('height').value}|${$('width').value}|${cover}`.toUpperCase()}
+col.addEventListener('change',fillModels);model.addEventListener('change',render);['height','width','cover','film'].forEach(id=>$(id).addEventListener('change',render));fillCollections();
+</script>
+</body></html>
