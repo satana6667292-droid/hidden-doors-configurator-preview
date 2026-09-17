@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'scripts/apply_v34_hardware_dictionary_forms.py'
+      - 'v34.trigger'
   workflow_dispatch:
 
 permissions:
