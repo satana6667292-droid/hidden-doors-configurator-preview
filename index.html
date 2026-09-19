@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v57 · Завертки — цены этап 1</title>
+<title>Hidden Doors — Личный кабинет · Прототип v58 · Завертки — цены и заказ</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -538,7 +538,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       </div>
     </div>
     <div class="brand-header-side">
-      <div class="version-chip"><span>HD</span> v57 · Turn prices data audit</div>
+      <div class="version-chip"><span>HD</span> v58 · Turn prices UI and order</div>
       <div class="rolebox">
         <label for="role">Роль</label>
         <select id="role">
@@ -3455,7 +3455,7 @@ const HANDLE_PRICE_REVIEW=Object.freeze([
 
 // --- data/hardware-prices.js ---
 // BASE prices imported from the current Hidden Doors Bitrix24 hardware review.
-// Existing live maps: Петли / Замки / Ручки. v57 adds Завертки as DATA + AUDIT ONLY; UI/order integration is reserved for Stage 2.
+// Live maps: Петли / Замки / Ручки / Завертки. v58 connects the audited turn prices to catalog and order.
 // BASE is interpreted as unit price per 1 item. Manual agreed overrides remain explicitly marked.
 const BITRIX_HINGE_BASE_PRICES=Object.freeze([
   {name:"AGB (АГБ) Петля ввертная 3-D серия (бихром)",price:575,sourceBase:575,parentId:36780,offerId:36782,priceOverride:false},
@@ -3566,7 +3566,7 @@ const BITRIX_LOCK_BASE_PRICES=Object.freeze([
 ]);
 
 
-// v57 — Stage 1: category "Завертки". Data/audit only; intentionally NOT added to BITRIX_HARDWARE_BASE_PRICE_MAPS yet.
+// v58 — Stage 2: category "Завертки" is live in catalog/door/order pricing; v57 audit data is preserved below.
 const BITRIX_TURN_BASE_PRICES=Object.freeze([
   {
     "name": "Вертушка FUARO на шток цилиндра T.Knob-D-PRO (CB-D-PRO) BL-24, цвет черный",
@@ -4945,7 +4945,8 @@ function normalizeHardwarePriceName(value){
 const BITRIX_HARDWARE_BASE_PRICE_MAPS=Object.freeze({
   'Петли':new Map(BITRIX_HINGE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Замки':new Map(BITRIX_LOCK_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
-  'Ручки':new Map(BITRIX_HANDLE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
+  'Ручки':new Map(BITRIX_HANDLE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
+  'Завертки':new Map(BITRIX_TURN_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
 });
 function hardwareBasePriceMeta(category,name){
   const map=BITRIX_HARDWARE_BASE_PRICE_MAPS[category];
@@ -4989,6 +4990,7 @@ function companionItemUnitPrice(item){
   if(key==='DOOR-HINGE')return hardwareBasePrice('Петли',item?.name||'');
   if(key==='DOOR-LOCK')return hardwareBasePrice('Замки',item?.name||'');
   if(key==='DOOR-HANDLE'||key==='SLIDE42-HANDLE')return hardwareBasePrice('Ручки',item?.name||'');
+  if(key==='DOOR-TURN')return hardwareBasePrice('Завертки',item?.name||'');
   return companion36UnitPrice(item);
 }
 function genericCatalogItemPrice(item){
@@ -5005,6 +5007,10 @@ function genericCatalogItemPrice(item){
   }
   if(/ручк/i.test(category+' '+name)){
     const p=hardwareBasePrice('Ручки',name);
+    if(p!==null)return p;
+  }
+  if(/заверт/i.test(category)){
+    const p=hardwareBasePrice('Завертки',name);
     if(p!==null)return p;
   }
   return cart36FallbackUnitPrice(item);
@@ -5246,7 +5252,7 @@ function doorOrderSections(){
       doorHingeQtyField()+
       field('Замок',searchableCatalog('doorLock','Замки')+`<div id="doorLockPriceHint" class="mini hinge-price-hint"></div>`)+
       field('Ручка',searchableCatalog('doorHandle','Ручки')+`<div id="doorHandlePriceHint" class="mini hinge-price-hint"></div>`)+
-      field('Завертка',searchableCatalog('doorTurn','Завертки'))+
+      field('Завертка',searchableCatalog('doorTurn','Завертки')+`<div id="doorTurnPriceHint" class="mini hinge-price-hint"></div>`)+
       `<div id="doorCylinderFieldWrap" class="hidden">${field('Цилиндр',searchableCatalog('doorCylinder','Цилиндровые механизмы')+`<div class="mini">Обязательное поле для замков типа «Под цилиндр».</div>`)}</div>`+
       field('Стопор',searchableCatalog('doorStopper','Стопоры'))+
       field('Автоматический порог',searchableCatalog('doorThreshold','Скрытый порог'))+
@@ -5358,6 +5364,17 @@ function updateDoorHandlePriceHint(){
   }
   box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
 }
+function updateDoorTurnPriceHint(){
+  const box=$('doorTurnPriceHint');if(!box)return;
+  const name=$('doorTurn')?.value?.trim()||'';
+  const meta=name?hardwareBasePriceMeta('Завертки',name):null;
+  if(!name){box.innerHTML='Выберите завертку.';return}
+  if(!meta){box.innerHTML='<span class="mini">Цена для этой завертки пока не подключена.</span>';return}
+  if(meta.price===null||meta.suspicious){
+    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
+  }
+  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+}
 function updateSlidingHandlePriceHint(){
   const box=$('slidingHandlePriceHint');if(!box)return;
   const name=$('slidingHandle')?.value||'Без ручки';
@@ -5384,7 +5401,7 @@ function hardwareCategoryPriceSummary(category,items){
 }
 function renderHardwareCategoryPriceSummary(category,items){
   const box=$('hardwarePriceSummary');if(!box)return;
-  if(!['Петли','Замки','Ручки'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
+  if(!['Петли','Замки','Ручки','Завертки'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
   const s=hardwareCategoryPriceSummary(category,items);
   box.classList.remove('hidden');
   box.className='hinge-price-summary';
@@ -5399,7 +5416,7 @@ function renderHardwareSelectedPrice(){
   const uiCategory=$('hardwareCategory')?.value||'';
   const category=HARDWARE_MAP[uiCategory]||uiCategory;
   const item=$('catalogItem')?.value||'';
-  if(!['Петли','Замки','Ручки'].includes(category)){
+  if(!['Петли','Замки','Ручки','Завертки'].includes(category)){
     box.classList.add('hidden');box.innerHTML='';return;
   }
   const meta=hardwareBasePriceMeta(category,item);
@@ -5524,6 +5541,7 @@ const HARDWARE_TYPE_ORDER={
   'Петли':['Скрытые','Барные / маятниковые','Ввертные','Карточные / универсальные / бабочки (в т.ч. 36 мм)','Комплектующие к петлям','Прочие / проверить'],
   'Замки':['Сантехнические / WC / межкомнатные защёлки','Под цилиндр','Задвижки / ригели','Специальные системы / СКУД / антипаника','Комплектующие к замкам','Прочие / проверить'],
   'Ручки':['Основные / для распашных дверей','Для откатных / раздвижных дверей','Скрытые / интегрированные','Ручки-скобы','Ручки-защёлки / специальные','Прочие / проверить'],
+  'Завертки':['Сантехнические завертки / WC','Накладки под цилиндр','Вставки / вертушки на шток','Прочие / проверить'],
   'Стопоры':['Магнитные','Обычные / механические']
 };
 
@@ -5554,6 +5572,13 @@ function hardwareTypeForItem(category,item){
     if(/ручка-скоба|ручка скоба/.test(s))return 'Ручки-скобы';
     if(/ручка-защел|ручка-защёл/.test(s))return 'Ручки-защёлки / специальные';
     return 'Основные / для распашных дверей';
+  }
+
+  if(category==='Завертки'){
+    if(/накладк.*цилиндр|накладка на (?:евро|ключевой )?цилиндр/.test(s))return 'Накладки под цилиндр';
+    if(/вставк.*шток|вертуш.*шток/.test(s))return 'Вставки / вертушки на шток';
+    if(/зав[её]рт|wc[- .]|сантех.*фиксатор/.test(s))return 'Сантехнические завертки / WC';
+    return 'Прочие / проверить';
   }
 
   if(category==='Стопоры'){
@@ -6802,6 +6827,10 @@ function companionItems(){
     if(handle){
       items.push({key:'DOOR-HANDLE',type:'Фурнитура / Ручки',priceCategory:'Ручки',qty:1,unit:'шт.',step:1,name:handle});
     }
+    const turn=$('doorTurn')?.value?.trim()||'';
+    if(turn){
+      items.push({key:'DOOR-TURN',type:'Фурнитура / Завертки',priceCategory:'Завертки',qty:1,unit:'шт.',step:1,name:turn});
+    }
     if(!includeBox())return items;
     const system=product()==='single42'?'42':'59';
     const color=bundleBoxColorText(system);
@@ -6847,6 +6876,8 @@ function companionItems(){
     if(lock)items.push({key:'DOOR-LOCK',type:'Фурнитура / Замки',priceCategory:'Замки',qty:1,unit:'шт.',step:1,name:lock});
     const handle=$('doorHandle')?.value?.trim()||'';
     if(handle)items.push({key:'DOOR-HANDLE',type:'Фурнитура / Ручки',priceCategory:'Ручки',qty:1,unit:'шт.',step:1,name:handle});
+    const turn=$('doorTurn')?.value?.trim()||'';
+    if(turn)items.push({key:'DOOR-TURN',type:'Фурнитура / Завертки',priceCategory:'Завертки',qty:1,unit:'шт.',step:1,name:turn});
     if($('doubleBoltLeft')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-LEFT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
     if($('doubleBoltRight')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-RIGHT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
     if(!includeBox())return items;
@@ -7224,9 +7255,9 @@ function refreshDynamicDetails(){
   if($('trimFilm')) $('trimFilm').closest('div')?.parentElement?.classList.toggle('hidden',$('trimCover')?.value!=='ПВХ-пленка');
   if($('doborStandard')) $('doborStandard').value=[100,150,200].includes(doborWidth())?'Стандарт':'Нестандарт';
   if(product()==='leaf36') updateBundle36();
-  if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();}
+  if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();}
   if(product()==='sliding42'){syncSliding42Armadillo();updateSlidingHandlePriceHint();}
-  if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorLockPriceHint();updateDoorHandlePriceHint()}
+  if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint()}
   if(product()==='hardware')renderHardwareSelectedPrice();
 }
 
@@ -7624,6 +7655,7 @@ function renderOrderExtras(){
   const pricedExtraLabels=new Set();
   if(companions.some(x=>x.key==='DOOR-LOCK'))pricedExtraLabels.add('Замок');
   if(companions.some(x=>x.key==='DOOR-HANDLE'||x.key==='SLIDE42-HANDLE'))pricedExtraLabels.add('Ручка');
+  if(companions.some(x=>x.key==='DOOR-TURN'))pricedExtraLabels.add('Завертка');
   const renderedExtras=extras.filter(([k])=>!pricedExtraLabels.has(k));
   renderedExtras.forEach(([k,v])=>lines.push(`<div><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`));
   companions.forEach(x=>{
