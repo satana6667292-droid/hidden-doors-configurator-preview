@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v82 · pricing control panel</title>
+<title>Hidden Doors — Личный кабинет · Прототип v83 · catalog pricing admin</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -912,6 +912,60 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 .pricing-rule-footnote{margin-top:10px;color:#7a6d5f}
 @media(max-width:900px){.pricing-rule-layout{grid-template-columns:1fr}}
 @media(max-width:560px){.pricing-rule-editor-head{display:grid}.pricing-rule-fields,.pricing-height-rules,.pricing-test-fields{grid-template-columns:1fr}.pricing-height-rules label{grid-template-columns:1fr 105px}}
+
+
+/* v83: scalable pricing admin navigation */
+.pricing-admin-nav{
+  position:sticky;top:0;z-index:4;display:flex;gap:7px;overflow-x:auto;padding:8px;margin:-2px 0 16px;
+  background:rgba(255,253,250,.94);backdrop-filter:blur(10px);border:1px solid #e6ddd3;border-radius:14px
+}
+.pricing-admin-nav button{
+  flex:0 0 auto;background:#f4f0ea;color:#5f554a;border:1px solid transparent;padding:9px 11px
+}
+.pricing-admin-nav button.active{background:#1f1b17;color:#fff;border-color:#1f1b17}
+.pricing-admin-content{min-width:0}
+.pricing-section-head{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin:4px 0 14px
+}
+.pricing-section-title{
+  font-family:'Manrope','Inter',sans-serif;font-size:22px;font-weight:900;line-height:1.15;color:#2f2922
+}
+.pricing-section-badge{
+  display:inline-flex;padding:6px 9px;border-radius:999px;background:#f2eee8;border:1px solid #ddd3c8;
+  color:#65594c;font-size:10px;font-weight:900;white-space:nowrap
+}
+.pricing-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 18px}
+.pricing-category-card{
+  display:grid;gap:9px;text-align:left;padding:14px;background:#fbf9f6;color:#4e4439;border:1px solid #e4dbd1;border-radius:14px
+}
+.pricing-category-card:hover{background:#fffaf1;border-color:#d8c3a4}
+.pricing-category-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pricing-category-card>span:last-child{font-size:11px;line-height:1.45;color:#72675c}
+.pricing-wide-card{margin-top:12px}
+.pricing-table-note{margin-top:10px;color:#74695d}
+.pricing-roadmap-lines{display:grid;gap:8px}
+.pricing-roadmap-lines>div{
+  display:grid;grid-template-columns:minmax(130px,180px) auto 1fr;align-items:center;gap:10px;
+  padding:9px 10px;border:1px solid #e7dfd6;border-radius:10px;background:#fff
+}
+.pricing-roadmap-lines small{font-size:10px;line-height:1.4;color:#75695d}
+.pricing-empty-state{
+  display:flex;gap:14px;align-items:flex-start;padding:22px;border:1px dashed #d8cbbd;border-radius:16px;background:#fbf9f6
+}
+.pricing-empty-icon{
+  display:grid;place-items:center;flex:0 0 48px;height:48px;border-radius:14px;background:#1f1b17;color:#d8c3a4;
+  font-family:'Manrope','Inter',sans-serif;font-size:13px;font-weight:900
+}
+.pricing-empty-state b{font-size:16px}
+.pricing-empty-state p{margin:5px 0 7px;font-size:12px;line-height:1.5;color:#62584d}
+.pricing-empty-state span{font-size:10px;color:#83776a}
+@media(max-width:980px){.pricing-category-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){
+  .pricing-category-grid{grid-template-columns:1fr}
+  .pricing-section-head{display:grid}
+  .pricing-roadmap-lines>div{grid-template-columns:1fr auto}
+  .pricing-roadmap-lines small{grid-column:1/-1}
+}
 </style>
 </head>
 <body>
@@ -929,7 +983,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v82 · pricing control panel</div>
+        <div class="version-chip"><span>HD</span> v83 · catalog pricing admin</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1617,6 +1671,138 @@ function salesPriceCoverageStatusMeta(status){
     future:{label:'Следующий слой',cls:'info'}
   })[status]||{label:String(status||'—'),cls:'info'};
 }
+const PRICING_ADMIN_SECTION_STORE='hd_v83_pricing_admin_section';
+const PRICING_ADMIN_SECTIONS=Object.freeze([
+  Object.freeze({id:'overview',label:'Обзор'}),
+  Object.freeze({id:'door36',label:'Двери 36'}),
+  Object.freeze({id:'door42',label:'Двери 42'}),
+  Object.freeze({id:'door59',label:'Двери 59'}),
+  Object.freeze({id:'trim',label:'Погонаж'}),
+  Object.freeze({id:'hardware',label:'Фурнитура'}),
+  Object.freeze({id:'extras',label:'Доп. работы'}),
+  Object.freeze({id:'cost',label:'Себестоимость'})
+]);
+function activePricingAdminSection(){
+  const raw=typeof getStore==='function'?getStore(PRICING_ADMIN_SECTION_STORE,'overview'):'overview';
+  return PRICING_ADMIN_SECTIONS.some(x=>x.id===raw)?raw:'overview';
+}
+function setPricingAdminSection(id){
+  const next=PRICING_ADMIN_SECTIONS.some(x=>x.id===id)?id:'overview';
+  if(typeof setStore==='function')setStore(PRICING_ADMIN_SECTION_STORE,next);
+  renderPricingAdmin();
+}
+function pricingAdminNavHtml(active=activePricingAdminSection()){
+  return '<div class="pricing-admin-nav">'+PRICING_ADMIN_SECTIONS.map(x=>
+    '<button class="'+(x.id===active?'active':'')+'" onclick="setPricingAdminSection(\''+x.id+'\')">'+escapeHtml(x.label)+'</button>'
+  ).join('')+'</div>';
+}
+function pricingAdminSectionHeader(title,subtitle,badge=''){
+  return '<div class="pricing-section-head"><div><div class="pricing-section-title">'+escapeHtml(title)+'</div><div class="mini">'+escapeHtml(subtitle)+'</div></div>'+
+    (badge?'<span class="pricing-section-badge">'+escapeHtml(badge)+'</span>':'')+'</div>';
+}
+function renderPricingOverview(){
+  const active=activeSalesPriceBook('wholesale2');
+  const connected=SALES_PRICE_COVERAGE.filter(x=>x.status==='connected').length;
+  const unresolved=SALES_PRICE_COVERAGE.length-connected;
+  return '<div class="pricing-admin-grid">'+
+      '<div class="pricing-admin-card primary">'+
+        '<div class="pricing-admin-kicker">Активный прайс · Опт 2</div>'+
+        '<div class="pricing-admin-title">'+escapeHtml(active?.name||'Не назначен')+'</div>'+
+        '<div class="pricing-admin-meta">'+
+          '<span>Версия <b>'+escapeHtml(active?.version||'—')+'</b></span>'+
+          '<span>Статус <b>'+escapeHtml(salesPriceBookStatusLabel(active?.status))+'</b></span>'+
+          '<span>Источник обновлён <b>'+escapeHtml(active?.sourceUpdated||'—')+'</b></span>'+
+          '<span>Утверждён <b>'+escapeHtml(active?.approvedAt||'—')+'</b></span>'+
+        '</div>'+
+        '<div class="pricing-admin-policy"><b>Правило цены:</b> '+escapeHtml(salesPriceBookPolicyLabel(active?.lookupPolicy))+
+          '. Если нет точного правила или утверждённой формулы — цена не подставляется автоматически.</div>'+
+      '</div>'+
+      '<div class="pricing-admin-card">'+
+        '<div class="pricing-admin-kicker">Контроль покрытия</div>'+
+        '<div class="pricing-admin-big">'+connected+' / '+SALES_PRICE_COVERAGE.length+'</div>'+
+        '<div class="mini">блоков уже подключены · '+unresolved+' ещё требуют настройки</div>'+
+      '</div>'+
+      '<div class="pricing-admin-card">'+
+        '<div class="pricing-admin-kicker">Архитектура</div>'+
+        '<div class="pricing-admin-title">Одна панель для всего каталога</div>'+
+        '<div class="mini">Двери, погонаж, фурнитура, доп. работы и себестоимость постепенно подключаются к одному административному контуру.</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="pricing-category-grid">'+
+      [
+        ['door36','36 мм','Полотно и погонаж Опт 2 подключены','ok'],
+        ['door42','42 мм','База и коэффициенты управляются вручную','ok'],
+        ['door59','59 мм','Источник проанализирован, правила ещё не включены','warn'],
+        ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
+        ['hardware','Фурнитура','Пока BASE Bitrix24; sales-tier ещё не подключён','info'],
+        ['extras','Доп. работы','Цены источника собраны, автоматизация впереди','warn'],
+        ['cost','Себестоимость','Отдельный будущий слой','info']
+      ].map(([id,title,desc,status])=>'<button class="pricing-category-card" onclick="setPricingAdminSection(\''+id+'\')">'+
+        '<span class="pricing-category-card-top"><b>'+escapeHtml(title)+'</b><span class="pricing-status '+status+'">'+escapeHtml(status==='ok'?'Подключено':status==='warn'?'В работе':'Отдельный слой')+'</span></span>'+
+        '<span>'+escapeHtml(desc)+'</span>'+
+      '</button>').join('')+
+    '</div>'+
+    '<div class="section">'+
+      '<div class="section-title">Покрытие активным прайсом</div>'+
+      '<div class="table-wrap"><table class="pricing-coverage-table"><thead><tr><th>Блок</th><th>Область</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody>'+
+      SALES_PRICE_COVERAGE.map(row=>{const m=salesPriceCoverageStatusMeta(row.status);return '<tr>'+
+        '<td><b>'+escapeHtml(row.block)+'</b></td>'+
+        '<td>'+escapeHtml(row.area)+'</td>'+
+        '<td><span class="pricing-status '+m.cls+'">'+escapeHtml(m.label)+'</span></td>'+
+        '<td>'+escapeHtml(row.note)+'</td>'+
+      '</tr>'}).join('')+
+      '</tbody></table></div>'+
+    '</div>';
+}
+function renderPricing36Admin(){
+  const book=typeof price36Book==='function'?price36Book('wholesale2'):null;
+  if(!book)return pricingAdminSectionHeader('Двери 36','Опт 2 пока не подключён','Не подключено');
+  const rows=[
+    ['Полотно ПВХ 36 мм',book.doorLeaf,'шт.'],
+    ['Базовый комплект',book.doorKit,'компл.'],
+    ['Короб телескопический',book.trim?.box,'шт.'],
+    ['Наличник телескопический',book.trim?.casing,'шт.'],
+    ['Добор 100',book.trim?.dobor100,'шт.'],
+    ['Добор 150',book.trim?.dobor150,'шт.'],
+    ['Добор 200',book.trim?.dobor200,'шт.'],
+    ['Притворная планка',book.trim?.rebate,'шт.'],
+    ['Соединительная планка',book.trim?.connector,'шт.']
+  ];
+  return pricingAdminSectionHeader('Двери 36 · Опт 2','Текущие рабочие цены из активного Partner Price Book. На этом этапе показаны как контрольная таблица.','Подключено')+
+    '<div class="pricing-admin-card pricing-wide-card"><div class="table-wrap"><table><thead><tr><th>Позиция</th><th>Цена</th><th>Ед.</th><th>Режим</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td><b>'+escapeHtml(r[0])+'</b></td><td>'+formatRub(r[1])+'</td><td>'+escapeHtml(r[2])+'</td><td><span class="pricing-status ok">Опт 2</span></td></tr>').join('')+
+    '</tbody></table></div><div class="mini pricing-table-note">Следующий этап для 36 мм — такой же ручной редактор, как у 42 мм, после отдельного согласования правил.</div></div>';
+}
+function renderPricing42Admin(){
+  return pricingAdminSectionHeader('Двери 42 · Опт 2','Рабочая модель цены: база 2000 мм + управляемые коэффициенты.','Редактируется')+
+    renderPricing42RuleEditor()+
+    '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Следующий уровень 42 мм</div>'+
+    '<div class="pricing-roadmap-lines">'+
+      '<div><b>Полотно</b><span class="pricing-status ok">Подключено</span><small>База, высота, ширина, реверс</small></div>'+
+      '<div><b>Комплект короба</b><span class="pricing-status warn">Следующий блок</span><small>Коммерческая строка + производственная детализация</small></div>'+
+      '<div><b>K8060 / Vantage</b><span class="pricing-status info">Отдельный sales-tier</span><small>Не смешиваем с BASE Bitrix24</small></div>'+
+      '<div><b>Итог комплекта</b><span class="pricing-status warn">Следующий блок</span><small>Контроль против прайса 19 090 / 20 815</small></div>'+
+    '</div></div>';
+}
+function renderPricingSimpleSection(id){
+  const map={
+    door59:['Двери 59','Прайс разобран. Пока правила расчёта и исключения не включены, чтобы не переносить противоречия источника в рабочую цену.','В работе'],
+    trim:['Погонаж','36 мм уже подключён. Для 42/59 здесь будут отдельные цены полного короба, стоек, поперечин и продажа отдельных деталей.','Расширяем'],
+    hardware:['Фурнитура','Сейчас каталог показывает BASE Bitrix24. В этой панели появятся отдельные Розница / Опт 1 / Опт 2, чтобы фурнитура считалась в том же sales-price контуре.','Отдельный price tier'],
+    extras:['Дополнительные работы','Сюда войдут фрезеровки, скрытый стопор, автопорог, стекло/зеркало, ПВХ, RAL, откатная система и другие работы.','В работе'],
+    cost:['Себестоимость','Нормативная и фактическая себестоимость будет жить отдельно от продажной цены: материалы + операции + фурнитура + расходники + упаковка.','Отдельный слой']
+  };
+  const row=map[id]||map.cost;
+  return pricingAdminSectionHeader(row[0],row[1],row[2])+
+    '<div class="pricing-empty-state"><div class="pricing-empty-icon">HD</div><div><b>'+escapeHtml(row[0])+'</b><p>'+escapeHtml(row[1])+'</p><span>Структура раздела уже зарезервирована в общей административной панели.</span></div></div>';
+}
+function renderPricingAdminBody(section){
+  if(section==='overview')return renderPricingOverview();
+  if(section==='door36')return renderPricing36Admin();
+  if(section==='door42')return renderPricing42Admin();
+  return renderPricingSimpleSection(section);
+}
+
 function pricing42AdminNumber(id){
   return Number(typeof $==='function'?$(id)?.value:'');
 }
@@ -1756,57 +1942,9 @@ function renderPricing42RuleEditor(){
 function renderPricingAdmin(){
   const root=typeof $==='function'?$('pricingAdminRoot'):null;
   if(!root)return;
-  const active=activeSalesPriceBook('wholesale2');
-  const connected=SALES_PRICE_COVERAGE.filter(x=>x.status==='connected').length;
-  const unresolved=SALES_PRICE_COVERAGE.length-connected;
-  root.innerHTML=
-    '<div class="pricing-admin-grid">'+
-      '<div class="pricing-admin-card primary">'+
-        '<div class="pricing-admin-kicker">Активный прайс · Опт 2</div>'+
-        '<div class="pricing-admin-title">'+escapeHtml(active?.name||'Не назначен')+'</div>'+
-        '<div class="pricing-admin-meta">'+
-          '<span>Версия <b>'+escapeHtml(active?.version||'—')+'</b></span>'+
-          '<span>Статус <b>'+escapeHtml(salesPriceBookStatusLabel(active?.status))+'</b></span>'+
-          '<span>Источник обновлён <b>'+escapeHtml(active?.sourceUpdated||'—')+'</b></span>'+
-          '<span>Утверждён <b>'+escapeHtml(active?.approvedAt||'—')+'</b></span>'+
-        '</div>'+
-        '<div class="pricing-admin-policy"><b>Правило поиска цены:</b> '+escapeHtml(salesPriceBookPolicyLabel(active?.lookupPolicy))+
-          '. Если нет точного правила или явно утверждённой формулы — конфигуратор показывает «Цена не заполнена / по запросу».</div>'+
-      '</div>'+
-      '<div class="pricing-admin-card">'+
-        '<div class="pricing-admin-kicker">Контроль покрытия</div>'+
-        '<div class="pricing-admin-big">'+connected+' / '+SALES_PRICE_COVERAGE.length+'</div>'+
-        '<div class="mini">блоков работают на sales-price архитектуре · '+unresolved+' требуют дальнейшего подключения</div>'+
-      '</div>'+
-      '<div class="pricing-admin-card">'+
-        '<div class="pricing-admin-kicker">Себестоимость</div>'+
-        '<div class="pricing-admin-title">Отдельный слой</div>'+
-        '<div class="mini">Продажная цена и себестоимость не смешиваются. Позже здесь появятся норматив, факт, маржа и отклонение.</div>'+
-      '</div>'+
-    '</div>'+
-    renderPricing42RuleEditor()+
-    '<div class="section">'+
-      '<div class="section-title">Покрытие активным прайсом</div>'+
-      '<div class="table-wrap"><table class="pricing-coverage-table"><thead><tr><th>Блок</th><th>Область</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody>'+
-      SALES_PRICE_COVERAGE.map(row=>{const m=salesPriceCoverageStatusMeta(row.status);return '<tr>'+
-        '<td><b>'+escapeHtml(row.block)+'</b></td>'+
-        '<td>'+escapeHtml(row.area)+'</td>'+
-        '<td><span class="pricing-status '+m.cls+'">'+escapeHtml(m.label)+'</span></td>'+
-        '<td>'+escapeHtml(row.note)+'</td>'+
-      '</tr>'}).join('')+
-      '</tbody></table></div>'+
-    '</div>'+
-    '<div class="section">'+
-      '<div class="section-title">Правила фундамента</div>'+
-      '<div class="pricing-rules">'+
-        '<div><b>1.</b> Прайс имеет собственные ID, версию, тип цены, источник и статус.</div>'+
-        '<div><b>2.</b> Для Опт 2 единственный активный источник сейчас — партнёрский прайс 2026.</div>'+
-        '<div><b>3.</b> Цена применяется по точному правилу либо по отдельно утверждённой формуле коэффициентов.</div>'+
-        '<div><b>4.</b> BASE Bitrix24 не считается Опт 2 и показывается отдельно, пока не появится sales-tier цена фурнитуры.</div>'+
-        '<div><b>5.</b> Ручные правки прототипа не меняют исходный прайс и могут быть сброшены к утверждённым значениям.</div>'+
-      '</div>'+
-    '</div>';
-  if(typeof renderPricing42RulePreview==='function')renderPricing42RulePreview();
+  const section=activePricingAdminSection();
+  root.innerHTML=pricingAdminNavHtml(section)+'<div class="pricing-admin-content">'+renderPricingAdminBody(section)+'</div>';
+  if(section==='door42'&&typeof renderPricing42RulePreview==='function')renderPricing42RulePreview();
 }
 
 // --- data/prices36.js ---
