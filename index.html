@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v34 · Импорт + контроль дублей</title>
+<title>Hidden Doors — Личный кабинет · Прототип v35 · Строка + импорт + контроль дублей</title>
 <style>
 :root{
   --bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
@@ -213,6 +213,8 @@ th{background:#f9fafb;font-weight:800}
 .import-question{border:1px solid #fed7aa;background:#fff7ed;border-radius:12px;padding:10px 12px;color:#9a3412;font-size:12px;line-height:1.45;margin-top:10px}
 @media(max-width:800px){.import-summary{grid-template-columns:1fr 1fr}.import-head{padding:14px}.import-body{padding:14px}}
 
+/* v35: paste-long-name import */
+.import-char-input{width:250px;min-height:58px;padding:8px 9px;font-size:11px;line-height:1.35;border-radius:8px;resize:vertical}
 </style>
 </head>
 <body>
@@ -220,7 +222,7 @@ th{background:#f9fafb;font-weight:800}
   <div class="top">
     <div>
       <h1>Hidden Doors — Личный кабинет</h1>
-      <div class="sub">Прототип v34 · полный конфигуратор · импорт + контроль дублей</div>
+      <div class="sub">Прототип v35 · полный конфигуратор · строка + импорт + контроль дублей</div>
     </div>
     <div class="rolebox">
       <label for="role">Роль</label>
@@ -474,10 +476,11 @@ th{background:#f9fafb;font-weight:800}
       </div>
       <div class="row" style="margin-bottom:14px">
         <button type="button" onclick="openNomenclatureImport()">Подгрузить файл</button>
+        <button class="secondary" type="button" onclick="openNomenclatureTextImport()">Вставить строку</button>
         <button class="secondary" onclick="dictionaryAddFilm()">+ ПВХ-плёнка</button>
         <button class="secondary" onclick="dictionaryAddRal()">+ RAL</button>
       </div>
-      <div class="catalog-note" style="margin-bottom:14px"><b>Импорт номенклатуры из файла</b><br>PDF, изображения, Excel и текстовые файлы можно сначала распознать и сопоставить со справочниками. Изменения применяются только после ручного подтверждения.</div>
+      <div class="catalog-note" style="margin-bottom:14px"><b>Добавление номенклатуры</b><br>Можно подгрузить PDF/изображение/Excel/текстовый файл или просто вставить длинное наименование строкой. Конфигуратор разнесёт распознанные данные по полям и характеристикам; изменения применяются только после ручного подтверждения.</div>
       <div class="pane" style="margin-bottom:14px">
         <div class="top" style="margin-bottom:8px">
           <div>
@@ -497,13 +500,13 @@ th{background:#f9fafb;font-weight:800}
       <div class="import-head">
         <div>
           <h3 id="nomenclatureImportTitle">Импорт номенклатуры</h3>
-          <div class="mini">Файл сначала анализируется и сопоставляется со справочниками. Ничего не сохраняется до нажатия «Применить импорт».</div>
+          <div class="mini">Файл или вставленная строка сначала анализируются и сопоставляются со справочниками. Ничего не сохраняется до нажатия «Применить импорт».</div>
         </div>
         <button class="import-close" type="button" onclick="closeNomenclatureImport()" aria-label="Закрыть">×</button>
       </div>
       <div class="import-body">
         <div class="import-steps">
-          <span id="importStep1" class="import-step active">1 · Файл</span>
+          <span id="importStep1" class="import-step active">1 · Источник</span>
           <span id="importStep2" class="import-step">2 · Сопоставление</span>
           <span id="importStep3" class="import-step">3 · Проверка</span>
         </div>
@@ -523,7 +526,7 @@ th{background:#f9fafb;font-weight:800}
             <div id="importProgressText" class="mini" style="margin-top:7px">Подготовка…</div>
           </div>
           <div id="importExtractedWrap" class="hidden" style="margin-top:12px">
-            <label>Распознанный текст <span class="mini">можно поправить перед сопоставлением</span></label>
+            <label>Распознанный / вставленный текст <span class="mini">можно поправить перед сопоставлением</span></label>
             <textarea id="importExtractedText" style="min-height:160px"></textarea>
             <div class="row" style="margin-top:10px">
               <button type="button" onclick="buildNomenclatureImportProposals()">Сопоставить со справочниками</button>
@@ -544,6 +547,7 @@ th{background:#f9fafb;font-weight:800}
                 <th style="width:170px">Артикул</th>
                 <th style="width:160px">Модель / серия</th>
                 <th style="width:150px">Цвет / отделка</th>
+                <th style="width:260px">Характеристики</th>
                 <th style="width:125px">Статус</th>
               </tr></thead>
               <tbody id="importProposalBody"></tbody>
@@ -551,7 +555,7 @@ th{background:#f9fafb;font-weight:800}
           </div>
           <div class="import-actions">
             <div class="row">
-              <button class="secondary" type="button" onclick="backToImportFile()">← Назад к файлу</button>
+              <button class="secondary" type="button" onclick="backToImportFile()">← Назад к источнику</button>
               <button class="ghost" type="button" onclick="removeUncheckedImportRows()">Убрать исключённые</button>
             </div>
             <button id="applyNomenclatureImportBtn" type="button" onclick="applyNomenclatureImport()" disabled>Применить импорт</button>
@@ -3813,6 +3817,7 @@ function dictionaryAddFilm(){
 let nomenclatureImportFile=null;
 let nomenclatureImportRows=[];
 let nomenclatureImportBusy=false;
+let nomenclatureImportSourceLabel='Ручной ввод';
 
 const IMPORT_CATEGORY_OPTIONS=[
   ['film36','ПВХ-плёнки 36'],
@@ -3837,15 +3842,29 @@ function importCategoryOptions(selected){
 }
 function openNomenclatureImport(){
   resetNomenclatureImport();
+  nomenclatureImportSourceLabel='Файл';
   $('nomenclatureImportModal')?.classList.remove('hidden');
   document.body.style.overflow='hidden';
+}
+function openNomenclatureTextImport(){
+  resetNomenclatureImport();
+  nomenclatureImportSourceLabel='Вставленная строка';
+  $('nomenclatureImportModal')?.classList.remove('hidden');
+  document.body.style.overflow='hidden';
+  $('importExtractedWrap')?.classList.remove('hidden');
+  $('importProgressWrap')?.classList.add('hidden');
+  const area=$('importExtractedText');
+  if(area){
+    area.placeholder='Вставьте длинное наименование. Можно вставить несколько позиций — по одной на строку.';
+    area.focus();
+  }
 }
 function closeNomenclatureImport(){
   $('nomenclatureImportModal')?.classList.add('hidden');
   document.body.style.overflow='';
 }
 function resetNomenclatureImport(){
-  nomenclatureImportFile=null;nomenclatureImportRows=[];nomenclatureImportBusy=false;
+  nomenclatureImportFile=null;nomenclatureImportRows=[];nomenclatureImportBusy=false;nomenclatureImportSourceLabel='Ручной ввод';
   if($('nomenclatureImportFile'))$('nomenclatureImportFile').value='';
   if($('importFileName'))$('importFileName').textContent='';
   if($('importExtractedText'))$('importExtractedText').value='';
@@ -3875,6 +3894,7 @@ async function loadExternalScript(src,test){
 async function handleNomenclatureImportFile(file){
   if(!file||nomenclatureImportBusy)return;
   nomenclatureImportFile=file;
+  nomenclatureImportSourceLabel=file.name||'Файл';
   $('importFileName').textContent=file.name+' · '+Math.max(1,Math.round(file.size/1024))+' КБ';
   nomenclatureImportBusy=true;
   try{
@@ -3973,9 +3993,8 @@ function extractImportArticle(line,category){
     return m?m[0].replace(/\s+/g,' ').trim().toUpperCase():'';
   }
   const patterns=[
-    /\b[A-ZА-Я]{1,8}[\wА-Яа-я]*[.\/-][A-ZА-Я0-9][A-ZА-Я0-9._\/-]{2,}\b/i,
-    /\b[A-ZА-Я]{1,8}-[A-ZА-Я0-9][A-ZА-Я0-9._\/-]{2,}\b/i,
-    /\b[A-ZА-Я]{1,8}\d[A-ZА-Я0-9._\/-]{2,}\b/i
+    /\b[A-ZА-Я]{1,16}[A-ZА-Я0-9]*[.\/-][A-ZА-Я0-9][A-ZА-Я0-9._\/-]{1,}\b/i,
+    /\b[A-ZА-Я]{1,16}\d[A-ZА-Я0-9._\/-]{2,}\b/i
   ];
   for(const re of patterns){const m=line.match(re);if(m)return m[0].toUpperCase()}
   return '';
@@ -3989,6 +4008,130 @@ function importNameFromLine(line,article){
   let name=normalizeImportLine(line);
   if(article && name.toUpperCase().endsWith(article.toUpperCase()))name=name.slice(0,-article.length).trim().replace(/[—–,-]+$/,'').trim();
   return name;
+}
+
+function extractImportModel(line,brand='',article=''){
+  const s=String(line||'');
+  const candidates=s.match(/\b(?=[A-ZА-Я0-9._\/-]*\d)[A-ZА-Я][A-ZА-Я0-9._\/-]{2,}\b/gi)||[];
+  const picked=candidates.find(x=>{
+    const u=x.toUpperCase();
+    return u!=='RAL'&&u!=='EN'&&!/^\d+$/.test(x)&&!/^\d+[XХ×]\d+$/i.test(x)&&!/^[XХ×]\d+$/i.test(x);
+  });
+  if(picked)return picked.trim();
+  if(article)return String(article).trim().split(/\s+/)[0]||'';
+  return '';
+}
+function extractImportFinish(line){
+  const direct=String(line||'').match(/(?:цвет|отделк[аи]|покрыти[ея])\s*[-:–—]?\s*([^,;()]{2,60})/i);
+  if(direct)return direct[1].trim().replace(/[.]+$/,'');
+  const finishes=[
+    'сатинированное золото','флорентийское золото','итальянский тисненый','матовое золото',
+    'матовый никель','вороненый никель','сатинированный хром','матовый хром',
+    'нержавеющая сталь','черный матовый','чёрный матовый','белый','белая','серебристый',
+    'алюминий','графит','антрацит','бронза','хром','черный','чёрный','золото'
+  ];
+  const low=String(line||'').toLowerCase();
+  return finishes.find(x=>low.includes(x.toLowerCase()))||'';
+}
+function importMassKg(line){
+  const m=String(line||'').match(/(?:до\s*|max(?:имальн\w*)?\s*)?(\d{2,3})\s*кг(?=\s|[,.;)]|$)/i);
+  return m?Number(m[1]):null;
+}
+function importDoorThicknesses(line){
+  const out=[];
+  for(const m of String(line||'').matchAll(/\b(36|42|59)\s*мм(?=\s|[,.;)]|$)/gi)){
+    const v=Number(m[1]);if(!out.includes(v))out.push(v);
+  }
+  return out;
+}
+function importBaseShape(line){
+  const s=String(line||'').toLowerCase();
+  if(/квадратн/.test(s))return 'Квадратная';
+  if(/кругл/.test(s))return 'Круглая';
+  if(/прямоугольн/.test(s))return 'Прямоугольная';
+  return '';
+}
+function parseImportCharacteristics(line,category){
+  const s=String(line||''),low=s.toLowerCase(),c={extra:[]};
+  const add=(name,value)=>{if(value!==null&&value!==undefined&&String(value).trim()!=='')c.extra.push({name,value:String(value)})};
+  const mass=importMassKg(s);
+  const thickness=importDoorThicknesses(s);
+  const size=s.match(/\b(\d{2,4})\s*[xх×]\s*(\d{1,4})(?:\s*[xх×]\s*(\d{1,4}))?\s*(?:мм)?\b/i);
+  if(size)add('Размер',size.slice(1).filter(Boolean).join('×')+' мм');
+
+  if(category==='lock'){
+    c.lockType=/магнит/.test(low)?'Магнитный':/цилиндр/.test(low)?'Под цилиндр':/\bwc\b|сантех/.test(low)?'WC':/защ[её]л/.test(low)?'Защёлка':/механ/.test(low)?'Механический':'Другой';
+    const m=s.match(/(?:backset|дорнмасс|дорн)\D{0,12}(\d{2,3})\s*(?:мм)?/i);c.backset=m?Number(m[1]):null;
+  }
+  if(category==='handle'){
+    c.handleType=/раздвиж|откатн/.test(low)?'Для раздвижной двери':/кноб|knob/.test(low)?'Кноб':/ручк/.test(low)?'На розетке':'Другая';
+    c.baseShape=importBaseShape(s)||'Специальная';
+  }
+  if(category==='hinge'){
+    c.hingeType=/скрыт|invisible|kubica|krona/.test(low)?'Скрытая':/карточн/.test(low)?'Карточная':'Другая';
+    c.maxMass=mass;c.doorThickness=thickness;
+  }
+  if(category==='turn'){
+    c.turnType=/накладк.*цилиндр/.test(low)?'Накладка под цилиндр':/вставк.*шток/.test(low)?'Вставка под шток цилиндра':/вертуш.*шток/.test(low)?'Вертушка на шток цилиндра':/\bwc\b|заверт|сантех/.test(low)?'Сантехническая завертка / WC':'Другое';
+    const m=s.match(/(?:квадрат|шток|ось)[^\d]{0,16}(\d{2,3})\s*мм/i);c.shaftLength=m?Number(m[1]):null;
+    c.baseShape=importBaseShape(s)||'Не применяется';
+  }
+  if(category==='cylinder'){
+    c.cylinderExecution=/ключ\s*[\/+-]\s*верт|ключ.*вертуш/.test(low)?'Ключ / вертушка':/ключ\s*[\/+-]\s*ключ/.test(low)?'Ключ / ключ':'Другое';
+    const ab=s.match(/\b(\d{2,3})\s*[\/xх×+]\s*(\d{2,3})\b/);
+    if(ab){c.sideA=Number(ab[1]);c.sideB=Number(ab[2]);c.totalLength=c.sideA+c.sideB}
+    else {const lm=s.match(/(?:длина|цилиндр)[^\d]{0,16}(\d{2,3})\s*мм/i);c.totalLength=lm?Number(lm[1]):null;c.sideA=null;c.sideB=null}
+    const keys=s.match(/(\d{1,2})\s*ключ/i);c.keyCount=keys?Number(keys[1]):null;
+    c.doorThickness=thickness;
+    c.thumbSide=/вертушк.*сторон[ае]\s*a/i.test(low)?'Сторона A':/вертушк.*сторон[ае]\s*b/i.test(low)?'Сторона B':c.cylinderExecution==='Ключ / вертушка'?'Неважно':null;
+  }
+  if(category==='stop'){
+    c.stopType=/скрыт.*магнит/.test(low)?'Скрытый магнитный стопор':/напольн/.test(low)?'Напольный упор / ограничитель':/магнит/.test(low)?'Магнитный стопор':/ограничител/.test(low)?'Дверной ограничитель':'Другой';
+    c.mountType=/скрыт/.test(low)?'Скрытый':/напольн/.test(low)?'Напольный':/клеев/.test(low)?'На клеевой основе':/наклад/.test(low)?'Накладной':'Другой';
+  }
+  if(category==='threshold'){
+    c.thresholdType=/автомат|выпадающ/.test(low)?'Автоматический выпадающий порог':'Другой';
+    const m=s.match(/(?:длина|\bL\b)[^\d]{0,12}(\d{3,4})\s*(?:мм)?/i)||s.match(/\b(?:F\/)?(\d{3,4})\b/);c.length=m?Number(m[1]):null;
+  }
+  if(category==='closer'){
+    c.closerType=/скрыт|врезн/.test(low)?'Скрытый / врезной':/скользящ/.test(low)?'Со скользящей тягой':/доводчик/.test(low)?'Накладной':'Другой';
+    const en=s.match(/\bEN\s*\d+(?:\s*[-–—]\s*\d+)?\b/i);c.enClass=en?en[0].replace(/\s+/g,''):'';
+    c.maxMass=mass;c.holdOpen=/без\s*фиксац/.test(low)?'Нет':/фиксац/.test(low)?'Есть':'Не указано';
+  }
+  if(category==='opening'){
+    c.openingType=/пенал|кассет/.test(low)?'Пенал / кассета':/книжк/.test(low)?'Книжка':/рото|roto/.test(low)?'Рото':/pivot/.test(low)?'Pivot':/twice/.test(low)?'Twice':/телескоп/.test(low)?'Телескопическая':/синхрон/.test(low)?'Синхронная':/раздвиж|откатн|hidden\/|invisible-2/.test(low)?'Раздвижная':'Другое';
+    c.itemType=/направляющ/.test(low)?'Направляющая':/ролик|механизм/.test(low)?'Ролики / механизм':/толкател/.test(low)?'Толкатель':/обрамлен/.test(low)?'Обрамление':/пенал|кассет/.test(low)?'Пенал':/систем|комплект|hidden\/|invisible-2/.test(low)?'Полная система / комплект':'Другой компонент';
+    c.maxMass=mass;
+    const wr=s.match(/ширин\w*[^\d]{0,15}(\d{3,4})\s*(?:[-–—]|до)\s*(\d{3,4})/i);if(wr){c.minWidth=Number(wr[1]);c.maxWidth=Number(wr[2])}
+    const hr=s.match(/высот\w*[^\d]{0,15}(\d{3,4})\s*(?:[-–—]|до)\s*(\d{3,4})/i);if(hr){c.minHeight=Number(hr[1]);c.maxHeight=Number(hr[2])}
+    c.direction=/лев/.test(low)?'Левая':/прав/.test(low)?'Правая':/универс|неваж/.test(low)?'Универсальная / неважно':null;
+  }
+  if(category==='grille'){
+    c.material=/алюмин/.test(low)?'Алюминий':/металл|сталь/.test(low)?'Металл':'Другой';
+    if(size){c.size1=Number(size[1]);c.size2=Number(size[2])}
+    c.grilleType=/врезн/.test(low)?'Врезная':/наклад|реш[её]тк/.test(low)?'Накладная / обычная':'Другое';
+    c.packageType=/комплект/.test(low)?'Комплект':/1\s*шт/.test(low)?'1 шт.':null;
+  }
+  if(mass&&!['hinge','closer','opening'].includes(category))add('Максимальная масса',mass+' кг');
+  if(thickness.length&&!['hinge','cylinder'].includes(category))add('Толщина двери',thickness.join(', ')+' мм');
+  return c;
+}
+function importCharacteristicsText(c){
+  if(!c)return '';
+  const p=[];
+  const put=(name,value,unit='')=>{if(value!==null&&value!==undefined&&value!==''&&!(Array.isArray(value)&&!value.length))p.push(name+': '+(Array.isArray(value)?value.join(', '):value)+unit)};
+  put('Тип замка',c.lockType);put('Backset',c.backset,' мм');
+  put('Тип ручки',c.handleType);put('Основание',c.baseShape);
+  put('Тип петли',c.hingeType);put('Макс. масса',c.maxMass,' кг');if(c.doorThickness?.length)put('Толщина двери',c.doorThickness,' мм');
+  put('Тип завертки',c.turnType);put('Шток / квадрат',c.shaftLength,' мм');
+  put('Исполнение цилиндра',c.cylinderExecution);put('Длина цилиндра',c.totalLength,' мм');put('A',c.sideA,' мм');put('B',c.sideB,' мм');put('Ключей',c.keyCount);put('Сторона вертушки',c.thumbSide);
+  put('Тип стопора',c.stopType);put('Монтаж',c.mountType);
+  put('Тип порога',c.thresholdType);put('Длина',c.length,' мм');
+  put('Тип доводчика',c.closerType);put('EN',c.enClass);put('Фиксация',c.holdOpen);
+  put('Тип открывания',c.openingType);put('Тип позиции',c.itemType);put('Ширина min',c.minWidth,' мм');put('Ширина max',c.maxWidth,' мм');put('Высота min',c.minHeight,' мм');put('Высота max',c.maxHeight,' мм');put('Направление',c.direction);
+  put('Материал',c.material);put('Размер 1',c.size1,' мм');put('Размер 2',c.size2,' мм');put('Тип решётки',c.grilleType);put('Комплектация',c.packageType);
+  (c.extra||[]).forEach(x=>put(x.name,x.value));
+  return [...new Set(p)].join('; ');
 }
 function existingImportMatch(row){
   const art=(row.article||'').trim().toUpperCase();
@@ -4030,7 +4173,7 @@ function validateImportRow(row){
     if(!row.article.trim())return {status:'review',message:'Нет артикула'};
   }else{
     if(!row.name.trim())return {status:'review',message:'Нет наименования'};
-    if(!row.article.trim())return {status:'review',message:'Нет артикула'};
+    if(row.category!=='grille'&&!row.article.trim())return {status:'review',message:'Нет артикула'};
   }
   const batchDup=priorImportBatchDuplicate(row);
   if(batchDup)return {status:'exists',message:'Дубль в файле'};
@@ -4045,11 +4188,19 @@ function buildNomenclatureImportProposals(){
   let lines=text.split(/\r?\n/).map(normalizeImportLine).filter(x=>x.length>=3);
   const seen=new Set();lines=lines.filter(x=>{const k=x.toLowerCase();if(seen.has(k))return false;seen.add(k);return true});
   nomenclatureImportRows=lines.slice(0,500).map((line,i)=>{
-    const category=guessImportCategory(line),article=extractImportArticle(line,category);
-    return {id:i+1,checked:true,source:line,category,name:category==='ral'?(article||line):importNameFromLine(line,article),brand:extractImportBrand(line),article,model:'',finish:'',status:'review',message:''};
+    const category=guessImportCategory(line),article=extractImportArticle(line,category),brand=extractImportBrand(line);
+    const model=extractImportModel(line,brand,article),finish=extractImportFinish(line);
+    const characteristics=parseImportCharacteristics(line,category);
+    return {
+      id:i+1,checked:true,source:line,category,
+      name:category==='ral'?(article||line):importNameFromLine(line,article),
+      brand,article,model,finish,characteristics,
+      characteristicsText:importCharacteristicsText(characteristics),
+      status:'review',message:''
+    };
   });
   if(!nomenclatureImportRows.length){
-    nomenclatureImportRows=[{id:1,checked:true,source:'',category:'unknown',name:'',brand:'',article:'',model:'',finish:'',status:'review',message:'Добавьте позицию вручную'}];
+    nomenclatureImportRows=[{id:1,checked:true,source:'',category:'unknown',name:'',brand:'',article:'',model:'',finish:'',characteristics:{extra:[]},characteristicsText:'',status:'review',message:'Добавьте позицию вручную'}];
   }
   $('importFileStage')?.classList.add('hidden');$('importMatchStage')?.classList.remove('hidden');setImportStep(2);
   refreshImportRows();
@@ -4065,6 +4216,7 @@ function refreshImportRows(){
     '<td><input value="'+escapeHtml(r.article)+'" oninput="updateImportRow('+i+',\'article\',this.value)"></td>'+
     '<td><input value="'+escapeHtml(r.model)+'" oninput="updateImportRow('+i+',\'model\',this.value)"></td>'+
     '<td><input value="'+escapeHtml(r.finish)+'" oninput="updateImportRow('+i+',\'finish\',this.value)"></td>'+
+    '<td><textarea class="import-char-input" onchange="updateImportCharacteristicsText('+i+',this.value)">'+escapeHtml(r.characteristicsText||'')+'</textarea></td>'+
     '<td><span class="import-status '+r.status+'">'+escapeHtml(r.message)+'</span></td>'+
   '</tr>').join('');
   const active=nomenclatureImportRows.filter(r=>r.checked);
@@ -4074,7 +4226,7 @@ function refreshImportRows(){
     '<div class="import-stat"><span class="mini">Готово добавить</span><b>'+ready+'</b></div>'+
     '<div class="import-stat"><span class="mini">Уже есть</span><b>'+exists+'</b></div>'+
     '<div class="import-stat"><span class="mini">Нужно уточнить</span><b>'+review+'</b></div>';
-  $('importQuestions').innerHTML=review?'<div class="import-question"><b>Нужно уточнение.</b> Проверьте строки со статусом «Нужно уточнить»: выберите правильный справочник, заполните полный артикул и проверьте исполнение/цвет. Совпадение артикула с текущим каталогом специально блокирует импорт до уточнения. Можно снять галочку, чтобы не импортировать позицию.</div>':'';
+  $('importQuestions').innerHTML=review?'<div class="import-question"><b>Нужно уточнение.</b> Проверьте строки со статусом «Нужно уточнить»: выберите правильный справочник, заполните полный артикул и проверьте автоматически распознанные характеристики. Можно снять галочку, чтобы не импортировать позицию.</div>':'';
   const btn=$('applyNomenclatureImportBtn');if(btn)btn.disabled=review>0||ready===0;
   if(review===0)setImportStep(3);else setImportStep(2);
 }
@@ -4084,8 +4236,14 @@ function updateImportRow(i,key,value){
   if(key==='category'){
     const row=nomenclatureImportRows[i];
     if(row.category==='ral'&&!row.article){row.article=extractImportArticle(row.source,'ral')||row.name}
+    row.characteristics=parseImportCharacteristics(row.source,row.category);
+    row.characteristicsText=importCharacteristicsText(row.characteristics);
   }
   refreshImportRows();
+}
+function updateImportCharacteristicsText(i,value){
+  if(!nomenclatureImportRows[i])return;
+  nomenclatureImportRows[i].characteristicsText=value;
 }
 function removeUncheckedImportRows(){nomenclatureImportRows=nomenclatureImportRows.filter(x=>x.checked);refreshImportRows()}
 function backToImportFile(){$('importMatchStage')?.classList.add('hidden');$('importFileStage')?.classList.remove('hidden');setImportStep(1)}
@@ -4096,13 +4254,37 @@ function pushUniqueFilm(key,row){
   return false;
 }
 function importedHardwareItem(row){
-  return {
+  const c=row.characteristics||{};
+  const extra=[
+    {name:'Источник импорта',value:nomenclatureImportSourceLabel||nomenclatureImportFile?.name||'Ручной импорт'},
+    {name:'Исходная строка',value:row.source||row.name},
+    ...(c.extra||[])
+  ];
+  if(row.characteristicsText)extra.push({name:'Распознанные характеристики',value:row.characteristicsText});
+  const item={
     sku:nextHardwareSku(),name:row.name.trim(),brand:row.brand.trim(),article:row.article.trim().toUpperCase(),
-    model:(row.model||row.article||'').trim(),finish:row.finish.trim(),extra:[
-      {name:'Источник импорта',value:nomenclatureImportFile?.name||'Ручной импорт'},
-      {name:'Исходная строка',value:row.source||row.name}
-    ],importedAt:new Date().toISOString()
+    model:(row.model||row.article||'').trim(),finish:row.finish.trim(),extra,
+    importedAt:new Date().toISOString()
   };
+  if(row.category==='lock')Object.assign(item,{lockType:c.lockType||'Другой',backset:c.backset||null});
+  if(row.category==='handle')Object.assign(item,{handleType:c.handleType||'Другая',baseShape:c.baseShape||'Специальная'});
+  if(row.category==='hinge')Object.assign(item,{hingeType:c.hingeType||'Другая',maxMass:c.maxMass||null,doorThickness:c.doorThickness||[]});
+  if(row.category==='turn')Object.assign(item,{turnType:c.turnType||'Другое',shaftLength:c.shaftLength||null,baseShape:c.baseShape||'Не применяется'});
+  if(row.category==='cylinder')Object.assign(item,{
+    cylinderExecution:c.cylinderExecution||'Другое',totalLength:c.totalLength||null,sideA:c.sideA||null,sideB:c.sideB||null,
+    keyCount:c.keyCount??null,doorThickness:c.doorThickness||[],thumbSide:c.thumbSide||null
+  });
+  if(row.category==='stop')Object.assign(item,{stopType:c.stopType||'Другой',mountType:c.mountType||'Другой'});
+  if(row.category==='threshold')Object.assign(item,{thresholdType:c.thresholdType||'Другой',length:c.length||null});
+  if(row.category==='closer')Object.assign(item,{closerType:c.closerType||'Другой',enClass:c.enClass||null,maxMass:c.maxMass||null,holdOpen:c.holdOpen||'Не указано'});
+  if(row.category==='opening')Object.assign(item,{
+    openingType:c.openingType||'Другое',itemType:c.itemType||'Другой компонент',maxMass:c.maxMass||null,
+    minWidth:c.minWidth||null,maxWidth:c.maxWidth||null,minHeight:c.minHeight||null,maxHeight:c.maxHeight||null,direction:c.direction||null
+  });
+  if(row.category==='grille')Object.assign(item,{
+    material:c.material||'Другой',size1:c.size1||null,size2:c.size2||null,grilleType:c.grilleType||'Другое',packageType:c.packageType||null
+  });
+  return item;
 }
 function applyNomenclatureImport(){
   const active=nomenclatureImportRows.filter(r=>r.checked);
@@ -4136,7 +4318,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag')}));
   dz.addEventListener('drop',e=>{const f=e.dataTransfer?.files?.[0];if(f)handleNomenclatureImportFile(f)});
 });
-
 
 // --- app.js ---
 $('role').addEventListener('change',renderForm);
