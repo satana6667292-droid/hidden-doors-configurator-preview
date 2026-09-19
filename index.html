@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v77 · 42 мм стандарт · Опт 2</title>
+<title>Hidden Doors — Личный кабинет · Прототип v78 · Два каталога плёнок</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -845,7 +845,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v77 · 42 mm standard Opt 2</div>
+        <div class="version-chip"><span>HD</span> v78 · Two film catalogs</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1374,6 +1374,27 @@ const INITIAL_FILMS_36=[
 'Ларче орех — AG 2000'
 ];
 const BASE_RALS=['RAL 9003','RAL 9016','RAL 9005','RAL 7035','RAL 7047'];
+const INITIAL_FILMS_GENERAL=[
+'Эмалит Белый — TF 77 IE X 01','Эмалит Крем — TF 77 IE X 03','Эмалит Серый — TF 77 IE X 04',
+'Light Grey — TF 66 IE CX 02','Dark Grey — TF 66 IE CX 04','Графит шагрень — AG 1027',
+'Смоки шагрень — AG 1028','Белая шагрень — AG 1021','Белоснежная шагрень — AG 1020',
+'Латте шагрень — AG 1024','Лайт грей шагрень — AG 1026','Капучино шагрень — AG 1023',
+'Холст Сапфировый — TF 50 IE X 03','Холст Брюле — TF 19 IE XY 74','Мескалина — AG 1090',
+'Сафари — AG 1085','Тирамису — AG 1084','Олива — AG 1050','Мосс — AG 1081','Авори — AG 1051',
+'Маренго — AG 1082','Белый матовый — TF 14 IE X 41','White Alaska — TF 66 IE CX 01',
+'Ниагара — AG 1089','Light Beige — TF 66 IE CX 03','Бетон лофт натуральный — AG 141 L3',
+'Бетон лофт светлый — AG 142 L3','Бетон лофт графит — AG 145 L3','Бетон лофт грей — AG 144 L3',
+'Лофт белый — AG 133 L3','Лофт капучино — AG 131 L3','Лофт графит — AG 132 L3',
+'Бетон серый — TF 22 IE 2 73','Дюна Бриз — TF 3A IE 10A 07','Бетон бежевый — TF 22 IE 1 73',
+'Бетон пепельный — TF 52 IE 3 73','Бетон снежный — TF 52 IE 2 73','Бетон белый — TF 52 IE 1 73',
+'Дюна норд — TF 3A IE 8A 07','Дюна Солано — TF 3A IE 7A 07','Ясень графит эмаль — TF 58 IE X 16',
+'Ясень серый эмаль — TF 58 IE X 82','Ясень кремовый эмаль — TF 58 IE X 83','Орех кантри — AG 2001',
+'Белое дерево — AG 1060','Венге — AG 2003','Дуб филадельфия крем — AG 2006',
+'Дуб филадельфия графит — AG 2007','Дуб филадельфия коньяк — AG 2008','Астана Мерле — TF 71 IE 6 40',
+'Астана Натура — TF 71 IE 8 40','Дуб Шале Крем — TF 22 IE 1 85','Дуб натуральный — TF 14 IE 28 21',
+'Ларче орех — AG 2000','Графит нубук — AG 1047','Excimer Капучино Лайт — AG 3012',
+'Капучино Нубук — AG 1043','Милк Нубук — AG 1042','Грей софт — AG 1005'
+];
 const COVER_BASE=['Грунт под покраску','ПВХ-пленка','Шпон','Эмаль','HPL'];
 const COVER_ALU=[...COVER_BASE,'Бамбуковая панель','Стекло/зеркало'];
 
@@ -5998,8 +6019,8 @@ const product=()=>$('productType').value;
 function getStore(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch(e){return f}}
 function setStore(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function getFilms36(){return [...new Set([...INITIAL_FILMS_36,...getStore('hd_v4_films36',[])])]}
-function getFilmsGeneral(){return getStore('hd_v4_films_general',[])}
-function getFilms42(){return [...new Set([...getFilms36(),...getFilmsGeneral()])]}
+function getFilmsGeneral(){return [...new Set([...INITIAL_FILMS_GENERAL,...getStore('hd_v4_films_general',[])])]}
+function getFilms42(){return getFilmsGeneral()}
 function getRals(){return getStore('hd_v4_rals',BASE_RALS)}
 function getRegistry(){return getStore('hd_registry_v4_proto',[])}
 function saveRegistry(v){setStore('hd_registry_v4_proto',v)}
@@ -9009,15 +9030,12 @@ function addFilm(scope,targetId){
   const name=prompt('Название плёнки:'); if(!name)return;
   const article=prompt('Артикул плёнки:'); if(!article)return;
   const item=`${name.trim()} — ${article.trim().toUpperCase()}`;
-  const all=[...getFilms36(),...getFilmsGeneral()];
-  const same=all.find(x=>x.split('—').pop().trim().toUpperCase()===article.trim().toUpperCase());
-  if(same){alert('Плёнка с таким артикулом уже существует: '+same);return}
+  const list=scope==='36'?getFilms36():getFilmsGeneral();
+  const same=list.find(x=>x.split('—').pop().trim().toUpperCase()===article.trim().toUpperCase());
+  if(same){alert('Плёнка с таким артикулом уже существует в выбранном каталоге: '+same);return}
   const key=scope==='36'?'hd_v4_films36':'hd_v4_films_general';
   const vals=getStore(key,[]);vals.push(item);setStore(key,vals);
-  if($(targetId)){
-    const list = scope==='36' && product()==='leaf36' ? getFilms36() : (product()==='trim36'?getFilms36():getFilms42());
-    $(targetId).innerHTML=options(list,item);
-  }
+  if($(targetId))$(targetId).innerHTML=options(scope==='36'?getFilms36():getFilmsGeneral(),item);
   render();
 }
 
@@ -9026,12 +9044,7 @@ function addDictionaryFor(typeId,detailId,mode){
   const type=$(typeId)?.value;
   if(type==='Эмаль'){addRal(detailId);return}
   if(type!=='ПВХ-пленка')return;
-  let scope='36';
-  if(mode==='42'){
-    const answer=prompt('Куда добавить плёнку? Введите 36 или ОБЩИЙ','36');
-    if(answer===null)return;
-    scope=answer.trim().toLowerCase().startsWith('об')?'general':'36';
-  }
+  const scope=mode==='42'?'general':'36';
   addFilm(scope,detailId);
   updateFinishDetail(typeId);
 }
@@ -10783,7 +10796,8 @@ function runHardwareDuplicateAudit(){
 function renderDictionaries(){
   const box=$('dictionaryGrid'); if(!box)return;
   const cards=[
-    {name:'ПВХ-плёнки',count:getFilms42().length,note:'Редактируемый справочник: название + артикул'},
+    {filmScope:'36',name:'ПВХ-плёнки · 36 мм',count:getFilms36().length,note:'Каркасно-щитовые двери и погонаж 36 мм · название + артикул'},
+    {filmScope:'general',name:'ПВХ-плёнки · основной каталог',count:getFilmsGeneral().length,note:'Основной справочник для 42/59 мм и стеновых панелей · название + артикул'},
     {name:'RAL',count:getRals().length,note:'Редактируемый справочник цветов'},
     {key:'hinge',name:'Петли',count:dictionaryCardCount('hinge','Петли'),note:'Обязательные поля + произвольные дополнительные параметры'},
     {key:'lock',name:'Замки',count:dictionaryCardCount('lock','Замки'),note:'Обязательные поля + произвольные дополнительные параметры'},
@@ -10796,7 +10810,14 @@ function renderDictionaries(){
     {key:'opening',name:'Системы открывания',count:dictionaryCardCount('opening','Системы открывания'),note:'Обязательные поля + произвольные дополнительные параметры'},
     {key:'grille',name:'Вентиляционные решётки',count:dictionaryCardCount('grille','Вентиляционные решетки'),note:'Обязательные поля + произвольные дополнительные параметры'}
   ];
-  box.innerHTML=cards.map(x=>`<div class="dict-card"><h3>${escapeHtml(x.name)}</h3><div class="mini">${escapeHtml(x.note)}</div><div class="n">${x.count}</div>${x.key?`<div class="row catalog-write" style="margin-top:10px"><button class="secondary" type="button" onclick="openDictionaryEditor('${x.key}')">Добавить</button></div>`:''}</div>`).join('');
+  box.innerHTML=cards.map(x=>{
+    const action=x.key
+      ?`<div class="row catalog-write" style="margin-top:10px"><button class="secondary" type="button" onclick="openDictionaryEditor('${x.key}')">Добавить</button></div>`
+      :x.filmScope
+        ?`<div class="row catalog-write" style="margin-top:10px"><button class="secondary" type="button" onclick="dictionaryAddFilm('${x.filmScope}')">Добавить плёнку</button></div>`
+        :'';
+    return `<div class="dict-card"><h3>${escapeHtml(x.name)}</h3><div class="mini">${escapeHtml(x.note)}</div><div class="n">${x.count}</div>${action}</div>`;
+  }).join('');
   ensureDictionaryEditor();
 }
 
@@ -11167,10 +11188,16 @@ function dictionaryAddRal(){
   vals.push(norm);setStore('hd_v4_rals',vals);
   renderDictionaries(); renderForm();
 }
-function filmDuplicateCandidate(name,article){
+function filmValuesByScope(scope){
+  return scope==='36'?getFilms36():getFilmsGeneral();
+}
+function filmStoreKeyByScope(scope){
+  return scope==='36'?'hd_v4_films36':'hd_v4_films_general';
+}
+function filmDuplicateCandidate(scope,name,article){
   const nn=normalizeHardwareName(name);
   const aa=normalizeHardwareArticle(article);
-  for(const existing of getFilms42()){
+  for(const existing of filmValuesByScope(scope)){
     const text=String(existing||'');
     const parts=text.split('—');
     const existingName=parts.length>1?parts.slice(0,-1).join('—').trim():text.trim();
@@ -11180,19 +11207,21 @@ function filmDuplicateCandidate(name,article){
   }
   return '';
 }
-function dictionaryAddFilm(){
+function dictionaryAddFilm(scope='general'){
   if(!catalogWriteAllowed())return;
-  const name=prompt('Название плёнки:');if(!name)return;
+  const label=scope==='36'?'каталог 36 мм':'основной каталог';
+  const name=prompt('Название плёнки · '+label+':');if(!name)return;
   const article=prompt('Артикул плёнки:');if(!article)return;
   const cleanName=name.trim(),cleanArticle=article.trim().toUpperCase();
-  const duplicate=filmDuplicateCandidate(cleanName,cleanArticle);
+  const duplicate=filmDuplicateCandidate(scope,cleanName,cleanArticle);
   if(duplicate){
-    alert('Автоконтроль дублей: такая ПВХ-плёнка уже есть. Повтор не добавлен.\n\n'+duplicate);
+    alert('Автоконтроль дублей: такая ПВХ-плёнка уже есть в выбранном каталоге. Повтор не добавлен.\n\n'+duplicate);
     return;
   }
   const item=`${cleanName} — ${cleanArticle}`;
-  const vals=getStore('hd_v4_films_general',[]);
-  vals.push(item);setStore('hd_v4_films_general',vals);
+  const key=filmStoreKeyByScope(scope);
+  const vals=getStore(key,[]);
+  vals.push(item);setStore(key,vals);
   renderDictionaries(); renderForm();
 }
 
@@ -11524,7 +11553,8 @@ function existingImportMatch(row){
   const art=(row.article||'').trim().toUpperCase();
   if(row.category==='ral')return getRals().some(x=>x.toUpperCase()===(row.article||row.name).toUpperCase());
   if(row.category==='film36'||row.category==='filmGeneral'){
-    return getFilms42().some(x=>art&&x.toUpperCase().includes(art))||getFilms42().some(x=>x.toLowerCase()===((row.name||'')+' — '+(row.article||'')).toLowerCase());
+    const films=row.category==='film36'?getFilms36():getFilmsGeneral();
+    return films.some(x=>art&&x.toUpperCase().includes(art))||films.some(x=>x.toLowerCase()===((row.name||'')+' — '+(row.article||'')).toLowerCase());
   }
   if(['hinge','lock','handle','turn','cylinder','stop','threshold','closer','opening','grille'].includes(row.category)){
     const hit=findHardwareDuplicateCandidate({name:row.name,article:row.article});
@@ -11655,7 +11685,8 @@ function backToImportFile(){$('importMatchStage')?.classList.add('hidden');$('im
 function pushUniqueFilm(key,row){
   const item=row.name.trim()+' — '+row.article.trim().toUpperCase();
   const vals=getStore(key,[]);
-  if(!getFilms42().some(x=>x.toUpperCase()===item.toUpperCase())){vals.push(item);setStore(key,vals);return true}
+  const films=key==='hd_v4_films36'?getFilms36():getFilmsGeneral();
+  if(!films.some(x=>x.toUpperCase()===item.toUpperCase())){vals.push(item);setStore(key,vals);return true}
   return false;
 }
 function importedHardwareItem(row){
