@@ -5058,6 +5058,61 @@ const CLOSER_PRICE_AUDIT=Object.freeze({
 const CLOSER_PRICE_REVIEW=Object.freeze([]);
 const CLOSER_CATALOG_REVIEW=Object.freeze([]);
 
+
+const BITRIX_OPENING_SYSTEM_BASE_PRICES=Object.freeze([
+  {"name":"Morelli система INVISIBLE-2 1100 Комплект для двери 80-110 см весом до 80 кг","price":46460,"sourceBase":46460,"parentId":25308,"offerId":25310,"priceOverride":false},
+  {"name":"Morelli система INVISIBLE-2 1800 Комплект для двери 80-180 см весом до 80 кг","price":50770,"sourceBase":50770,"parentId":16404,"offerId":21404,"priceOverride":false},
+  {"name":"Комплект Armadillo для обрамления пенала Armadillo SLD.Comfort-PENAL frame 900/2300 BL, цвет черный","price":27880,"sourceBase":27880,"parentId":42494,"offerId":42496,"priceOverride":false},
+  {"name":"Комплект Armadillo для раздвижных дверей Armadillo SLD.Comfort-PRO.SET2.soft close/80","price":4720,"sourceBase":4720,"parentId":42486,"offerId":42488,"priceOverride":false},
+  {"name":"Комплект для двери книжка до 30 кг. (Morelli SLIDING SET 1133-1137)","price":12300,"sourceBase":12300,"parentId":26304,"offerId":26306,"priceOverride":false},
+  {"name":"Комплект для обрамления пенала Armadillo SLD.Comfort-PENAL frame 900/2300 AL, цвет алюминий","price":27880,"sourceBase":27880,"parentId":42498,"offerId":42500,"priceOverride":false},
+  {"name":"Комплект для раздвижных дверей Armadillo SLD.Comfort-PRO.SET1.rollers/80","price":1950,"sourceBase":1950,"parentId":42482,"offerId":42484,"priceOverride":false},
+  {"name":"Комплект для раздвижных дверей Armadillo SLD.Comfort-PRO.SET3.soft close+roller/80","price":3920,"sourceBase":3920,"parentId":42490,"offerId":42492,"priceOverride":false},
+  {"name":"Нижняя направляющая Armadillo Comfort 60/80/1000 bottom track, цвет алюминий","price":350,"sourceBase":350,"parentId":42478,"offerId":42480,"priceOverride":false},
+  {"name":"Пенал Armadillo для скрытой раздвижной системы SLD.Comfort-PENAL caseta 900/2300","price":45300,"sourceBase":45300,"parentId":42462,"offerId":42464,"priceOverride":false},
+  {"name":"Пенал Armadillo для скрытой раздвижной системы SLD.Comfort-PENAL caseta 900/2600","price":59430,"sourceBase":59430,"parentId":42466,"offerId":42468,"priceOverride":false},
+  {"name":"Пенал Armadillo для скрытой раздвижной системы SLD.Comfort-PENAL caseta 900/2900","price":68460,"sourceBase":68460,"parentId":42470,"offerId":42472,"priceOverride":false},
+  {"name":"Раздвижная система Armadillo система HIDDEN/40 с профилем (для дверей весом до 40 кг)","price":42600,"sourceBase":42600,"parentId":25154,"offerId":25156,"priceOverride":false},
+  {"name":"Раздвижная система Armadillo система HIDDEN/80 с профилем (для дверей весом от 40 до 80 кг)","price":42600,"sourceBase":42600,"parentId":25158,"offerId":25160,"priceOverride":false},
+  {"name":"Рото система Morelli SWING. Комплект для двери 2000мм высота, ширина от 600 до 900мм, цвет фурнитуры - черный (+ комплект нажимных ручек и магнитный замок)","price":61282,"sourceBase":61282,"parentId":28234,"offerId":28236,"priceOverride":false},
+  {"name":"Рото система Morelli SWING. Комплект для двери 2100мм высота, ширина от 600 до 900мм, цвет фурнитуры - хром (+ комплект нажимных ручек и магнитный замок)","price":63217,"sourceBase":63217,"parentId":28238,"offerId":28240,"priceOverride":false},
+  {"name":"Рото система Morelli SWING. Комплект для двери 2400мм высота, ширина от 600 до 900мм, цвет фурнитуры - хром, с доводчиком (+ комплект нажимных ручек и магнитный замок)","price":67119,"sourceBase":67119,"parentId":28242,"offerId":28244,"priceOverride":false},
+  {"name":"Система PRO SYNCHRON SOFT 80","price":14500,"sourceBase":14500,"parentId":25112,"offerId":25114,"priceOverride":false},
+  {"name":"Система открывания PIVOT для поворотных полотен","price":46200,"sourceBase":46200,"parentId":36996,"offerId":36998,"priceOverride":false},
+  {"name":"Система открывания TWICE, 180-TWICE LEFT 60, комплект для левой двери, черновой проем 700","price":35650,"sourceBase":35650,"parentId":25796,"offerId":25798,"priceOverride":false},
+  {"name":"Система открывания TWICE, 180-TWICE LEFT 70, комплект для левой двери, черновой проем 800","price":35650,"sourceBase":35650,"parentId":25792,"offerId":25794,"priceOverride":false},
+  {"name":"Система пенал Eclisse Telescopic single","price":45000,"sourceBase":45000,"parentId":16228,"offerId":16230,"priceOverride":false},
+  {"name":"Толкатель Armadillo скрытого монтажа SLD.Comfort-PENAL K-push","price":6475,"sourceBase":6475,"parentId":42474,"offerId":42476,"priceOverride":false}
+]);
+
+const OPENING_SYSTEM_PRICE_AUDIT=Object.freeze({
+  category:"Системы открывания",
+  source:"Hidden Doors — Ревизия фурнитуры — бренды v1 / Bitrix24 BASE",
+  sourceRows:23,
+  catalogRows:23,
+  imported:23,
+  exactMatched:23,
+  missing:0,
+  zero:0,
+  suspiciousLow:0,
+  suspiciousThreshold:100,
+  minSourceBase:350,
+  minWorkingBase:350,
+  maxBase:68460,
+  purchaseKnown:0
+});
+
+const OPENING_SYSTEM_PRICE_REVIEW=Object.freeze([]);
+const OPENING_SYSTEM_PRICE_ALIASES=Object.freeze({
+  "Armadillo HIDDEN/40":"Раздвижная система Armadillo система HIDDEN/40 с профилем (для дверей весом до 40 кг)",
+  "Armadillo HIDDEN/80":"Раздвижная система Armadillo система HIDDEN/80 с профилем (для дверей весом от 40 до 80 кг)",
+  "Morelli INVISIBLE-2 1100":"Morelli система INVISIBLE-2 1100 Комплект для двери 80-110 см весом до 80 кг",
+  "Morelli INVISIBLE-2 1800":"Morelli система INVISIBLE-2 1800 Комплект для двери 80-180 см весом до 80 кг"
+});
+function openingSystemPriceName(value){
+  return OPENING_SYSTEM_PRICE_ALIASES[String(value||'').trim()]||String(value||'').trim();
+}
+
 function normalizeHardwarePriceName(value){
   return String(value||'')
     .toUpperCase().replace(/Ё/g,'Е')
@@ -5075,7 +5130,8 @@ const BITRIX_HARDWARE_BASE_PRICE_MAPS=Object.freeze({
   'Цилиндровые механизмы':new Map(BITRIX_CYLINDER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Стопоры':new Map(BITRIX_STOPPER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Скрытый порог':new Map(BITRIX_THRESHOLD_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
-  'Доводчики':new Map(BITRIX_CLOSER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
+  'Доводчики':new Map(BITRIX_CLOSER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
+  'Системы открывания':new Map(BITRIX_OPENING_SYSTEM_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
 });
 function hardwareBasePriceMeta(category,name){
   const map=BITRIX_HARDWARE_BASE_PRICE_MAPS[category];
@@ -5112,6 +5168,7 @@ function configuredCatalogUnitPrice(){
     const sourceCategory=(typeof HARDWARE_MAP!=='undefined'?(HARDWARE_MAP[uiCategory]||uiCategory):uiCategory);
     return hardwareBasePrice(sourceCategory,$('catalogItem')?.value||'');
   }
+  if(product()==='openingSystem')return hardwareBasePrice('Системы открывания',$('catalogItem')?.value||'');
   return configured36CartUnitPrice();
 }
 function companionItemUnitPrice(item){
@@ -5124,6 +5181,7 @@ function companionItemUnitPrice(item){
   if(key==='DOOR-STOPPER')return hardwareBasePrice('Стопоры',item?.name||'');
   if(key==='DOOR-THRESHOLD')return hardwareBasePrice('Скрытый порог',item?.name||'');
   if(key==='DOOR-CLOSER')return hardwareBasePrice('Доводчики',item?.name||'');
+  if(key==='SLIDE42-SYSTEM')return hardwareBasePrice('Системы открывания',openingSystemPriceName(item?.name||''));
   return companion36UnitPrice(item);
 }
 function genericCatalogItemPrice(item){
@@ -5160,6 +5218,10 @@ function genericCatalogItemPrice(item){
   }
   if(/доводчик/i.test(category+' '+name)){
     const p=hardwareBasePrice('Доводчики',name);
+    if(p!==null)return p;
+  }
+  if(category==='Системы открывания'){
+    const p=hardwareBasePrice('Системы открывания',openingSystemPriceName(name));
     if(p!==null)return p;
   }
   return cart36FallbackUnitPrice(item);
@@ -5579,6 +5641,19 @@ function updateSlidingHandlePriceHint(){
   }
   box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
 }
+function updateSlidingSystemPriceHint(){
+  const box=$('slidingSystemPriceHint');if(!box)return;
+  const selected=$('slidingSystem')?.value||'Без системы';
+  if(!selected||selected==='Без системы'){box.innerHTML='Система открывания не добавляется в заказ.';return}
+  const sourceName=openingSystemPriceName(selected);
+  const meta=hardwareBasePriceMeta('Системы открывания',sourceName);
+  if(!meta){box.innerHTML='<span class="mini">Цена для этой системы пока не подключена.</span>';return}
+  if(meta.price===null||meta.suspicious){
+    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
+  }
+  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+}
+
 function hardwareCategoryPriceSummary(category,items){
   const metas=(items||[]).map(name=>hardwareBasePriceMeta(category,name));
   const prices=metas.filter(x=>x&&!x.suspicious).map(x=>x.price).filter(x=>Number.isFinite(Number(x))&&Number(x)>0).map(Number);
@@ -5594,7 +5669,7 @@ function hardwareCategoryPriceSummary(category,items){
 }
 function renderHardwareCategoryPriceSummary(category,items){
   const box=$('hardwarePriceSummary');if(!box)return;
-  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры','Скрытый порог','Доводчики'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
+  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры','Скрытый порог','Доводчики','Системы открывания'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
   const s=hardwareCategoryPriceSummary(category,items);
   box.classList.remove('hidden');
   box.className='hinge-price-summary';
@@ -5609,7 +5684,7 @@ function renderHardwareSelectedPrice(){
   const uiCategory=$('hardwareCategory')?.value||'';
   const category=HARDWARE_MAP[uiCategory]||uiCategory;
   const item=$('catalogItem')?.value||'';
-  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры','Скрытый порог','Доводчики'].includes(category)){
+  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры','Скрытый порог','Доводчики','Системы открывания'].includes(category)){
     box.classList.add('hidden');box.innerHTML='';return;
   }
   const meta=hardwareBasePriceMeta(category,item);
@@ -6363,13 +6438,48 @@ function renderHardware(){
     section('Структура каталога',`<div class="note">В v24 начата строгая по-SKU ревизия изображений. Первый эталонный раздел: <b>Петли → Скрытые → Krona Koblenz / KUBICA</b>. В нём отображается код отделки производителя, запрещены приблизительные фото другого цвета, а спорные коды/цвета помечаются для согласования. Остальные разделы пока сохраняют режим v23.</div>`);
   updateHardwareDatalist(true,true);
 }
+function renderOpeningSystemPrice(){
+  const vals=catalogValues('Системы открывания');
+  const summary=hardwareCategoryPriceSummary('Системы открывания',vals);
+  const summaryBox=$('openingSystemPriceSummary');
+  if(summaryBox){
+    summaryBox.innerHTML='<div><b>BASE Bitrix24</b> · '+summary.priced+' из '+summary.total+' позиций с рабочей ценой'+
+      (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
+      ((summary.unresolved||summary.missing)
+        ?'<div class="mini">Требуют решения — '+summary.unresolved+(summary.missing?' · без привязки — '+summary.missing:'')+'</div>'
+        :'<div class="mini">Все системы текущего каталога имеют рабочую BASE-цену.</div>');
+  }
+  const box=$('openingSystemSelectedPrice');if(!box)return;
+  const name=$('catalogItem')?.value||'';
+  const meta=hardwareBasePriceMeta('Системы открывания',name);
+  if(!meta){
+    box.className='status warn';
+    box.innerHTML='<b>Цена пока не подключена.</b><br>Для этой системы не найдено точного соответствия в импортированном BASE Bitrix24.';
+    return;
+  }
+  if(meta.price===null||meta.suspicious){
+    box.className='status warn';
+    box.innerHTML='<b>Цена по запросу / проверить BASE.</b><br><span class="mini">Исходный BASE Bitrix24: '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+'</span>';
+    return;
+  }
+  box.className='status ok';
+  box.innerHTML='<b>BASE: '+formatRub(meta.price)+'/шт.</b><br><span class="mini">Цена импортирована из Bitrix24 · Parent ID '+escapeHtml(meta.parentId)+(meta.offerId?' · Offer ID '+escapeHtml(meta.offerId):'')+'</span>';
+}
 function renderOpeningSystem(){
   const vals=catalogValues('Системы открывания');
+  const optionsHtml=vals.map(v=>{
+    const meta=hardwareBasePriceMeta('Системы открывания',v);
+    const label=meta?(meta.price===null||meta.suspicious?'Цена по запросу':'BASE '+formatRub(meta.price)):'';
+    return `<option value="${escapeHtml(v)}"${label?` label="${escapeHtml(label)}"`:''}></option>`;
+  }).join('');
   $('form').innerHTML=
     section('Системы и механизмы открывания',fields(
-      field('Система',`<input id="catalogItem" list="openingList" value="${escapeHtml(vals[0]||'')}">${datalistHtml('openingList',vals)}`,'full')
+      field('Система',`<input id="catalogItem" list="openingList" value="${escapeHtml(vals[0]||'')}"><datalist id="openingList">${optionsHtml}</datalist>
+        <div id="openingSystemPriceSummary" class="hinge-price-summary" style="margin-top:10px"></div>
+        <div id="openingSystemSelectedPrice" class="status info" style="margin-top:10px"></div>`,'full')
     ))+
     section('Структура',`<div class="note">Пенальные, раздвижные вдоль стены, складные, рото и Pivot-системы хранятся отдельно от основной дверной фурнитуры. Компоненты одной системы можно объединять в комплект на уровне заказа.</div>`);
+  renderOpeningSystemPrice();
 }
 function additionalItems(type){
   if(type==='Вентиляционные решётки') return catalogValues('Вентиляционные решетки');
@@ -7076,7 +7186,7 @@ function companionItems(){
     const handle=$('slidingHandle')?.value||'Без ручки';
     const system=$('slidingSystem')?.value||'';
     if(handle!=='Без ручки')items.push({key:'SLIDE42-HANDLE',type:'Фурнитура / Ручки',priceCategory:'Ручки',qty:1,unit:'шт.',step:1,name:handle});
-    if(system && system!=='Без системы')items.push({key:'SLIDE42-SYSTEM',type:'Системы открывания',qty:1,unit:'шт.',step:1,name:system});
+    if(system && system!=='Без системы')items.push({key:'SLIDE42-SYSTEM',type:'Системы открывания',priceCategory:'Системы открывания',qty:1,unit:'шт.',step:1,name:system});
     return items;
   }
   if(product()==='double42'){
@@ -7249,13 +7359,14 @@ function syncSliding42Armadillo(){
   }
   const hint=$('slidingSystemHint');
   if(hint)hint.textContent=sliding42SystemHintText();
+  if(typeof updateSlidingSystemPriceHint==='function')updateSlidingSystemPriceHint();
 }
 function sliding42OrderSections(){
   return section('Фурнитура и система открывания',
     fields(
       field('Ручка для откатной двери',selectEl('slidingHandle',SLIDING42_HANDLES,'Без ручки')+'<div id="slidingHandlePriceHint" class="mini hinge-price-hint"></div>','full')+
       field('Система открывания',selectEl('slidingSystem',SLIDING42_SYSTEMS,SLIDING42_SYSTEMS[0])+
-        '<div id="slidingSystemHint" class="mini"></div>','full')
+        '<div id="slidingSystemHint" class="mini"></div><div id="slidingSystemPriceHint" class="mini hinge-price-hint"></div>','full')
     )+
     `<div class="catalog-note" style="margin-top:10px">
       Для откатной 42 не используются петли, замок, завертка, цилиндр, стопор, автоматический порог и доводчик.
@@ -7875,6 +7986,7 @@ function renderOrderExtras(){
   if(companions.some(x=>x.key==='DOOR-STOPPER'))pricedExtraLabels.add('Стопор');
   if(companions.some(x=>x.key==='DOOR-THRESHOLD'))pricedExtraLabels.add('Автопорог');
   if(companions.some(x=>x.key==='DOOR-CLOSER'))pricedExtraLabels.add('Доводчик');
+  if(companions.some(x=>x.key==='SLIDE42-SYSTEM'))pricedExtraLabels.add('Система открывания');
   const renderedExtras=extras.filter(([k])=>!pricedExtraLabels.has(k));
   renderedExtras.forEach(([k,v])=>lines.push(`<div><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`));
   companions.forEach(x=>{
@@ -7920,6 +8032,7 @@ function render(){
   $('uniqKey').textContent=canonical();
   renderRecommendations();
   renderPartnerPrice36();
+  if(product()==='openingSystem' && typeof renderOpeningSystemPrice==='function')renderOpeningSystemPrice();
   renderOrderExtras();
   renderStockMatch();
   const v=validate(),box=$('validationBox');
