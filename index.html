@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v36 · Объединение дублей</title>
+<title>Hidden Doors — Личный кабинет · Прототип v37 · Цены 36 мм</title>
 <style>
 :root{
   --bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
@@ -222,7 +222,7 @@ th{background:#f9fafb;font-weight:800}
   <div class="top">
     <div>
       <h1>Hidden Doors — Личный кабинет</h1>
-      <div class="sub">Прототип v36 · полный конфигуратор · объединение дублей</div>
+      <div class="sub">Прототип v37 · полный конфигуратор · цены 36 мм</div>
     </div>
     <div class="rolebox">
       <label for="role">Роль</label>
@@ -307,6 +307,7 @@ th{background:#f9fafb;font-weight:800}
       <div class="result"><div class="cap">Полное наименование</div><div class="val" id="fullName"></div></div>
       <div class="result"><div class="cap">Короткое наименование</div><div class="val" id="shortName"></div></div>
       <div class="result"><div class="cap">Признак цены</div><div class="val" id="standardResult"></div></div>
+      <div class="result hidden" id="price36ResultWrap"><div class="cap">Партнёрская цена</div><div class="val" id="price36Result"></div><div id="price36Details" class="mini" style="margin-top:6px;line-height:1.55"></div><div id="price36Note" class="mini" style="margin-top:6px"></div></div>
       <div class="result"><div class="cap">Ключ уникальности</div><div class="val" id="uniqKey"></div></div>
 
       <div id="recommendations"></div>
@@ -592,6 +593,98 @@ const INITIAL_FILMS_36=[
 const BASE_RALS=['RAL 9003','RAL 9016','RAL 9005','RAL 7035','RAL 7047'];
 const COVER_BASE=['Грунт под покраску','ПВХ-пленка','Шпон','Эмаль','HPL'];
 const COVER_ALU=[...COVER_BASE,'Бамбуковая панель','Стекло/зеркало'];
+
+// --- data/prices36.js ---
+// Partner prices for the 36 mm line.
+const PARTNER_PRICE_36=Object.freeze({
+  source:'Hidden doors Партнерский Прайс продуктовой линейки',
+  updated:'22.01.2026',
+  doorLeaf:7705,
+  doorKit:11730,
+  trim:Object.freeze({
+    box:814,
+    casing:398,
+    dobor100:655,
+    dobor150:770,
+    dobor200:989,
+    rebate:499,
+    connector:90
+  })
+});
+
+function formatRub(value){
+  if(!Number.isFinite(Number(value)))return '—';
+  return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(Number(value))+' ₽';
+}
+
+function trim36PartnerUnitPrice(){
+  const type=$('trimType')?.value||'';
+  if(type==='Короб телескопический')return {price:PARTNER_PRICE_36.trim.box,label:'Короб телескопический'};
+  if(type==='Наличник телескопический')return {price:PARTNER_PRICE_36.trim.casing,label:'Наличник телескопический'};
+  if(type==='Притворная планка')return {price:PARTNER_PRICE_36.trim.rebate,label:'Притворная планка'};
+  if(type==='Соединительная планка для стыковки доборов')return {price:PARTNER_PRICE_36.trim.connector,label:'Соединительная планка'};
+  if(type==='Добор телескопический'){
+    const width=doborWidth();
+    const map={100:PARTNER_PRICE_36.trim.dobor100,150:PARTNER_PRICE_36.trim.dobor150,200:PARTNER_PRICE_36.trim.dobor200};
+    return {price:map[width]??null,label:'Добор телескопический '+width+' мм',custom:!Object.prototype.hasOwnProperty.call(map,width)};
+  }
+  return {price:null,label:type||'Погонаж 36'};
+}
+
+function partnerPrice36Snapshot(){
+  if(product()==='leaf36'){
+    if($('cover36')?.value!=='ПВХ-пленка'){
+      return {visible:true,available:false,title:'Цена по запросу',note:'В текущем партнёрском прайсе цена 36 мм зафиксирована для исполнения в ПВХ-плёнке.'};
+    }
+    const leaf=PARTNER_PRICE_36.doorLeaf;
+    const included=includeBox();
+    const boxQty=included?Number($('bundle36BoxQty')?.value||0):0;
+    const casingQty=included?Number($('bundle36TrimQty')?.value||0):0;
+    const boxSum=boxQty*PARTNER_PRICE_36.trim.box;
+    const casingSum=casingQty*PARTNER_PRICE_36.trim.casing;
+    const total=leaf+boxSum+casingSum;
+    const defaultKit=included&&boxQty===2.5&&casingQty===5&&total===PARTNER_PRICE_36.doorKit;
+    const lines=[
+      '<div><b>Полотно:</b> '+formatRub(leaf)+'</div>',
+      included?'<div>Короб: '+boxQty+' × '+formatRub(PARTNER_PRICE_36.trim.box)+' = <b>'+formatRub(boxSum)+'</b></div>':'',
+      included?'<div>Наличник: '+casingQty+' × '+formatRub(PARTNER_PRICE_36.trim.casing)+' = <b>'+formatRub(casingSum)+'</b></div>':'',
+      '<div style="margin-top:6px"><b>'+(defaultKit?'Комплект':'Итого')+': '+formatRub(total)+'</b></div>'
+    ].filter(Boolean);
+    return {
+      visible:true,available:true,title:formatRub(total),html:lines.join(''),
+      note:'Партнёрский прайс 36 мм · обновлён '+PARTNER_PRICE_36.updated+(defaultKit?' · базовый комплект совпадает с прайсом '+formatRub(PARTNER_PRICE_36.doorKit):'')
+    };
+  }
+  if(product()==='trim36'){
+    if($('trimCover')?.value!=='ПВХ-пленка'){
+      return {visible:true,available:false,title:'Цена по запросу',note:'В текущем партнёрском прайсе цена погонажа зафиксирована для исполнения в ПВХ-плёнке.'};
+    }
+    const item=trim36PartnerUnitPrice();
+    if(item.price===null){
+      return {
+        visible:true,available:false,title:'Цена по запросу',
+        note:item.custom?'В партнёрском прайсе зафиксированы доборы 100, 150 и 200 мм. Для другой ширины цену нужно согласовать.':'Цена для выбранной позиции не найдена в текущем прайсе.'
+      };
+    }
+    return {
+      visible:true,available:true,title:formatRub(item.price),
+      html:'<div><b>'+escapeHtml(item.label)+': '+formatRub(item.price)+'/шт.</b></div>',
+      note:'Партнёрский прайс 36 мм · обновлён '+PARTNER_PRICE_36.updated
+    };
+  }
+  return {visible:false};
+}
+
+function renderPartnerPrice36(){
+  const wrap=$('price36ResultWrap'),value=$('price36Result'),details=$('price36Details'),note=$('price36Note');
+  if(!wrap||!value||!details||!note)return;
+  const snapshot=partnerPrice36Snapshot();
+  wrap.classList.toggle('hidden',!snapshot.visible);
+  if(!snapshot.visible)return;
+  value.textContent=snapshot.title||'—';
+  details.innerHTML=snapshot.html||'';
+  note.textContent=snapshot.note||'';
+}
 
 // --- data/bitrix-catalog.js ---
 // Extracted unchanged from v32. Large imported catalog data only.
@@ -2991,6 +3084,7 @@ function render(){
   $('shortName').textContent=shortName();
   $('uniqKey').textContent=canonical();
   renderRecommendations();
+  renderPartnerPrice36();
   renderOrderExtras();
   renderStockMatch();
   const v=validate(),box=$('validationBox');
