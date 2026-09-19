@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v56 · Пастьера — этап 3</title>
+<title>Hidden Doors — Личный кабинет · Прототип v57 · Завертки — цены этап 1</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -538,7 +538,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       </div>
     </div>
     <div class="brand-header-side">
-      <div class="version-chip"><span>HD</span> v56 · Pastera price corrections</div>
+      <div class="version-chip"><span>HD</span> v57 · Turn prices data audit</div>
       <div class="rolebox">
         <label for="role">Роль</label>
         <select id="role">
@@ -3454,9 +3454,9 @@ const HANDLE_PRICE_REVIEW=Object.freeze([
 ]);
 
 // --- data/hardware-prices.js ---
-// BASE prices imported from Hidden_Doors_B24_Ревизия_фурнитуры_v1.xlsx.
-// Scope: category "Петли" only. BASE is interpreted as unit price per 1 item.
-// One temporary business override is preserved for K8060 OL glossy gold.
+// BASE prices imported from the current Hidden Doors Bitrix24 hardware review.
+// Existing live maps: Петли / Замки / Ручки. v57 adds Завертки as DATA + AUDIT ONLY; UI/order integration is reserved for Stage 2.
+// BASE is interpreted as unit price per 1 item. Manual agreed overrides remain explicitly marked.
 const BITRIX_HINGE_BASE_PRICES=Object.freeze([
   {name:"AGB (АГБ) Петля ввертная 3-D серия (бихром)",price:575,sourceBase:575,parentId:36780,offerId:36782,priceOverride:false},
   {name:"Дверная петля двусторонняя ALDEGHI CODE 87 AO 155-50, матовая латунь",price:2500,sourceBase:2500,parentId:25082,offerId:25084,priceOverride:false},
@@ -3563,6 +3563,1374 @@ const BITRIX_LOCK_BASE_PRICES=Object.freeze([
   {name:"Корпус Ajax врезного замка c защёлкой PLASTLP85-50 SN, цвет матовый никель",price:263,sourceBase:263,parentId:40288,offerId:40290,priceOverride:false},
   {name:"Магнитный замок KRONA KOBLENZ KM 003 CM A для м/к дверей с доводсиком под сант. завертку полный комплект, под пустотелый алюм. профиль (замок база, ответная планка база, дек. отв. планка, дек. штульп), цвет черный",price:2560,sourceBase:2560,parentId:34638,offerId:34640,priceOverride:false},
   {name:"Ответная планка MORELLI MSP-1 BL магнитная, цвет черный",price:185,sourceBase:185,parentId:42458,offerId:42460,priceOverride:false}
+]);
+
+
+// v57 — Stage 1: category "Завертки". Data/audit only; intentionally NOT added to BITRIX_HARDWARE_BASE_PRICE_MAPS yet.
+const BITRIX_TURN_BASE_PRICES=Object.freeze([
+  {
+    "name": "Вертушка FUARO на шток цилиндра T.Knob-D-PRO (CB-D-PRO) BL-24, цвет черный",
+    "price": 250,
+    "sourceBase": 250,
+    "parentId": 29934,
+    "offerId": 29936,
+    "priceOverride": false
+  },
+  {
+    "name": "Вертушка под шток, цвет вороненный никель",
+    "price": 270,
+    "sourceBase": 270,
+    "parentId": 30102,
+    "offerId": 30104,
+    "priceOverride": false
+  },
+  {
+    "name": "Вставка Armadillo под шток ET.TANG.UNI (CYLINDER) BL-26, цвет черный",
+    "price": 255,
+    "sourceBase": 255,
+    "parentId": 29938,
+    "offerId": 29940,
+    "priceOverride": false
+  },
+  {
+    "name": "Вставка под шток, цвет матовый никель",
+    "price": 120,
+    "sourceBase": 120,
+    "parentId": 30106,
+    "offerId": 30108,
+    "priceOverride": false
+  },
+  {
+    "name": "Декоративная накладка под цилиндр  VETTORE ET 2101 MCP, матовый хром",
+    "price": 690,
+    "sourceBase": 690,
+    "parentId": 25340,
+    "offerId": 25342,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ABRISS BK 2105 CP, хром (квадрат 80 мм)",
+    "price": 950,
+    "sourceBase": 950,
+    "parentId": 37388,
+    "offerId": 37390,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ABRISS BK 2105 MCP, матовый хром (квадрат 80 мм)",
+    "price": 855,
+    "sourceBase": 855,
+    "parentId": 29466,
+    "offerId": 29468,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ABRISS BK 2505 MBP цвет черный матовый  (квадра 80 мм)",
+    "price": 855,
+    "sourceBase": 855,
+    "parentId": 28004,
+    "offerId": 28006,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ABRISS BK 5005 CP, хром (квадрат 80 мм)",
+    "price": 950,
+    "sourceBase": 950,
+    "parentId": 37392,
+    "offerId": 37394,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ABRISS BK 5005 MBP, черный матовый (квадрат 80 мм)",
+    "price": 950,
+    "sourceBase": 950,
+    "parentId": 25194,
+    "offerId": 25196,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Ajax BK6.K.JS51 (BK6 JS) SSC-16, цвет сатинированный хром",
+    "price": 500,
+    "sourceBase": 500,
+    "parentId": 37468,
+    "offerId": 37470,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка AJAX BK6.K.JS51 (BK6 JS) SSG-39 Сатинированное золото (квадрат 80 мм)",
+    "price": 500,
+    "sourceBase": 500,
+    "parentId": 28664,
+    "offerId": 28666,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка APRILE Q 5S WC US PVD , цвет антрацит полированный (квадрат ***)",
+    "price": 3970,
+    "sourceBase": 3970,
+    "parentId": 26944,
+    "offerId": 26946,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.K.ART30 FSG-39, цвет флорентийское золото (припаянный к заглушке квадрат 68 мм)",
+    "price": 2150,
+    "sourceBase": 2150,
+    "parentId": 29290,
+    "offerId": 29292,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.K.UCS36 (BK6 UCS) BL-26, цвет черный (квадрат 80 мм)",
+    "price": 1800,
+    "sourceBase": 1800,
+    "parentId": 29430,
+    "offerId": 29432,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.K.UCS36 (BK6 UCS) MWSC-33 итальянский тисненый (квадрат 80 мм)",
+    "price": 1800,
+    "sourceBase": 1800,
+    "parentId": 18148,
+    "offerId": 18150,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ARMADILLO BK6.K.USS52  BL -26 (WC-BOLT BK6 USS), цвет - черный  (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 24086,
+    "offerId": 24088,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.K.USS52 (WC-BOLT BK6 USS) AB-7 бронза (квадрат 80)",
+    "price": 1300,
+    "sourceBase": 1300,
+    "parentId": 40436,
+    "offerId": 40438,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ARMADILLO BK6.K.USS52 SN-3 (WC-BOLT BK6 USS), цвет - матовый никель (квадрат 80 мм)",
+    "price": 1300,
+    "sourceBase": 1300,
+    "parentId": 40112,
+    "offerId": 40114,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.K.YM FSG-39, цвет флор. золото",
+    "price": 1770,
+    "sourceBase": 1770,
+    "parentId": 40358,
+    "offerId": 40360,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.R.ART30 BL-26, цвет черный (припаянный к заглушке квадрат 68 мм)",
+    "price": 2030,
+    "sourceBase": 2030,
+    "parentId": 29530,
+    "offerId": 29532,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.R.LD54 (BK6) SG/GP-4, цвет матовое золото/золото (квадрат 80 мм)",
+    "price": 1380,
+    "sourceBase": 1380,
+    "parentId": 29204,
+    "offerId": 29206,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.R.URB52 (WC-BOLT BK6/URB) BL-26, цвет черный (квадрат 80 мм)",
+    "price": 1680,
+    "sourceBase": 1680,
+    "parentId": 29504,
+    "offerId": 29506,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.R.URB52 (WC-BOLT BK6/URB) BPVD-77 вороненый никель (квадрат 80 мм)",
+    "price": 1600,
+    "sourceBase": 1600,
+    "parentId": 25064,
+    "offerId": 25066,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ARMADILLO BK6.R.URS 52 BL-26 (WC-BOLT BK6 URS), цвет - черный (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 24232,
+    "offerId": 24234,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.R.URS52 (WC-BOLT BK6 URS) BPVD-77 вороненый никель (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 39876,
+    "offerId": 39878,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo BK6.R.URS52 (WC-BOLT BK6 URS) MWSC-33 итальянский тисненый (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 28284,
+    "offerId": 28286,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo Urban Collection BK6.R.URS52 (WC-BOLT BK6 URS) CP-8, хром (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 24236,
+    "offerId": 24238,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo Urban Collection WC BOLT BK6 USS WH-19, белый (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 24224,
+    "offerId": 24226,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo Urban Collection WC-BOLT BK6 URS BPVD-26, вороненый никель (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 27040,
+    "offerId": 27042,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Armadillo Urban Collection WC-BOLT BK6 USS, MWSC-33, итальянский тисненый (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 25178,
+    "offerId": 25180,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка ARMADILLO WC-BOLT BK6/SQ-21CP-8 хром (квадрат 80 мм)",
+    "price": 1550,
+    "sourceBase": 1550,
+    "parentId": 25352,
+    "offerId": 25354,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка BK6.K.JS51 (BK6 JS) SN-3, матовый никель",
+    "price": 383,
+    "sourceBase": 383,
+    "parentId": 35700,
+    "offerId": 35702,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Code Deco Slim WC-4020-NISM, цвет матовый никель (квадрат 75 мм)",
+    "price": 700,
+    "sourceBase": 700,
+    "parentId": 29770,
+    "offerId": 29772,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FANTOM WC-50 22K STATIN, цвет золото матовое",
+    "price": 1250,
+    "sourceBase": 1250,
+    "parentId": 37548,
+    "offerId": 37550,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Formani Basic 1501T020NMXXUZI LBWC50-ZI NM, цвет черный",
+    "price": 6890,
+    "sourceBase": 6890,
+    "parentId": 36796,
+    "offerId": 36798,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Forme R WC, цвет матовый хром",
+    "price": 1700,
+    "sourceBase": 1700,
+    "parentId": 37370,
+    "offerId": 37372,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6 SL SSC-16, сатинированный хром  (квадрат 75 мм)",
+    "price": 1000,
+    "sourceBase": 1000,
+    "parentId": 26066,
+    "offerId": 26068,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6.K.DM51 (BK6 DM) SSC-16, цвет сатинированный хром (квадрат 75 мм)",
+    "price": 1250,
+    "sourceBase": 1250,
+    "parentId": 28750,
+    "offerId": 28752,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6.K.DM51 (BK6 DM) SSG-39 сатинированное золото (квадрат 75 мм)",
+    "price": 1250,
+    "sourceBase": 1250,
+    "parentId": 27082,
+    "offerId": 27084,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6.K.DM51 BL-24, цвет черный (квадрат 75 мм)",
+    "price": 1250,
+    "sourceBase": 1250,
+    "parentId": 29126,
+    "offerId": 29128,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Fuaro (Фуаро) BK6.K.DM51 WH-19, цвет белый (квадрат 75 мм)",
+    "price": 1250,
+    "sourceBase": 1250,
+    "parentId": 24992,
+    "offerId": 24994,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6.K.SL52 (BK6 SL) BL-24, цвет черный (квадрат 75 мм)",
+    "price": 1000,
+    "sourceBase": 1000,
+    "parentId": 28824,
+    "offerId": 28826,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6.K.SL52 (BK6 SL) CP-8, цвет хром (квадрат 75 мм)",
+    "price": 1000,
+    "sourceBase": 1000,
+    "parentId": 28864,
+    "offerId": 28866,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6.K.SL52 (BK6 SL) GR-23, цвет графит",
+    "price": 1000,
+    "sourceBase": 1000,
+    "parentId": 38606,
+    "offerId": 38608,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6.K.SL52 (BK6 SL) SSC-16, цвет сатинированный хром",
+    "price": 1000,
+    "sourceBase": 1000,
+    "parentId": 40700,
+    "offerId": 40702,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Fuaro BK6.K.XM52 (BK6 XM) BL-24, цвет черный (квадрат 75 мм)",
+    "price": 1000,
+    "sourceBase": 1000,
+    "parentId": 30046,
+    "offerId": 30048,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Fuaro BK6.R.SLR52 (BK6 SLR) BL-24, цвет черный (квадрат 75 мм)",
+    "price": 750,
+    "sourceBase": 750,
+    "parentId": 42624,
+    "offerId": 42626,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Fuaro BK6.R.SLR52 (BK6 SLR) SSC-16, цвет сатинированный хром (квадрат 75 мм)",
+    "price": 750,
+    "sourceBase": 750,
+    "parentId": 27646,
+    "offerId": 27648,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BK6.R.SLR52 SSG-39 (BK6 SLR), цвет сатинированное золото (квадрат 75 мм)",
+    "price": 750,
+    "sourceBase": 750,
+    "parentId": 28586,
+    "offerId": 28588,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO BKW8x75.K.RL52 SSG, цвет сатинированное золото (квадрат 75 мм)",
+    "price": 800,
+    "sourceBase": 800,
+    "parentId": 28428,
+    "offerId": 28430,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка FUARO INOX 304 BK6.R.DSS304-02 (DSS-02-BK6), цвет нержавеющая сталь",
+    "price": 1220,
+    "sourceBase": 1220,
+    "parentId": 42314,
+    "offerId": 42316,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli LUX-WC-R ANT, цвет антрацит (квадрат 70 мм)",
+    "price": 3641,
+    "sourceBase": 3641,
+    "parentId": 37828,
+    "offerId": 37830,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка MORELLI LUX-WC-R5 NERO, цвет черный (припаянный к заглушке квадрат 70 мм)",
+    "price": 3029,
+    "sourceBase": 3029,
+    "parentId": 29034,
+    "offerId": 29036,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli LUX-WC-RM CSA- мат хром (припаянный к заглушке квадрат 70 мм)",
+    "price": 2730,
+    "sourceBase": 2730,
+    "parentId": 25770,
+    "offerId": 25772,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli LUX-WC-S2 OSA, цвет матовое золото (квадрат  мм.)",
+    "price": 8960,
+    "sourceBase": 8960,
+    "parentId": 38420,
+    "offerId": 38422,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli LUX-WC-S5 NERO на квадратной розетке, цвет черный (припаянный к заглушке квадрат 70 мм)",
+    "price": 2948,
+    "sourceBase": 2948,
+    "parentId": 29788,
+    "offerId": 29790,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli LUX-WC-SM Nero, цвет черный (припаянный к заглушке квадрат 70 мм)",
+    "price": 3366,
+    "sourceBase": 3366,
+    "parentId": 21516,
+    "offerId": 21518,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli Luxury LUX-WC-R CRO, Хром (припаянный к заглушке квадрат 70 мм)",
+    "price": 0,
+    "sourceBase": 0,
+    "parentId": 21546,
+    "offerId": 21548,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli LUXURY LUX-WC-R5 CSA, цвет матовый хром (квадрат 70 мм)",
+    "price": 2948,
+    "sourceBase": 2948,
+    "parentId": 28614,
+    "offerId": 28616,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli Luxury LUX-WC-SM CSA Цвет - матовый хром (припаянный к заглушке квадрат 70 мм)",
+    "price": 3366,
+    "sourceBase": 3366,
+    "parentId": 25766,
+    "offerId": 25768,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка MORELLI MH-WC SC/CP, цвет матовый хром/хром (квадрат 80 мм)",
+    "price": 1020,
+    "sourceBase": 1020,
+    "parentId": 29400,
+    "offerId": 29402,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli MH-WC SN/BN, цвет бел. никель/черн. никель",
+    "price": 1020,
+    "sourceBase": 1020,
+    "parentId": 38450,
+    "offerId": 38452,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка MORELLI MH-WC-R6 BL цвет - чёрный (квадрат 80 мм)",
+    "price": 1000,
+    "sourceBase": 1000,
+    "parentId": 27762,
+    "offerId": 27764,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка MORELLI MH-WC-R6 MSC на круглой розетке 6мм, цвет мат. сатин. хром (квадрат 80 мм)",
+    "price": 1030,
+    "sourceBase": 1030,
+    "parentId": 30548,
+    "offerId": 30550,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка MORELLI MH-WC-R6 SC, цвет матовый хром (квадрат 80 мм.)",
+    "price": 1000,
+    "sourceBase": 1000,
+    "parentId": 39038,
+    "offerId": 39040,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli MH-WC-R6T BL, на круглой розетке 6 мм, цвет - чёрный (квадрат 75 мм)",
+    "price": 1703,
+    "sourceBase": 1703,
+    "parentId": 28766,
+    "offerId": 28768,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli MH-WC-S BL, цвет - черный (квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 23996,
+    "offerId": 23998,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli MH-WC-S SC/CP  хром (квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 25076,
+    "offerId": 25078,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli MH-WC-S55 GR/PC, цвет графит/хром (квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 35872,
+    "offerId": 35874,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка MORELLI MH-WC-S6 GR, цвет графит (квадрат 80 мм)",
+    "price": 1090,
+    "sourceBase": 1090,
+    "parentId": 42548,
+    "offerId": 42550,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli MH-WC-S6 SC на квадратной розетке, цвет матовый хром (квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 24934,
+    "offerId": 24936,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка MORELLI MH-WC-S6 SSC,  на квадратной розетке 6 мм, цвет супер матовый хром (Квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 28048,
+    "offerId": 28050,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Morelli MH-WC-S6 W, белая (квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 25202,
+    "offerId": 25204,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PALLINI COSMO PAL-COS-WC MatBlack, Чёрный матовый (квадрат 80 мм)",
+    "price": 1045,
+    "sourceBase": 1045,
+    "parentId": 21524,
+    "offerId": 21526,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PALLINI COSMO PAL-COS-WC Матовый хром (квадрат 80 мм)",
+    "price": 1045,
+    "sourceBase": 1045,
+    "parentId": 21534,
+    "offerId": 21536,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PALLINI COSMO PAL-COS-WC-SC, цвет хром матовый (квадрат 80 мм)",
+    "price": 1180,
+    "sourceBase": 1180,
+    "parentId": 29758,
+    "offerId": 29760,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PORTA DI PARMA WC.011.06 PVD, цвет Полированное золото",
+    "price": 1620,
+    "sourceBase": 1620,
+    "parentId": 39600,
+    "offerId": 39602,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PEURTO INBK AL 03, цвет черный (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 25978,
+    "offerId": 25980,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 03 MBN, Матовый черный никель (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 25990,
+    "offerId": 25992,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 03 MSN, Никель супер матовый (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 25986,
+    "offerId": 25988,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 03, Матовый супер белый (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 25998,
+    "offerId": 26000,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 03 slim B, цвет черный (квадрат 65 мм)",
+    "price": 1035,
+    "sourceBase": 1035,
+    "parentId": 29068,
+    "offerId": 29070,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 03 slim MSN, цвет никель супер матовый (квадрат 65 мм)",
+    "price": 1035,
+    "sourceBase": 1035,
+    "parentId": 29542,
+    "offerId": 29544,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 03 slim MSW, Матовый супер белый (квадрат 65 мм)",
+    "price": 1035,
+    "sourceBase": 1035,
+    "parentId": 28222,
+    "offerId": 28224,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 03 slim SSG, цвет золото матовое сатинированное (квадрат 65 мм)",
+    "price": 1035,
+    "sourceBase": 1035,
+    "parentId": 28984,
+    "offerId": 28986,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 03 SN, Никель матовый (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 25994,
+    "offerId": 25996,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Puerto INBK AL 06 slim B, цвет черный (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 25826,
+    "offerId": 25828,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Puerto INBK AL 06 slim MBN, цвет матовый черный никель (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 38656,
+    "offerId": 38658,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 06 slim MSN, цвет никель супер матовый (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 39296,
+    "offerId": 39298,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 06 slim SSC, цвет супер сатин хром (квадрат 65 мм)",
+    "price": 945,
+    "sourceBase": 945,
+    "parentId": 29486,
+    "offerId": 29488,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUERTO INBK AL 08 SN/NP, цвет никель матовый/никель блестящий  (квадрат 80 мм)",
+    "price": 745,
+    "sourceBase": 745,
+    "parentId": 28692,
+    "offerId": 28694,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Puerto INBK AL 09 zero, цвет черный (квадрат 72 мм)",
+    "price": 1050,
+    "sourceBase": 1050,
+    "parentId": 28936,
+    "offerId": 28938,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Puerto INBK AL 11 zero B, цвет черный (квадрат 72 мм)",
+    "price": 1050,
+    "sourceBase": 1050,
+    "parentId": 29008,
+    "offerId": 29010,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Puerto INBK AL 11 zero SSC, цвет супер сатин хром (квадрат 72 мм)",
+    "price": 1050,
+    "sourceBase": 1050,
+    "parentId": 25782,
+    "offerId": 25784,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUNTO BK6 QL SN/CP-3, матовый никель/хром (квадрат 80 мм)",
+    "price": 750,
+    "sourceBase": 750,
+    "parentId": 25256,
+    "offerId": 25258,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUNTO BK6.K.QL52 (BK6 QL) BL-24 Черный (квадрат 80 мм)",
+    "price": 750,
+    "sourceBase": 750,
+    "parentId": 25252,
+    "offerId": 25254,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUNTO BK6.K.QL52 (BK6 QL) GR/CP-23, графит/хром (квадрат 80 мм.)",
+    "price": 750,
+    "sourceBase": 750,
+    "parentId": 38534,
+    "offerId": 38536,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка PUNTO BK6.R.ARC.R52 (BK6 ARC) SSC-16, цвет сатин.хром",
+    "price": 550,
+    "sourceBase": 550,
+    "parentId": 40674,
+    "offerId": 40676,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Ruccetti RAP WC-S BL, черная  (квадрат 80 мм)",
+    "price": 615,
+    "sourceBase": 615,
+    "parentId": 25524,
+    "offerId": 25526,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка RUCETTI RAP WC SLIM-S BL, цвет черный",
+    "price": 690,
+    "sourceBase": 690,
+    "parentId": 42296,
+    "offerId": 42298,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка SILLUR BARRERA OL M.BLACK, цвет матовый черный",
+    "price": 2550,
+    "sourceBase": 2550,
+    "parentId": 40398,
+    "offerId": 40400,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Vantage BK02BL, цвет черный( квадрат 70 мм)",
+    "price": 700,
+    "sourceBase": 700,
+    "parentId": 29620,
+    "offerId": 29622,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка АЛЛЮР АРТ BK-S1 SB/PB(4176), цвет мат. золото (квадрата 55 мм)",
+    "price": 670,
+    "sourceBase": 670,
+    "parentId": 29668,
+    "offerId": 29670,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка квадратная PALLINI Cosmo PAL-COS-WC-S MatBlack, черный матовый (квадрат 80 мм)",
+    "price": 1045,
+    "sourceBase": 1045,
+    "parentId": 26292,
+    "offerId": 26294,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка РЕНЦ INBK 01 B, цвет черный (квадрат 72 мм)",
+    "price": 1180,
+    "sourceBase": 1180,
+    "parentId": 29418,
+    "offerId": 29420,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка Ренц INBK 01 SSC,супер сатин хром  (квадрат 72 мм)",
+    "price": 1180,
+    "sourceBase": 1180,
+    "parentId": 27434,
+    "offerId": 27436,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка РЕНЦ INBK 03 B, цвет черный (квадрат  75 мм)",
+    "price": 1150,
+    "sourceBase": 1150,
+    "parentId": 26664,
+    "offerId": 26666,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка РЕНЦ INBK 03 slim B, цвет черный  (квадрат 72 мм)",
+    "price": 1425,
+    "sourceBase": 1425,
+    "parentId": 30432,
+    "offerId": 30434,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка РЕНЦ INBK 03 slim SN, цвет никель матовый (квадрат 72 мм.)",
+    "price": 1425,
+    "sourceBase": 1425,
+    "parentId": 39478,
+    "offerId": 39480,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка РЕНЦ INBK 03, цвет - супер белый (длина квадрата 75 мм)",
+    "price": 1150,
+    "sourceBase": 1150,
+    "parentId": 27856,
+    "offerId": 27858,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка РЕНЦ INBK 08 SN, цвет никель матовый (квадрат 80 мм)",
+    "price": 1075,
+    "sourceBase": 1075,
+    "parentId": 28574,
+    "offerId": 28576,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка РЕНЦ INBK 95-03 MSN, цвет супер матовый никель (квадрат 75 мм)",
+    "price": 1150,
+    "sourceBase": 1150,
+    "parentId": 26710,
+    "offerId": 26712,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка РЕНЦ INBK 95-03 SW, цвет супер белый (квадрат 75 мм)",
+    "price": 1150,
+    "sourceBase": 1150,
+    "parentId": 26668,
+    "offerId": 26670,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка сантехническая MORELLI LUX-WC-BRIDGE-R6 OSA, цвет матовое золото, латунь",
+    "price": 8400,
+    "sourceBase": 8400,
+    "parentId": 40452,
+    "offerId": 40454,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка сантехническая Morelli Luxury LUX-WС-S5 CAFFE Цвет - кофе (квадрат 70 мм)",
+    "price": 2948,
+    "sourceBase": 2948,
+    "parentId": 25878,
+    "offerId": 25880,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертка сантехническая MORELLI MH-WC BL, Цвет – Черный (квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 24898,
+    "offerId": 24900,
+    "priceOverride": false
+  },
+  {
+    "name": "Завертку Morelli Luxury LUX-WC-SQ NERO, Цвет - Черный (припаянный к заглушке квадрат 70 мм)",
+    "price": 0,
+    "sourceBase": 0,
+    "parentId": 25508,
+    "offerId": 25510,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка ABRISS BK 5005 MСP, матовый хром (квадрат 80 мм)",
+    "price": 950,
+    "sourceBase": 950,
+    "parentId": 25316,
+    "offerId": 25318,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Armadillo Urban Collection WC-BOLT BK6 UCS BL-26 чёрный (квадрат 80 мм)",
+    "price": 1800,
+    "sourceBase": 1800,
+    "parentId": 18888,
+    "offerId": 18890,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Armadillo Urban Collection WC-BOLT BK6 UCS BPVD-77 Вороненый никель (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 21338,
+    "offerId": 21340,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Armadillo Urban Collection WC-BOLT BK6 UCS SN-3 Матовый никель (квадрат 80 мм)",
+    "price": 1750,
+    "sourceBase": 1750,
+    "parentId": 15964,
+    "offerId": 21376,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Armadillo Urban Collection WC-BOLT BK6 USS  MWSC-33 , итальянский тисненый (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 24220,
+    "offerId": 24222,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Armadillo Urban Collection WC-BOLT BK6 USS BPVD-77, цвет вороненый никель (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 29184,
+    "offerId": 29186,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Armadillo Urban Collection WC-BOLT BK6 USS CP-8 Хром (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 15960,
+    "offerId": 21430,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Armadillo Urban Collection WC-BOLT BK6 USS SN-3 мат никель (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 15956,
+    "offerId": 21418,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Armadillo Urban Collection WC-BOLT BK6/USQ SN-3 цвет матовый никель (квадрат  80 мм)",
+    "price": 1860,
+    "sourceBase": 1860,
+    "parentId": 26910,
+    "offerId": 26912,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка WC-BOLT BK6 USS FSG-39 Флорентийское золото (квадрат 80 мм)",
+    "price": 1530,
+    "sourceBase": 1530,
+    "parentId": 24110,
+    "offerId": 24112,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Morelli Luxury LUX-WC-SQ CRO, Хром (припаянный к заглушке квадрат 70 мм)",
+    "price": 0,
+    "sourceBase": 0,
+    "parentId": 21550,
+    "offerId": 21552,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Morelli MH-WC-S55 SC/CP матовый хром (квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 16324,
+    "offerId": 16326,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка Morelli MH-WC-S6 BL, чёрная (квадрат 80 мм)",
+    "price": 1040,
+    "sourceBase": 1040,
+    "parentId": 25280,
+    "offerId": 25282,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка PALLINI COSMO PAL-COS-WS WHITE, белая (квадрат 80 мм)",
+    "price": 1045,
+    "sourceBase": 1045,
+    "parentId": 25696,
+    "offerId": 25698,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка RUCETTI RAP WC-S SC/CP матовый хром/полированный хром (квадрат 80 мм)",
+    "price": 620,
+    "sourceBase": 620,
+    "parentId": 24016,
+    "offerId": 24018,
+    "priceOverride": false
+  },
+  {
+    "name": "Завёртка сантехническая RAP WC-S SN/CP, цвет - бел. никель/хром",
+    "price": 630,
+    "sourceBase": 630,
+    "parentId": 25656,
+    "offerId": 25658,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Ajax под цилиндр ET.K.JS51 (ET JS) SSC-16, цвет сатинированный хром",
+    "price": 450,
+    "sourceBase": 450,
+    "parentId": 37472,
+    "offerId": 37474,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Armadillo (Армадилло) под цилиндр ET.K.USS52 (ET USS) SN-3, цвет матовый никель",
+    "price": 900,
+    "sourceBase": 900,
+    "parentId": 42338,
+    "offerId": 42340,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Armadillo под цилиндр ET.K.USS52 (ET USS) BL-26, цвет черный",
+    "price": 900,
+    "sourceBase": 900,
+    "parentId": 21352,
+    "offerId": 21354,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Armadillo под цилиндр ET.K.USS52 (ET USS) FSG-39, цвет флорентийское золото",
+    "price": 900,
+    "sourceBase": 900,
+    "parentId": 30166,
+    "offerId": 30168,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Armadillo под цилиндр ET.K.USS52 (ET USS) SN-3, цвет матовый никель",
+    "price": 900,
+    "sourceBase": 900,
+    "parentId": 18816,
+    "offerId": 18818,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Armadillo под цилиндр ET.K.USS52 (ET USS) WH-19, цвет  белый",
+    "price": 900,
+    "sourceBase": 900,
+    "parentId": 26006,
+    "offerId": 26008,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Armadillo под цилиндр ET.K.USS52 (ET USS) WH-19, цвет белый",
+    "price": 900,
+    "sourceBase": 900,
+    "parentId": 26006,
+    "offerId": 26008,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Armadillo под цилиндр ET.K.USS52 BPVD-77, цвет вороненый никель",
+    "price": 900,
+    "sourceBase": 900,
+    "parentId": 30384,
+    "offerId": 30386,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка Armadillo под цилиндр ET.K.USS52 MWSC-33 итальянский тисненый",
+    "price": 900,
+    "sourceBase": 900,
+    "parentId": 25470,
+    "offerId": 25472,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка FUARO под цилиндр ET.K.SL52 (ET SL) BL-24 черный",
+    "price": 700,
+    "sourceBase": 700,
+    "parentId": 38736,
+    "offerId": 38738,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка MORELLI LUX-KH-SM CS, цвет матовый хром",
+    "price": 3101,
+    "sourceBase": 3101,
+    "parentId": 29246,
+    "offerId": 29248,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка MORELLI MH-KH-S6 SC, цвет матовый хром",
+    "price": 775,
+    "sourceBase": 775,
+    "parentId": 37574,
+    "offerId": 37576,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка MORELLI MH-KH-S6 SSC, цвет супер матовый хром",
+    "price": 775,
+    "sourceBase": 775,
+    "parentId": 30244,
+    "offerId": 30246,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка для евроцилиндра Ruccetti RAP KH SN/CP, цвет белый никель/хром",
+    "price": 450,
+    "sourceBase": 450,
+    "parentId": 26062,
+    "offerId": 26064,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка для цилиндра APRILE Q 5S PZ US PVD, цвет антрацит полированный",
+    "price": 2320,
+    "sourceBase": 2320,
+    "parentId": 26940,
+    "offerId": 26942,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка квадратная для цилиндра PUERTO INET AL 03 B, цвет черный",
+    "price": 700,
+    "sourceBase": 700,
+    "parentId": 27932,
+    "offerId": 27934,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка квадратная для цилиндра PUERTO INET AL 03 MSN, Никель супер матовый",
+    "price": 700,
+    "sourceBase": 700,
+    "parentId": 26816,
+    "offerId": 26818,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка на евроцилиндр RAP KH-S SN/CP, цвет - бел. никель/хром",
+    "price": 430,
+    "sourceBase": 430,
+    "parentId": 25652,
+    "offerId": 25654,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка на ключевой цилиндр MORELLI MH-KH-S6 BL Цвет - Чёрный",
+    "price": 775,
+    "sourceBase": 775,
+    "parentId": 27808,
+    "offerId": 27810,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка на ключевой цилиндр MORELLI MH-KH-S6 MSG, цвет мат. сатинированное золото",
+    "price": 908,
+    "sourceBase": 908,
+    "parentId": 37056,
+    "offerId": 37058,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка на цилиндр PALLINI Cosmo PAL-COS-KH-S MatBlack, цвет черный",
+    "price": 650,
+    "sourceBase": 650,
+    "parentId": 39344,
+    "offerId": 39346,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка на цилиндр PALLINI PAL-COS-KH MatBlack, цвет черный",
+    "price": 650,
+    "sourceBase": 650,
+    "parentId": 39544,
+    "offerId": 39546,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка на цилиндр PUERTO B2B ET AL 02 SN/CP, цвет никель матовый/хром блестящий",
+    "price": 265,
+    "sourceBase": 265,
+    "parentId": 40300,
+    "offerId": 40302,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка под цилиндр ET.K.SL52 SSG-39 сатинированное золото",
+    "price": 700,
+    "sourceBase": 700,
+    "parentId": 25218,
+    "offerId": 25220,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка под цилиндр Fuaro ET.R.SLR52 CP-8, цвет хром",
+    "price": 800,
+    "sourceBase": 800,
+    "parentId": 39416,
+    "offerId": 39418,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка под цилиндр Fuaro ET.R.SLR52 SSC-16, цвет сатинированный хром",
+    "price": 800,
+    "sourceBase": 800,
+    "parentId": 39400,
+    "offerId": 39402,
+    "priceOverride": false
+  },
+  {
+    "name": "Накладка под цилиндр PUNTO ET.R.ARC.R52 (ET ARC) SSC-16 цвет сатин.хром",
+    "price": 400,
+    "sourceBase": 400,
+    "parentId": 40670,
+    "offerId": 40672,
+    "priceOverride": false
+  },
+  {
+    "name": "Роликовая защелка, сталь",
+    "price": 100,
+    "sourceBase": 100,
+    "parentId": 24162,
+    "offerId": 24164,
+    "priceOverride": false
+  },
+  {
+    "name": "Фиксатор сантехнический Fantom круглый WC-30 22K SATIN (золото матовое)",
+    "price": 1284,
+    "sourceBase": 1284,
+    "parentId": 36766,
+    "offerId": 36768,
+    "priceOverride": false
+  }
+]);
+
+const TURN_PRICE_AUDIT=Object.freeze({
+  "category": "Завертки",
+  "source": "Hidden Doors — Ревизия фурнитуры — бренды v1 / Bitrix24 BASE",
+  "sourceRows": 164,
+  "catalogRows": 163,
+  "imported": 163,
+  "exactMatched": 163,
+  "missing": 0,
+  "zero": 3,
+  "suspiciousLow": 1,
+  "suspiciousThreshold": 100,
+  "minSourceBase": 0,
+  "minPositiveBase": 100,
+  "maxBase": 8960,
+  "sourceOnly": 1
+});
+
+const TURN_PRICE_REVIEW=Object.freeze([
+  {
+    "name": "Завертка Morelli Luxury LUX-WC-R CRO, Хром (припаянный к заглушке квадрат 70 мм)",
+    "sourceBase": 0,
+    "parentId": 21546,
+    "offerId": 21548,
+    "reason": "Исходный BASE Bitrix24 = 0 ₽ — рабочую цену не назначать до ручного решения"
+  },
+  {
+    "name": "Завертку Morelli Luxury LUX-WC-SQ NERO, Цвет - Черный (припаянный к заглушке квадрат 70 мм)",
+    "sourceBase": 0,
+    "parentId": 25508,
+    "offerId": 25510,
+    "reason": "Исходный BASE Bitrix24 = 0 ₽ — рабочую цену не назначать до ручного решения"
+  },
+  {
+    "name": "Завёртка Morelli Luxury LUX-WC-SQ CRO, Хром (припаянный к заглушке квадрат 70 мм)",
+    "sourceBase": 0,
+    "parentId": 21550,
+    "offerId": 21552,
+    "reason": "Исходный BASE Bitrix24 = 0 ₽ — рабочую цену не назначать до ручного решения"
+  },
+  {
+    "name": "Роликовая защелка, сталь",
+    "sourceBase": 100,
+    "parentId": 24162,
+    "offerId": 24164,
+    "reason": "Подозрительно низкий BASE: 100 ₽ — требуется ручная проверка"
+  }
+]);
+
+const TURN_PRICE_SOURCE_ONLY=Object.freeze([
+  {
+    "name": "Завертка Fuaro BK6.R.SLR52 (BK6 SLR) GR-23 цвет: графит (квадрат 75)",
+    "sourceBase": 750,
+    "parentId": 40424,
+    "offerId": 40426,
+    "sourceRow": 78,
+    "reason": "Есть в актуальной ревизии Bitrix24, но отсутствует в текущем каталоге src/data/bitrix-catalog.js; автоматически не добавлять."
+  }
 ]);
 
 function normalizeHardwarePriceName(value){
