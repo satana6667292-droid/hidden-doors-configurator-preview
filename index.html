@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v35 · Строка + импорт + контроль дублей</title>
+<title>Hidden Doors — Личный кабинет · Прототип v36 · Объединение дублей</title>
 <style>
 :root{
   --bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
@@ -222,7 +222,7 @@ th{background:#f9fafb;font-weight:800}
   <div class="top">
     <div>
       <h1>Hidden Doors — Личный кабинет</h1>
-      <div class="sub">Прототип v35 · полный конфигуратор · строка + импорт + контроль дублей</div>
+      <div class="sub">Прототип v36 · полный конфигуратор · объединение дублей</div>
     </div>
     <div class="rolebox">
       <label for="role">Роль</label>
@@ -3445,6 +3445,7 @@ function findHardwareDuplicateCandidate({name='',article='',excludeSku=''}={}){
   }
   return possible;
 }
+
 function currentHardwareDuplicateGroups(){
   const entries=allHardwareEntries();
   const byName=new Map();
@@ -3455,22 +3456,167 @@ function currentHardwareDuplicateGroups(){
   const structured=[...byArticle.values()].filter(g=>g.length>1);
   return {entries,exact,structured};
 }
+
+let hardwareDuplicateAuditGroups=[];
+
+function hardwareDuplicateDisplayCategory(entry){
+  return HARDWARE_DUPLICATE_SOURCE_MAP[entry.type]||entry.category||entry.type||'—';
+}
+function hardwareDuplicateMergeMeta(group){
+  const customs=group.filter(x=>x.source==='custom');
+  const hasCatalog=group.some(x=>x.source==='catalog');
+  const types=[...new Set(customs.map(x=>x.type).filter(Boolean))];
+  if(hasCatalog)return {canMerge:false,reason:'Есть системная позиция — автоматическое объединение отключено'};
+  if(customs.length<2)return {canMerge:false,reason:'Недостаточно пользовательских дублей'};
+  if(types.length!==1)return {canMerge:false,reason:'Позиции находятся в разных справочниках'};
+  return {canMerge:true,type:types[0],count:customs.length};
+}
+function hardwareSkuSequence(sku){
+  const m=String(sku||'').match(/^HD-HW-(\d{6})$/);
+  return m?Number(m[1]):Number.MAX_SAFE_INTEGER;
+}
+function findCustomHardwareRecord(entry){
+  const items=getCustomDictionaryItems(entry.type);
+  let index=items.findIndex(x=>entry.sku&&String(x.sku||'')===entry.sku);
+  if(index<0){
+    const name=normalizeHardwareName(entry.name),article=normalizeHardwareArticle(entry.article);
+    index=items.findIndex(x=>
+      (!name||normalizeHardwareName(x.name)===name)&&
+      (!article||normalizeHardwareArticle(x.article)===article)
+    );
+  }
+  return index>=0?{items,index,item:items[index]}:null;
+}
+function isMergeValueEmpty(value){
+  return value===null||value===undefined||value===''||(Array.isArray(value)&&value.length===0);
+}
+function uniqueMergeArray(a,b){
+  const out=[];
+  for(const value of [...(Array.isArray(a)?a:[]),...(Array.isArray(b)?b:[])]){
+    const key=typeof value==='object'?JSON.stringify(value):String(value);
+    if(!out.some(x=>(typeof x==='object'?JSON.stringify(x):String(x))===key))out.push(value);
+  }
+  return out;
+}
+function mergeHardwareExtras(a,b){
+  const out=[];
+  for(const item of [...(Array.isArray(a)?a:[]),...(Array.isArray(b)?b:[])]){
+    if(!item||typeof item!=='object')continue;
+    const name=String(item.name||'').trim(),value=String(item.value||'').trim();
+    if(!name&&!value)continue;
+    const key=normalizeHardwareName(name)+'|'+normalizeHardwareName(value);
+    if(!out.some(x=>normalizeHardwareName(x.name)+'|'+normalizeHardwareName(x.value)===key))out.push({name,value});
+  }
+  return out;
+}
+function mergeHardwareItemRecords(records){
+  if(!records.length)return null;
+  const sorted=[...records].sort((a,b)=>hardwareSkuSequence(a.sku)-hardwareSkuSequence(b.sku));
+  const survivor={...sorted[0],extra:mergeHardwareExtras(sorted[0].extra,[])};
+  const mergedFrom=[];
+  const protectedKeys=new Set(['sku','createdAt','importedAt','mergedAt','mergedFromSkus']);
+  for(const source of sorted.slice(1)){
+    if(source.sku)mergedFrom.push(source.sku);
+    for(const [key,value] of Object.entries(source)){
+      if(protectedKeys.has(key)||key==='extra')continue;
+      if(Array.isArray(value)){
+        survivor[key]=uniqueMergeArray(survivor[key],value);
+        continue;
+      }
+      if(isMergeValueEmpty(survivor[key])&&!isMergeValueEmpty(value))survivor[key]=value;
+      else if(!isMergeValueEmpty(value)&&String(survivor[key])!==String(value)){
+        survivor.extra=mergeHardwareExtras(survivor.extra,[{
+          name:'Значение из объединённого дубля · '+key,
+          value:String(value)
+        }]);
+      }
+    }
+    survivor.extra=mergeHardwareExtras(survivor.extra,source.extra);
+  }
+  survivor.mergedFromSkus=uniqueMergeArray(survivor.mergedFromSkus,mergedFrom);
+  survivor.mergedAt=new Date().toISOString();
+  return survivor;
+}
+function saveHardwareSkuAliases(removedSkus,survivorSku){
+  const aliases=getStore('hd_v36_hw_sku_aliases',{});
+  for(const sku of removedSkus)if(sku&&sku!==survivorSku)aliases[sku]=survivorSku;
+  setStore('hd_v36_hw_sku_aliases',aliases);
+}
+function mergeHardwareDuplicateGroup(groupIndex){
+  const group=hardwareDuplicateAuditGroups[groupIndex];
+  if(!group)return;
+  const meta=hardwareDuplicateMergeMeta(group);
+  if(!meta.canMerge){alert(meta.reason);return}
+  const records=[];
+  for(const entry of group.filter(x=>x.source==='custom')){
+    const found=findCustomHardwareRecord(entry);
+    if(found&&!records.some(x=>String(x.sku||'')===String(found.item.sku||'')))records.push(found.item);
+  }
+  if(records.length<2){runHardwareDuplicateAudit();return}
+  const survivor=[...records].sort((a,b)=>hardwareSkuSequence(a.sku)-hardwareSkuSequence(b.sku))[0];
+  const removed=records.filter(x=>x!==survivor).map(x=>x.sku).filter(Boolean);
+  const ok=confirm(
+    'Объединить '+records.length+' одинаковые позиции?\n\n'+
+    'Останется основной SKU: '+(survivor.sku||'без SKU')+'\n'+
+    'Недостающие характеристики будут перенесены в него, а лишние пользовательские дубли удалены.'
+  );
+  if(!ok)return;
+
+  const merged=mergeHardwareItemRecords(records);
+  const removeSet=new Set(records.map(x=>String(x.sku||'')));
+  const items=getCustomDictionaryItems(meta.type);
+  const next=[];
+  let inserted=false;
+  for(const item of items){
+    if(removeSet.has(String(item.sku||''))){
+      if(!inserted){next.push(merged);inserted=true}
+    }else next.push(item);
+  }
+  if(!inserted)next.push(merged);
+  saveCustomDictionaryItems(meta.type,next);
+  saveHardwareSkuAliases(removed,merged.sku);
+  renderDictionaries();
+  runHardwareDuplicateAudit();
+  const box=$('hardwareDuplicateAudit');
+  if(box){
+    const note=document.createElement('div');
+    note.className='status ok';
+    note.style.marginBottom='10px';
+    note.innerHTML='<b>Позиции объединены.</b> Основной SKU: '+escapeHtml(merged.sku||'—')+'. Удалено дублей: '+removed.length+'.';
+    box.prepend(note);
+  }
+}
 function runHardwareDuplicateAudit(){
   const box=$('hardwareDuplicateAudit');if(!box)return;
   const report=currentHardwareDuplicateGroups();
   const groups=[...report.exact];
   for(const group of report.structured){
-    const sig=group.map(x=>normalizeHardwareName(x.name)).sort().join('|');
-    if(!groups.some(g=>g.map(x=>normalizeHardwareName(x.name)).sort().join('|')===sig))groups.push(group);
+    const sig=group.map(x=>(x.source||'')+'|'+(x.type||'')+'|'+(x.sku||normalizeHardwareName(x.name))).sort().join('||');
+    if(!groups.some(g=>g.map(x=>(x.source||'')+'|'+(x.type||'')+'|'+(x.sku||normalizeHardwareName(x.name))).sort().join('||')===sig))groups.push(group);
   }
+  hardwareDuplicateAuditGroups=groups;
   const duplicateRows=groups.reduce((sum,g)=>sum+Math.max(0,g.length-1),0);
   if(!groups.length){
     box.innerHTML='<div class="status ok"><b>Дубли не найдены.</b> Проверено '+report.entries.length+' позиций фурнитуры.</div>';
     return;
   }
-  box.innerHTML='<div class="status warn"><b>Найдены дубли: '+groups.length+' групп · '+duplicateRows+' лишних строк.</b><br>Ничего автоматически не удалено. Проверьте пары ниже.</div>'+
-    '<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>№</th><th>Категория</th><th>Наименование</th><th>Источник</th><th>Артикул</th></tr></thead><tbody>'+
-    groups.map((g,i)=>g.map((e,j)=>'<tr><td>'+(j===0?i+1:'↳')+'</td><td>'+escapeHtml(e.category)+'</td><td>'+escapeHtml(e.name)+'</td><td>'+escapeHtml(e.source==='catalog'?'Текущий каталог':'Добавлено вручную/импорт')+'</td><td>'+escapeHtml(e.article||'—')+'</td></tr>').join('')).join('')+
+  box.innerHTML='<div class="status warn"><b>Найдены дубли: '+groups.length+' групп · '+duplicateRows+' лишних строк.</b><br>Пользовательские дубли можно объединить: сохранится один SKU, недостающие характеристики перенесутся в него. Системные позиции автоматически не удаляются.</div>'+
+    '<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>№</th><th>SKU</th><th>Категория</th><th>Наименование</th><th>Источник</th><th>Артикул</th><th>Действие</th></tr></thead><tbody>'+
+    groups.map((g,i)=>{
+      const meta=hardwareDuplicateMergeMeta(g);
+      const action=meta.canMerge
+        ?'<button class="secondary" type="button" onclick="mergeHardwareDuplicateGroup('+i+')">Объединить</button>'
+        :'<span class="mini">'+escapeHtml(meta.reason)+'</span>';
+      return g.map((e,j)=>'<tr>'+
+        '<td>'+(j===0?i+1:'↳')+'</td>'+
+        '<td>'+escapeHtml(e.sku||'—')+'</td>'+
+        '<td>'+escapeHtml(hardwareDuplicateDisplayCategory(e))+'</td>'+
+        '<td>'+escapeHtml(e.name)+'</td>'+
+        '<td>'+escapeHtml(e.source==='catalog'?'Текущий каталог':'Добавлено вручную/импорт')+'</td>'+
+        '<td>'+escapeHtml(e.article||'—')+'</td>'+
+        (j===0?'<td rowspan="'+g.length+'">'+action+'</td>':'')+
+        '</tr>').join('');
+    }).join('')+
     '</tbody></table></div>';
 }
 
