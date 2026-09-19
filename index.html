@@ -222,7 +222,7 @@ th{background:#f9fafb;font-weight:800}
   <div class="top">
     <div>
       <h1>Hidden Doors — Личный кабинет</h1>
-      <div class="sub">Прототип v37 · полный конфигуратор · цены 36 мм</div>
+      <div class="sub">Прототип v38 · полный конфигуратор · цены в заказе</div>
     </div>
     <div class="rolebox">
       <label for="role">Роль</label>
@@ -385,7 +385,7 @@ th{background:#f9fafb;font-weight:800}
       <div class="top" style="margin-bottom:14px">
         <div>
           <h2 style="font-size:20px;margin-bottom:4px">Мой заказ</h2>
-          <div class="mini">Сюда попадают позиции со склада. Цены пока не считаем — ценовую логику будем подключать отдельно.</div>
+          <div class="mini">Сюда попадают позиции со склада. Для позиций 36 мм показываются партнёрская цена, сумма по строке и итог заказа.</div>
         </div>
         <div class="top-actions">
           <button class="secondary" onclick="showView('stock')">+ Добавить со склада</button>
@@ -397,10 +397,11 @@ th{background:#f9fafb;font-weight:800}
       <div id="cartContent" class="hidden">
         <div class="table-wrap">
           <table class="cart-table">
-            <thead><tr><th>SKU</th><th>Наименование</th><th>Остаток</th><th>Кол-во</th><th></th></tr></thead>
+            <thead><tr><th>SKU</th><th>Наименование</th><th>Остаток</th><th>Цена</th><th>Кол-во</th><th>Сумма</th><th></th></tr></thead>
             <tbody id="cartBody"></tbody>
           </table>
         </div>
+        <div id="cartPriceSummary"></div>
 
         <div class="section">
           <div class="section-title">Оформление заказа</div>
@@ -684,6 +685,63 @@ function renderPartnerPrice36(){
   value.textContent=snapshot.title||'—';
   details.innerHTML=snapshot.html||'';
   note.textContent=snapshot.note||'';
+}
+
+function configured36CartUnitPrice(){
+  if(product()==='leaf36'){
+    if($('cover36')?.value!=='ПВХ-пленка')return null;
+    return PARTNER_PRICE_36.doorLeaf;
+  }
+  if(product()==='trim36'){
+    if($('trimCover')?.value!=='ПВХ-пленка')return null;
+    return trim36PartnerUnitPrice().price;
+  }
+  return null;
+}
+function companion36UnitPrice(item){
+  const key=String(item?.baseKey||item?.key||'');
+  if(key==='BUNDLE-P36-BOX')return PARTNER_PRICE_36.trim.box;
+  if(key==='BUNDLE-P36-TRIM')return PARTNER_PRICE_36.trim.casing;
+  return null;
+}
+function cart36FallbackUnitPrice(item){
+  if(!item)return null;
+  const category=String(item.category||'');
+  const name=String(item.name||'');
+  const sku=String(item.sku||'');
+  const baseKey=String(item.baseKey||'');
+  if(baseKey==='BUNDLE-P36-BOX'||sku.startsWith('BUNDLE-P36-BOX-')||/Короб телескопический 36/i.test(name))return PARTNER_PRICE_36.trim.box;
+  if(baseKey==='BUNDLE-P36-TRIM'||sku.startsWith('BUNDLE-P36-TRIM-')||/Наличник телескопический 36/i.test(name))return PARTNER_PRICE_36.trim.casing;
+  if(category==='Дверь 36'||/Дверь\s*\/\s*36 мм/i.test(name))return PARTNER_PRICE_36.doorLeaf;
+  if(category==='Погонаж 36'){
+    if(/Короб телескопический/i.test(name))return PARTNER_PRICE_36.trim.box;
+    if(/Наличник телескопический/i.test(name))return PARTNER_PRICE_36.trim.casing;
+    if(/Притворная планка/i.test(name))return PARTNER_PRICE_36.trim.rebate;
+    if(/Соединительная планка/i.test(name))return PARTNER_PRICE_36.trim.connector;
+    if(/Добор/i.test(name)){
+      const m=name.match(/(?:\b|×)(100|150|200)(?:\b|×)/);
+      if(m)return {100:PARTNER_PRICE_36.trim.dobor100,150:PARTNER_PRICE_36.trim.dobor150,200:PARTNER_PRICE_36.trim.dobor200}[Number(m[1])]||null;
+    }
+  }
+  return null;
+}
+function cartItemUnitPrice(item){
+  if(Number.isFinite(Number(item?.unitPrice)))return Number(item.unitPrice);
+  return cart36FallbackUnitPrice(item);
+}
+function cartItemLineTotal(item){
+  const price=cartItemUnitPrice(item);
+  const qty=Number(item?.qty||0);
+  return price===null||!Number.isFinite(price)||!Number.isFinite(qty)?null:price*qty;
+}
+function cartPriceSummary(cart){
+  let total=0,priced=0,unpriced=0;
+  for(const item of cart||[]){
+    const line=cartItemLineTotal(item);
+    if(line===null)unpriced++;
+    else {total+=line;priced++}
+  }
+  return {total,priced,unpriced,complete:unpriced===0};
 }
 
 // --- data/bitrix-catalog.js ---
@@ -3253,11 +3311,13 @@ function addConfiguredToCart(){
   const cart=getCart();
   const existing=cart.find(x=>cartKeyOf(x)===lineKey);
   const stock=match?match.qty:null;
+  const configuredUnitPrice=configured36CartUnitPrice();
   if(existing){
     existing.qty=Number(existing.qty||0)+1;
     existing.productionMeta=doorProductionMeta();
+    if(configuredUnitPrice!==null)existing.unitPrice=configuredUnitPrice;
   }
-  else cart.push({sku,lineKey,name:longName(),category:categoryLabel(),stock,unit:'шт.',qty:1,step:1,source:match?'stock':'production',extras:selectedOrderExtras(),productionMeta:doorProductionMeta()});
+  else cart.push({sku,lineKey,name:longName(),category:categoryLabel(),stock,unit:'шт.',qty:1,step:1,source:match?'stock':'production',extras:selectedOrderExtras(),productionMeta:doorProductionMeta(),unitPrice:configuredUnitPrice});
 
   const parent=cart.find(i=>cartKeyOf(i)===lineKey);
   const parentQty=Number(parent?.qty||1);
@@ -3266,6 +3326,7 @@ function addConfiguredToCart(){
     const childLineKey=lineKey+'::'+x.key;
     const hit=cart.find(i=>cartKeyOf(i)===childLineKey);
     const perParentQty=Number(x.qty||0);
+    const bundleUnitPrice=companion36UnitPrice(x);
     if(hit){
       hit.parentLineKey=lineKey;
       hit.parentDoorSku=sku;
@@ -3275,8 +3336,9 @@ function addConfiguredToCart(){
       hit.boxPart=x.boxPart||null;
       hit.boxMiter45=!!x.boxMiter45;
       hit.qty=perParentQty*parentQty;
+      if(bundleUnitPrice!==null)hit.unitPrice=bundleUnitPrice;
     }else{
-      cart.push({sku:bundleSku,lineKey:childLineKey,name:x.name,category:x.type,stock:null,unit:x.unit,qty:perParentQty*parentQty,step:x.step||1,source:'bundle',kind:x.kind||'bundle',parentLineKey:lineKey,parentDoorSku:sku,perParentQty,baseKey:x.baseKey||x.key,boxPart:x.boxPart||null,boxMiter45:!!x.boxMiter45});
+      cart.push({sku:bundleSku,lineKey:childLineKey,name:x.name,category:x.type,stock:null,unit:x.unit,qty:perParentQty*parentQty,step:x.step||1,source:'bundle',kind:x.kind||'bundle',parentLineKey:lineKey,parentDoorSku:sku,perParentQty,baseKey:x.baseKey||x.key,boxPart:x.boxPart||null,boxMiter45:!!x.boxMiter45,unitPrice:bundleUnitPrice});
     }
   });
 
@@ -3288,15 +3350,31 @@ function renderCart(){
   const cart=getCart();
   $('cartEmpty').classList.toggle('hidden',cart.length>0);
   $('cartContent').classList.toggle('hidden',cart.length===0);
-  if(!cart.length){updateCartCount();return}
-  $('cartBody').innerHTML=cart.map(x=>`
+  if(!cart.length){
+    if($('cartPriceSummary'))$('cartPriceSummary').innerHTML='';
+    updateCartCount();return
+  }
+  $('cartBody').innerHTML=cart.map(x=>{
+    const unitPrice=cartItemUnitPrice(x);
+    const lineTotal=cartItemLineTotal(x);
+    return `
     <tr>
       <td><b>${escapeHtml(x.sku)}</b></td>
       <td>${escapeHtml(x.name)}${x.extras?.length?`<div class="mini">${x.extras.map(e=>escapeHtml(e[0]+': '+e[1])).join(' · ')}</div>`:''}</td>
       <td>${x.stock==null?'<span class="stock-badge">Под заказ</span>':x.stock+' '+escapeHtml(x.unit)}</td>
+      <td>${unitPrice===null?'<span class="mini">По запросу</span>':'<b>'+formatRub(unitPrice)+'</b>'}</td>
       <td><input type="number" min="0" step="${x.step||1}" ${x.stock==null?'':`max="${x.stock}"`} value="${x.qty}" onchange="changeCartQty('${cartKeyOf(x)}',this.value)"></td>
+      <td>${lineTotal===null?'<span class="mini">—</span>':'<b>'+formatRub(lineTotal)+'</b>'}</td>
       <td><button class="ghost" onclick="removeCartItem('${cartKeyOf(x)}')">Удалить</button></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+  const summary=cartPriceSummary(cart);
+  if($('cartPriceSummary')){
+    $('cartPriceSummary').innerHTML=
+      '<div class="result" style="margin-top:12px"><div class="cap">Итого по заказу</div><div class="val">'+formatRub(summary.total)+'</div>'+
+      (summary.unpriced?'<div class="mini" style="margin-top:6px">Не включено в итог позиций без установленной цены: '+summary.unpriced+'.</div>':'')+
+      '<div class="mini" style="margin-top:6px">Цены 36 мм — по партнёрскому прайсу от '+PARTNER_PRICE_36.updated+'.</div></div>';
+  }
   applyProfileToOrder(false);
   const draft=getDraft();
   if(draft.comment!==undefined){
@@ -3417,7 +3495,7 @@ function renderOrderHistory(){
   $('orderHistory').innerHTML=orders.length?orders.map(o=>`
     <div class="history-item">
       <div class="history-head"><b>${escapeHtml(o.number)}</b><span class="stock-badge ok">${escapeHtml(o.status)}</span></div>
-      <div class="mini">${escapeHtml(o.created)} · ${o.items.reduce((s,x)=>s+Number(x.qty),0)} ед. · ${escapeHtml(o.form.delivery)}</div>
+      <div class="mini">${escapeHtml(o.created)} · ${o.items.reduce((s,x)=>s+Number(x.qty),0)} ед. · ${escapeHtml(o.form.delivery)}${cartPriceSummary(o.items).priced?' · '+formatRub(cartPriceSummary(o.items).total):''}</div>
       <div style="margin-top:7px">${o.items.slice(0,3).map(x=>`<div>${x.qty} × ${escapeHtml(x.sku)} — ${escapeHtml(x.name)}</div>`).join('')}${o.items.length>3?`<div class="muted">+ ещё ${o.items.length-3}</div>`:''}</div>
     </div>`).join(''):'<div class="empty">Оформленных заказов пока нет.</div>';
 }
