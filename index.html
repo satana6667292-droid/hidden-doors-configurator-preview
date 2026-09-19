@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v78 · Два каталога плёнок</title>
+<title>Hidden Doors — Личный кабинет · Прототип v79 · Доступ к каталогам плёнок</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -845,7 +845,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v78 · Two film catalogs</div>
+        <div class="version-chip"><span>HD</span> v79 · Film catalog access</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -6020,7 +6020,7 @@ function getStore(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch(e
 function setStore(k,v){localStorage.setItem(k,JSON.stringify(v))}
 function getFilms36(){return [...new Set([...INITIAL_FILMS_36,...getStore('hd_v4_films36',[])])]}
 function getFilmsGeneral(){return [...new Set([...INITIAL_FILMS_GENERAL,...getStore('hd_v4_films_general',[])])]}
-function getFilms42(){return getFilmsGeneral()}
+function getFilms42(){return [...new Set([...getFilmsGeneral(),...getFilms36()])]}
 function getRals(){return getStore('hd_v4_rals',BASE_RALS)}
 function getRegistry(){return getStore('hd_registry_v4_proto',[])}
 function saveRegistry(v){setStore('hd_registry_v4_proto',v)}
@@ -10796,8 +10796,8 @@ function runHardwareDuplicateAudit(){
 function renderDictionaries(){
   const box=$('dictionaryGrid'); if(!box)return;
   const cards=[
-    {filmScope:'36',name:'ПВХ-плёнки · 36 мм',count:getFilms36().length,note:'Каркасно-щитовые двери и погонаж 36 мм · название + артикул'},
-    {filmScope:'general',name:'ПВХ-плёнки · основной каталог',count:getFilmsGeneral().length,note:'Основной справочник для 42/59 мм и стеновых панелей · название + артикул'},
+    {filmScope:'36',name:'ПВХ-плёнки · 36 мм',count:getFilms36().length,note:'36 мм используют только этот каталог; 42/59 мм также видят его как дополнительный · название + артикул'},
+    {filmScope:'general',name:'ПВХ-плёнки · основной каталог',count:getFilmsGeneral().length,note:'Основной справочник для 42/59 мм; для 36 мм недоступен · название + артикул'},
     {name:'RAL',count:getRals().length,note:'Редактируемый справочник цветов'},
     {key:'hinge',name:'Петли',count:dictionaryCardCount('hinge','Петли'),note:'Обязательные поля + произвольные дополнительные параметры'},
     {key:'lock',name:'Замки',count:dictionaryCardCount('lock','Замки'),note:'Обязательные поля + произвольные дополнительные параметры'},
