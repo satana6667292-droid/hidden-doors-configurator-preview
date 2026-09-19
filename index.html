@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v79 · Доступ к каталогам плёнок</title>
+<title>Hidden Doors — Личный кабинет · Прототип v80 · Price Book foundation</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -828,6 +828,52 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 #price42ResultWrap .cap{color:#85633b;font-weight:850}
 #price42ResultWrap .val{font-size:22px;font-weight:800;color:#2f271f}
 #price42ResultWrap .mini{color:#6e604f}
+
+
+/* v80: price book foundation */
+.pricing-admin-shell{max-width:1280px;margin:0 auto}
+.pricing-admin-lock{
+  display:inline-flex;align-items:center;padding:7px 10px;border-radius:999px;
+  background:#f2eee8;border:1px solid #ded4c7;color:#665a4c;font-size:10px;font-weight:850
+}
+.pricing-admin-grid{
+  display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:18px
+}
+.pricing-admin-card{
+  min-width:0;padding:16px;border:1px solid var(--line);border-radius:16px;background:#fbf8f4
+}
+.pricing-admin-card.primary{background:#fff8ec;border-color:#d9bf95}
+.pricing-admin-kicker{
+  margin-bottom:7px;color:#80623f;font-size:10px;font-weight:900;letter-spacing:.07em;text-transform:uppercase
+}
+.pricing-admin-title{
+  font-family:'Manrope','Inter',sans-serif;font-size:19px;font-weight:850;line-height:1.22;color:#2f2922
+}
+.pricing-admin-big{
+  margin:3px 0 5px;font-family:'Manrope','Inter',sans-serif;font-size:30px;font-weight:900;color:#30281f
+}
+.pricing-admin-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pricing-admin-meta span{
+  display:inline-flex;padding:5px 8px;border-radius:999px;background:#fff;border:1px solid #e5d8c7;
+  font-size:10px;color:#675a4d
+}
+.pricing-admin-policy{
+  margin-top:13px;padding:11px 12px;border-radius:12px;background:#fff;border:1px solid #e5d8c7;
+  font-size:11px;line-height:1.5;color:#5d5145
+}
+.pricing-coverage-table td{vertical-align:top}
+.pricing-status{
+  display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:850;white-space:nowrap
+}
+.pricing-status.ok{background:#e8f3eb;color:#315f40;border:1px solid #b7d0be}
+.pricing-status.warn{background:#fff4de;color:#805d26;border:1px solid #e5c991}
+.pricing-status.info{background:#edf1f4;color:#50606d;border:1px solid #cbd5dc}
+.pricing-rules{display:grid;gap:8px}
+.pricing-rules>div{
+  padding:10px 12px;border:1px solid #e7ddd2;border-radius:11px;background:#fcfaf7;font-size:12px;line-height:1.45
+}
+@media(max-width:950px){.pricing-admin-grid{grid-template-columns:1fr 1fr}.pricing-admin-card.primary{grid-column:1/-1}}
+@media(max-width:650px){.pricing-admin-grid{grid-template-columns:1fr}.pricing-admin-card.primary{grid-column:auto}}
 </style>
 </head>
 <body>
@@ -845,7 +891,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v79 · Film catalog access</div>
+        <div class="version-chip"><span>HD</span> v80 · Price Book foundation</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -889,6 +935,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       <span id="stockNavCount" class="stock-cta-count">0 дверей</span>
     </button>
     <button id="navDictionaries" onclick="showView('dictionaries')">Справочники</button>
+    <button id="navPricing" class="admin-only hidden" onclick="showView('pricing')">Цены и себестоимость</button>
   </div>
 
   <section id="catalogHero" class="catalog-hero" aria-label="Разделы каталога">
@@ -1228,6 +1275,19 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </section>
   </div>
 
+  <div id="viewPricing" class="appview hidden">
+    <section class="card pricing-admin-shell">
+      <div class="top" style="margin-bottom:14px">
+        <div>
+          <h2 style="font-size:20px;margin-bottom:4px">Цены и себестоимость</h2>
+          <div class="mini">Административный контур. Продажные прайсы, покрытие ценами и будущая себестоимость отделены от номенклатуры и интерфейса конфигуратора.</div>
+        </div>
+        <div class="pricing-admin-lock">Только администратор</div>
+      </div>
+      <div id="pricingAdminRoot"></div>
+    </section>
+  </div>
+
   <div id="nomenclatureImportModal" class="import-modal hidden" role="dialog" aria-modal="true" aria-labelledby="nomenclatureImportTitle">
     <div class="import-dialog">
       <div class="import-head">
@@ -1446,9 +1506,136 @@ function initSalesPriceTypeUI(){
   select.value=activeSalesPriceType();
 }
 
+
+// v80: central sales price-book foundation.
+// Price books are independent from product UI and are designed to become the sales layer
+// above the future normative/factual cost engine.
+const SALES_PRICE_BOOKS=Object.freeze([
+  Object.freeze({
+    id:'partner-2026-v1',
+    name:'Партнёрский прайс Hidden Doors 2026',
+    version:'2026.1',
+    priceType:'wholesale2',
+    priceTypeLabel:'Опт 2',
+    status:'active',
+    source:'Hidden doors Партнерский Прайс продуктовой линейки',
+    sourceFileId:'10fH0RYUWVd5UWXJT6t7U8Iu1gJbI4LPpQWGPeQMF7mc',
+    sourceUpdated:'22.01.2026',
+    approvedAt:'19.09.2026',
+    lookupPolicy:'exact'
+  })
+]);
+const ACTIVE_SALES_PRICE_BOOK_BY_TYPE=Object.freeze({
+  wholesale2:'partner-2026-v1'
+});
+
+function salesPriceBookById(id){
+  return SALES_PRICE_BOOKS.find(x=>x.id===String(id||''))||null;
+}
+function activeSalesPriceBook(priceType=activeSalesPriceType()){
+  const type=normalizeSalesPriceType(priceType);
+  const id=ACTIVE_SALES_PRICE_BOOK_BY_TYPE[type]||'';
+  return id?salesPriceBookById(id):null;
+}
+function salesPriceBookStatusLabel(status){
+  return ({active:'Активен',draft:'Черновик',archived:'Архив'})[status]||String(status||'—');
+}
+function salesPriceBookPolicyLabel(policy){
+  return policy==='exact'?'Только точное совпадение':String(policy||'—');
+}
+function activeSalesPriceBookNote(priceType=activeSalesPriceType()){
+  const book=activeSalesPriceBook(priceType);
+  if(!book)return 'Для типа цены «'+salesPriceTypeLabel(priceType)+'» активный прайс пока не назначен.';
+  return book.name+' · v'+book.version+' · '+book.source+' · обновлён '+book.sourceUpdated;
+}
+
+// Central rule: a sales price must never be silently inherited from a nearby size,
+// frame, finish or product family.
+function exactSalesPriceMatch(required,actual){
+  const keys=Object.keys(required||{});
+  return keys.every(key=>{
+    const expected=required[key],value=actual?.[key];
+    if(Array.isArray(expected))return expected.map(String).includes(String(value));
+    return String(expected)===String(value);
+  });
+}
+
+const SALES_PRICE_COVERAGE=Object.freeze([
+  Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 · 7 705 ₽'}),
+  Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Опт 2 · формула и позиции подключены'}),
+  Object.freeze({block:'42 мм',area:'Фанера · 2000 · грунт · серый/чёрный анод',status:'connected',note:'Опт 2 · партнёрский прайс 2026'}),
+  Object.freeze({block:'42 мм',area:'2100/2200, AL и прочие исполнения',status:'pending',note:'Цена есть в источнике частично, подключение следующим блоком'}),
+  Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Прайс проанализирован, расчёт ещё не подключён'}),
+  Object.freeze({block:'Фурнитура',area:'Петли / замки / ручки / прочее',status:'external',note:'Сейчас BASE Bitrix24, sales-tier ещё не связан'}),
+  Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL / ПВХ',status:'pending',note:'Цены источника зафиксированы, автоматические правила ещё не подключены'}),
+  Object.freeze({block:'Себестоимость',area:'Нормативная / фактическая',status:'future',note:'Каркас данных предусмотрен, расчёт будет отдельным следующим слоем'})
+]);
+
+function salesPriceCoverageStatusMeta(status){
+  return ({
+    connected:{label:'Подключено',cls:'ok'},
+    pending:{label:'Не подключено',cls:'warn'},
+    external:{label:'Другой источник',cls:'info'},
+    future:{label:'Следующий слой',cls:'info'}
+  })[status]||{label:String(status||'—'),cls:'info'};
+}
+function renderPricingAdmin(){
+  const root=typeof $==='function'?$('pricingAdminRoot'):null;
+  if(!root)return;
+  const active=activeSalesPriceBook('wholesale2');
+  const connected=SALES_PRICE_COVERAGE.filter(x=>x.status==='connected').length;
+  const unresolved=SALES_PRICE_COVERAGE.length-connected;
+  root.innerHTML=
+    '<div class="pricing-admin-grid">'+
+      '<div class="pricing-admin-card primary">'+
+        '<div class="pricing-admin-kicker">Активный прайс · Опт 2</div>'+
+        '<div class="pricing-admin-title">'+escapeHtml(active?.name||'Не назначен')+'</div>'+
+        '<div class="pricing-admin-meta">'+
+          '<span>Версия <b>'+escapeHtml(active?.version||'—')+'</b></span>'+
+          '<span>Статус <b>'+escapeHtml(salesPriceBookStatusLabel(active?.status))+'</b></span>'+
+          '<span>Источник обновлён <b>'+escapeHtml(active?.sourceUpdated||'—')+'</b></span>'+
+          '<span>Утверждён <b>'+escapeHtml(active?.approvedAt||'—')+'</b></span>'+
+        '</div>'+
+        '<div class="pricing-admin-policy"><b>Правило поиска цены:</b> '+escapeHtml(salesPriceBookPolicyLabel(active?.lookupPolicy))+
+          '. Если точной строки нет — конфигуратор должен показывать «Цена не заполнена / по запросу», а не брать соседний размер или исполнение.</div>'+
+      '</div>'+
+      '<div class="pricing-admin-card">'+
+        '<div class="pricing-admin-kicker">Контроль покрытия</div>'+
+        '<div class="pricing-admin-big">'+connected+' / '+SALES_PRICE_COVERAGE.length+'</div>'+
+        '<div class="mini">блоков уже работают на утверждённой sales-price архитектуре · '+unresolved+' требуют дальнейшего подключения</div>'+
+      '</div>'+
+      '<div class="pricing-admin-card">'+
+        '<div class="pricing-admin-kicker">Будущая себестоимость</div>'+
+        '<div class="pricing-admin-title">Отдельный слой под тем же ядром</div>'+
+        '<div class="mini">Продажная цена и себестоимость не смешиваются. В дальнейшем сюда добавятся нормативная и фактическая себестоимость, маржа и отклонения.</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="section">'+
+      '<div class="section-title">Покрытие активным прайсом</div>'+
+      '<div class="table-wrap"><table class="pricing-coverage-table"><thead><tr><th>Блок</th><th>Область</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody>'+
+      SALES_PRICE_COVERAGE.map(row=>{const m=salesPriceCoverageStatusMeta(row.status);return '<tr>'+
+        '<td><b>'+escapeHtml(row.block)+'</b></td>'+
+        '<td>'+escapeHtml(row.area)+'</td>'+
+        '<td><span class="pricing-status '+m.cls+'">'+escapeHtml(m.label)+'</span></td>'+
+        '<td>'+escapeHtml(row.note)+'</td>'+
+      '</tr>'}).join('')+
+      '</tbody></table></div>'+
+    '</div>'+
+    '<div class="section">'+
+      '<div class="section-title">Правила фундамента</div>'+
+      '<div class="pricing-rules">'+
+        '<div><b>1.</b> Прайс имеет собственные ID, версию, тип цены, источник и статус.</div>'+
+        '<div><b>2.</b> Для Опт 2 единственный активный источник сейчас — партнёрский прайс 2026.</div>'+
+        '<div><b>3.</b> Цена применяется только при точном совпадении утверждённых характеристик.</div>'+
+        '<div><b>4.</b> BASE Bitrix24 не считается Опт 2 и показывается отдельно, пока не появится sales-tier цена фурнитуры.</div>'+
+        '<div><b>5.</b> Себестоимость будет храниться отдельным слоем и не будет автоматически менять продажную цену.</div>'+
+      '</div>'+
+    '</div>';
+}
+
 // --- data/prices36.js ---
 // 36 mm sales prices.
-// The price list sent to «Дверной профи» is the approved Opt 2 tier.
+// Approved Opt 2 source: «Партнёрский прайс Hidden Doors 2026».
 const SALES_PRICE_36=Object.freeze({
   retail:null,
   wholesale1:null,
@@ -1456,7 +1643,7 @@ const SALES_PRICE_36=Object.freeze({
     priceType:'wholesale2',
     priceTypeLabel:'Опт 2',
     source:'Hidden doors Партнерский Прайс продуктовой линейки',
-    recipient:'Дверной профи',
+    priceBookId:'partner-2026-v1',
     updated:'22.01.2026',
     doorLeaf:7705,
     doorKit:11730,
@@ -1483,7 +1670,7 @@ function price36TypeLabel(priceType=activeSalesPriceType()){
 }
 function price36SourceNote(book){
   if(!book)return '';
-  return book.source+' · тип цены '+price36TypeLabel(book.priceType)+' · получатель '+book.recipient+' · обновлён '+book.updated;
+  return book.source+' · price book '+(book.priceBookId||'—')+' · тип цены '+price36TypeLabel(book.priceType)+' · обновлён '+book.updated;
 }
 function formatRub(value){
   if(!Number.isFinite(Number(value)))return '—';
@@ -1672,20 +1859,20 @@ function cartPriceSummary(cart){
 
 // --- data/prices42.js ---
 // 42 mm standard door-leaf sales prices.
-// Source: «Прайс для Дверной профи.xlsx». The approved first tier is Opt 2.
+// Source: approved «Партнёрский прайс Hidden Doors 2026». Opt 2 uses exact-match pricing.
 const SALES_PRICE_42_STANDARD=Object.freeze({
   retail:null,
   wholesale1:null,
   wholesale2:Object.freeze({
     priceType:'wholesale2',
     priceTypeLabel:'Опт 2',
-    source:'Прайс для Дверной профи.xlsx',
-    sourceFileId:'1fNkctTiEW_sD550qZa2WHMLn2vv8-DwH',
-    recipient:'Дверной профи',
-    updated:'04.03.2025',
+    source:'Hidden doors Партнерский Прайс продуктовой линейки',
+    sourceFileId:'10fH0RYUWVd5UWXJT6t7U8Iu1gJbI4LPpQWGPeQMF7mc',
+    priceBookId:'partner-2026-v1',
+    updated:'22.01.2026',
     standardHeight:2000,
     standardWidths:Object.freeze([600,700,800,900]),
-    leaf:Object.freeze({gray:11951,black:13146})
+    leaf:Object.freeze({gray:9856,black:10293})
   })
 });
 
@@ -1716,7 +1903,7 @@ function standard42PriceEligibility(){
 }
 function price42SourceNote(book){
   if(!book)return '';
-  return book.source+' · тип цены '+price42TypeLabel(book.priceType)+' · получатель '+book.recipient+' · файл обновлён '+book.updated;
+  return book.source+' · price book '+(book.priceBookId||'—')+' · тип цены '+price42TypeLabel(book.priceType)+' · источник обновлён '+book.updated;
 }
 function price42StandardSnapshot(){
   if(product()!=='single42')return {visible:false};
@@ -1728,7 +1915,7 @@ function price42StandardSnapshot(){
   const eligibility=standard42PriceEligibility();
   if(!eligibility.eligible)return {
     visible:true,available:false,title:'Цена по запросу',priceType:type,
-    note:'Для «'+typeLabel+'» сейчас заполнены только стандартные полотна 42 мм из прайса «Дверной профи»: '+eligibility.reasons.join('; ')+'.'
+    note:'Для «'+typeLabel+'» сейчас заполнены только стандартные полотна 42 мм из активного партнёрского прайса 2026: '+eligibility.reasons.join('; ')+'.'
   };
   const price=book.leaf[eligibility.edgeKey]??null;
   if(!Number.isFinite(Number(price)))return {visible:true,available:false,title:'Цена по запросу',priceType:type,note:'Цена для выбранного исполнения 42 мм не найдена.'};
@@ -9453,6 +9640,7 @@ function copyText(id){
 function updateRoleUI(){
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',role()!=='admin'));
   document.querySelectorAll('.stock-write,.catalog-write').forEach(el=>el.classList.toggle('hidden',!catalogWriteAllowed()));
+  if(role()!=='admin'&&!$('viewPricing')?.classList.contains('hidden'))showView('configurator');
 }
 
 // --- order.js ---
@@ -9526,13 +9714,15 @@ function saveOrders(v){setStore('hd_v5_orders',v)}
 function getDraft(){return getStore('hd_v5_order_draft',{})}
 
 function showView(name){
-  ['configurator','stock','order','dictionaries','profile'].forEach(v=>{
-    $('view'+v[0].toUpperCase()+v.slice(1)).classList.toggle('hidden',v!==name);
-    $('nav'+v[0].toUpperCase()+v.slice(1)).classList.toggle('active',v===name);
+  if(name==='pricing'&&role()!=='admin')return;
+  ['configurator','stock','order','dictionaries','pricing','profile'].forEach(v=>{
+    $('view'+v[0].toUpperCase()+v.slice(1))?.classList.toggle('hidden',v!==name);
+    $('nav'+v[0].toUpperCase()+v.slice(1))?.classList.toggle('active',v===name);
   });
   if(name==='stock'){setStore(CATALOG_HERO_ROUTE_STORE,'stock');renderStock()}
   if(name==='order'){setStore(CATALOG_HERO_ROUTE_STORE,'order');renderCart()}
   if(name==='dictionaries')renderDictionaries();
+  if(name==='pricing'&&typeof renderPricingAdmin==='function')renderPricingAdmin();
   if(name==='profile'){loadProfile();renderOrderHistory()}
   if(typeof renderCatalogHeroState==='function')renderCatalogHeroState();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -11779,6 +11969,7 @@ updateCartCount();
 loadProfile();
 renderOrderHistory();
 renderDictionaries();
+if(typeof renderPricingAdmin==='function')renderPricingAdmin();
 renderCatalogHeroNav();
 restoreCatalogHeroRoute();
 updateCartCount();
