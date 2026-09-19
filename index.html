@@ -697,9 +697,10 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       <div class="import-body">
         <div class="stock-receipt-filter-grid">
           <div><label>Поиск по SKU / названию</label><input id="stockReceiptSearch" placeholder="SKU, модель, покрытие…" oninput="renderStockReceiptCandidates()"></div>
-          <div><label>Линейка</label><select id="stockReceiptLine" onchange="renderStockReceiptCandidates()"></select></div>
-          <div><label>Категория</label><select id="stockReceiptCategory" onchange="renderStockReceiptCandidates()"></select></div>
+          <div><label>Линейка</label><select id="stockReceiptLine" onchange="stockReceiptLineChanged()"></select></div>
+          <div><label>Категория</label><select id="stockReceiptCategory" onchange="stockReceiptCategoryChanged()"></select></div>
         </div>
+        <div id="stockReceiptDependentFilters" class="stock-receipt-filter-grid hidden" style="margin-top:10px"></div>
         <div class="stock-receipt-layout">
           <div>
             <div class="pane-title">Существующая номенклатура</div>
@@ -3740,19 +3741,161 @@ function refreshStockFilterOptions(){
     lineSelect.innerHTML=options(lines,lines.includes(old)?old:'Все линейки');
   }
 }
-function prepareStockReceiptFilters(){
+function stockReceiptCategoryLabel(item){
+  const line=stockProductLine(item);
+  const category=String(item?.category||'').trim();
+  const name=String(item?.name||'').trim();
+  const text=(category+' '+name).toLowerCase();
+
+  if(line==='36 мм'){
+    if(/погонаж|короб телескоп|наличник телескоп|добор телескоп|притворн|соединительн/.test(text))return 'Погонаж 36';
+    if(/двер/.test(text))return 'Дверь 36';
+  }
+  if(line==='42 мм'){
+    if(/погонаж|профиль дверного короба 42|торец bc3|торец c4/.test(text))return 'Погонаж 42';
+    if(/откат/.test(text))return 'Откатная дверь 42';
+    if(/двуствор/.test(text))return 'Двустворчатая дверь 42';
+    if(/дверь скрытая\s*\+\s*короб|скрытая 42/.test(text))return 'Комплект: скрытая дверь + короб 42';
+    if(/двер/.test(text))return 'Дверь скрытая 42';
+  }
+  if(line==='59 мм'){
+    if(/погонаж|профиль дверного короба 59|торец 59/.test(text))return 'Погонаж 59';
+    if(/дверь скрытая\s*\+\s*короб|скрытая 59/.test(text))return 'Комплект: скрытая дверь + короб 59';
+    if(/двер/.test(text))return 'Дверь скрытая 59';
+  }
+  return category||'Другое';
+}
+function stockReceiptCategoryChoices(line,candidates){
+  const fixed={
+    '36 мм':['Дверь 36','Погонаж 36'],
+    '42 мм':['Дверь скрытая 42','Комплект: скрытая дверь + короб 42','Откатная дверь 42','Двустворчатая дверь 42','Погонаж 42'],
+    '59 мм':['Дверь скрытая 59','Комплект: скрытая дверь + короб 59','Погонаж 59']
+  };
+  if(fixed[line])return fixed[line];
+  const pool=line==='Все линейки'?candidates:candidates.filter(x=>stockProductLine(x)===line);
+  return [...new Set(pool.map(stockReceiptCategoryLabel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+}
+function stockReceiptElementLabel(item){
+  const name=String(item?.name||'');
+  const line=stockProductLine(item);
+  const dictionaries={
+    '36 мм':['Короб телескопический','Наличник телескопический','Добор телескопический','Притворная планка','Соединительная планка для стыковки доборов'],
+    '42 мм':['Профиль дверного короба 42','Торец BC3','Торец C4'],
+    '59 мм':['Профиль дверного короба 59','Торец 59 с четвертью']
+  };
+  return (dictionaries[line]||[]).find(x=>name.toLowerCase().includes(x.toLowerCase()))||'';
+}
+function stockReceiptPogoElements(line){
+  return {
+    '36 мм':['Короб телескопический','Наличник телескопический','Добор телескопический','Притворная планка','Соединительная планка для стыковки доборов'],
+    '42 мм':['Профиль дверного короба 42','Торец BC3','Торец C4'],
+    '59 мм':['Профиль дверного короба 59','Торец 59 с четвертью']
+  }[line]||[];
+}
+function stockReceipt36GroupsForCollection(collection){
+  if(collection && collection!=='Все коллекции')return door36Groups(collection);
+  return DOOR36_CATALOG.map(x=>x.collection);
+}
+function stockReceipt36ModelsForSelection(collection,group){
+  if(group && group!=='Все группы')return door36Models(group);
+  return stockReceipt36GroupsForCollection(collection).flatMap(door36Models);
+}
+function refreshStockReceipt36ModelOptions(preferred=''){
+  const model=$('stockReceiptModel');if(!model)return;
+  const collection=$('stockReceiptCollection')?.value||'Все коллекции';
+  const group=$('stockReceiptGroup')?.value||'Все группы';
+  const old=preferred||model.value||'Все модели';
+  const vals=['Все модели',...stockReceipt36ModelsForSelection(collection,group)];
+  model.innerHTML=options(vals,vals.includes(old)?old:'Все модели');
+}
+function refreshStockReceipt36GroupOptions(preferredGroup='',preferredModel=''){
+  const group=$('stockReceiptGroup');if(!group)return;
+  const collection=$('stockReceiptCollection')?.value||'Все коллекции';
+  const old=preferredGroup||group.value||'Все группы';
+  const vals=['Все группы',...stockReceipt36GroupsForCollection(collection)];
+  group.innerHTML=options(vals,vals.includes(old)?old:'Все группы');
+  refreshStockReceipt36ModelOptions(preferredModel);
+}
+function renderStockReceiptDependentFilters(preferredItem=null){
+  const wrap=$('stockReceiptDependentFilters');if(!wrap)return;
+  const line=$('stockReceiptLine')?.value||'Все линейки';
+  const cat=$('stockReceiptCategory')?.value||'Все категории';
+  const oldCollection=$('stockReceiptCollection')?.value||'Все коллекции';
+  const oldGroup=$('stockReceiptGroup')?.value||'Все группы';
+  const oldModel=$('stockReceiptModel')?.value||'Все модели';
+  const oldElement=$('stockReceiptElement')?.value||'Все элементы';
+  const preferredVisual=preferredItem?stock36DoorVisual(preferredItem):null;
+
+  if(line==='36 мм'&&cat==='Дверь 36'){
+    const collections=['Все коллекции',...door36Collections()];
+    const selectedCollection=preferredVisual?.collection||oldCollection;
+    wrap.innerHTML=
+      '<div><label>Коллекция</label><select id="stockReceiptCollection" onchange="stockReceipt36CollectionChanged()">'+options(collections,collections.includes(selectedCollection)?selectedCollection:'Все коллекции')+'</select></div>'+
+      '<div><label>Группа</label><select id="stockReceiptGroup" onchange="stockReceipt36GroupChanged()"></select></div>'+
+      '<div><label>Модель</label><select id="stockReceiptModel" onchange="stockReceiptDependentChanged()"></select></div>';
+    wrap.classList.remove('hidden');
+    refreshStockReceipt36GroupOptions(preferredVisual?.group||oldGroup,preferredVisual?.model||oldModel);
+    return;
+  }
+
+  const pogo=(line==='36 мм'&&cat==='Погонаж 36')||(line==='42 мм'&&cat==='Погонаж 42')||(line==='59 мм'&&cat==='Погонаж 59');
+  if(pogo){
+    const vals=['Все элементы',...stockReceiptPogoElements(line)];
+    const preferredElement=preferredItem?stockReceiptElementLabel(preferredItem):oldElement;
+    wrap.innerHTML='<div><label>Элемент</label><select id="stockReceiptElement" onchange="stockReceiptDependentChanged()">'+options(vals,vals.includes(preferredElement)?preferredElement:'Все элементы')+'</select></div>';
+    wrap.classList.remove('hidden');
+    return;
+  }
+
+  wrap.innerHTML='';
+  wrap.classList.add('hidden');
+}
+function prepareStockReceiptFilters(preferredItem=null){
   const candidates=stockNomenclatureCandidates();
   const line=$('stockReceiptLine'),cat=$('stockReceiptCategory');
   if(line){
-    const old=line.value||'Все линейки';
-    const vals=['Все линейки',...new Set(candidates.map(stockProductLine))];
-    line.innerHTML=options(vals,vals.includes(old)?old:'Все линейки');
+    const current=line.value||'Все линейки';
+    const preferred=preferredItem?stockProductLine(preferredItem):current;
+    const vals=['Все линейки','36 мм','42 мм','59 мм','Другое'];
+    line.innerHTML=options(vals,vals.includes(preferred)?preferred:'Все линейки');
   }
   if(cat){
-    const old=cat.value||'Все категории';
-    const vals=['Все категории',...new Set(candidates.map(x=>x.category).filter(Boolean))];
-    cat.innerHTML=options(vals,vals.includes(old)?old:'Все категории');
+    const current=cat.value||'Все категории';
+    const preferred=preferredItem?stockReceiptCategoryLabel(preferredItem):current;
+    const vals=['Все категории',...stockReceiptCategoryChoices(line?.value||'Все линейки',candidates)];
+    cat.innerHTML=options(vals,vals.includes(preferred)?preferred:'Все категории');
   }
+  renderStockReceiptDependentFilters(preferredItem);
+}
+function stockReceiptLineChanged(){
+  stockReceiptSelectedSku='';
+  if($('stockReceiptCategory'))$('stockReceiptCategory').value='Все категории';
+  prepareStockReceiptFilters();
+  renderStockReceiptCandidates();
+  renderStockReceiptSelection();
+}
+function stockReceiptCategoryChanged(){
+  stockReceiptSelectedSku='';
+  renderStockReceiptDependentFilters();
+  renderStockReceiptCandidates();
+  renderStockReceiptSelection();
+}
+function stockReceipt36CollectionChanged(){
+  stockReceiptSelectedSku='';
+  refreshStockReceipt36GroupOptions();
+  renderStockReceiptCandidates();
+  renderStockReceiptSelection();
+}
+function stockReceipt36GroupChanged(){
+  stockReceiptSelectedSku='';
+  refreshStockReceipt36ModelOptions();
+  renderStockReceiptCandidates();
+  renderStockReceiptSelection();
+}
+function stockReceiptDependentChanged(){
+  stockReceiptSelectedSku='';
+  renderStockReceiptCandidates();
+  renderStockReceiptSelection();
 }
 function openStockReceipt(sku=''){
   if(!elevated())return;
@@ -3761,14 +3904,8 @@ function openStockReceipt(sku=''){
   modal.classList.remove('hidden');
   document.body.style.overflow='hidden';
   if($('stockReceiptSearch'))$('stockReceiptSearch').value='';
-  prepareStockReceiptFilters();
-  if(sku){
-    const candidate=stockReceiptCandidateBySku(sku);
-    if(candidate){
-      if($('stockReceiptLine'))$('stockReceiptLine').value=stockProductLine(candidate);
-      if($('stockReceiptCategory'))$('stockReceiptCategory').value=candidate.category||'Все категории';
-    }
-  }
+  const candidate=sku?stockReceiptCandidateBySku(sku):null;
+  prepareStockReceiptFilters(candidate);
   renderStockReceiptCandidates();
   renderStockReceiptSelection();
   setTimeout(()=>$('stockReceiptSearch')?.focus(),0);
@@ -3783,10 +3920,22 @@ function renderStockReceiptCandidates(){
   const q=($('stockReceiptSearch')?.value||'').trim().toLowerCase();
   const line=$('stockReceiptLine')?.value||'Все линейки';
   const cat=$('stockReceiptCategory')?.value||'Все категории';
+  const collection=$('stockReceiptCollection')?.value||'Все коллекции';
+  const group=$('stockReceiptGroup')?.value||'Все группы';
+  const model=$('stockReceiptModel')?.value||'Все модели';
+  const element=$('stockReceiptElement')?.value||'Все элементы';
   const candidates=stockNomenclatureCandidates().filter(x=>{
     const visual=stock36DoorVisual(x);
-    const hay=[x.sku,x.category,x.name,x.brand,x.article,x.model,x.finish,visual?.model,visual?.collection,visual?.group].filter(Boolean).join(' ').toLowerCase();
-    return (!q||hay.includes(q))&&(line==='Все линейки'||stockProductLine(x)===line)&&(cat==='Все категории'||x.category===cat);
+    const uiCategory=stockReceiptCategoryLabel(x);
+    const uiElement=stockReceiptElementLabel(x);
+    const hay=[x.sku,x.category,uiCategory,x.name,x.brand,x.article,x.model,x.finish,uiElement,visual?.model,visual?.collection,visual?.group].filter(Boolean).join(' ').toLowerCase();
+    return (!q||hay.includes(q))&&
+      (line==='Все линейки'||stockProductLine(x)===line)&&
+      (cat==='Все категории'||uiCategory===cat)&&
+      (collection==='Все коллекции'||visual?.collection===collection)&&
+      (group==='Все группы'||visual?.group===group)&&
+      (model==='Все модели'||visual?.model===model)&&
+      (element==='Все элементы'||uiElement===element);
   }).slice(0,120);
   box.innerHTML=candidates.length?candidates.map(item=>{
     const current=getStock().find(x=>String(x.sku)===String(item.sku));
@@ -3795,7 +3944,7 @@ function renderStockReceiptCandidates(){
     const source=current?'На складе':item.sourceKind==='hardware'?'Справочник фурнитуры':'Реестр номенклатуры';
     return '<button type="button" class="stock-receipt-candidate '+(String(item.sku)===String(stockReceiptSelectedSku)?'active':'')+'" data-sku="'+escapeHtml(item.sku)+'" onclick="selectStockReceiptCandidate(this.dataset.sku)">'+
       (visual?.imageUrl?'<span class="stock-receipt-thumb"><img src="'+visual.imageUrl+'" alt="'+escapeHtml(visual.model)+'" loading="lazy" referrerpolicy="no-referrer"></span>':'<span class="stock-receipt-thumb empty">SKU</span>')+
-      '<span class="stock-receipt-candidate-main"><b>'+escapeHtml(item.sku)+'</b><span>'+escapeHtml(item.name)+'</span><small>'+escapeHtml(item.category)+' · '+escapeHtml(source)+(current?' · остаток '+current.qty+' '+escapeHtml(current.unit||'шт.'):'')+'</small></span>'+
+      '<span class="stock-receipt-candidate-main"><b>'+escapeHtml(item.sku)+'</b><span>'+escapeHtml(item.name)+'</span><small>'+escapeHtml(stockReceiptCategoryLabel(item))+' · '+escapeHtml(source)+(current?' · остаток '+current.qty+' '+escapeHtml(current.unit||'шт.'):'')+'</small></span>'+
       '<span class="stock-receipt-candidate-price">'+(price===null?'По запросу':formatRub(price))+'</span>'+
     '</button>';
   }).join(''):'<div class="empty">По выбранным фильтрам существующая номенклатура не найдена.</div>';
@@ -3829,7 +3978,7 @@ function renderStockReceiptSelection(){
   box.innerHTML=
     '<div class="stock-receipt-selected">'+
       (visual?.imageUrl?'<div class="stock-receipt-selected-media"><img src="'+visual.imageUrl+'" alt="'+escapeHtml(visual.model)+'" referrerpolicy="no-referrer"></div>':'')+
-      '<div class="stock-receipt-selected-info"><div class="mini">'+escapeHtml(candidate.category)+' · '+escapeHtml(stockProductLine(candidate))+'</div><h3>'+escapeHtml(candidate.name)+'</h3>'+
+      '<div class="stock-receipt-selected-info"><div class="mini">'+escapeHtml(stockReceiptCategoryLabel(candidate))+' · '+escapeHtml(stockProductLine(candidate))+'</div><h3>'+escapeHtml(candidate.name)+'</h3>'+
       '<div class="stock-meta"><span class="stock-badge">'+escapeHtml(candidate.sku)+'</span>'+(current?'<span class="stock-badge ok">Сейчас: '+current.qty+' '+escapeHtml(current.unit||candidate.unit||'шт.')+'</span>':'<span class="stock-badge">Ещё не на складе</span>')+'</div>'+
       '<div class="stock-price" style="margin-top:8px">'+(price===null?'Цена по запросу':formatRub(price))+'</div></div>'+
     '</div>'+
