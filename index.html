@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v61 · Цилиндры — очищенный каталог</title>
+<title>Hidden Doors — Личный кабинет · Прототип v62 · Стопоры — цены</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -4963,6 +4963,46 @@ const CYLINDER_PRICE_AUDIT=Object.freeze({
 
 const CYLINDER_PRICE_REVIEW=Object.freeze([]);
 
+const BITRIX_STOPPER_BASE_PRICES=Object.freeze([
+  {"name":"Дверной ограничитель MORELLI DS1 BL, цвет черный","price":377,"sourceBase":377,"parentId":29012,"offerId":29014,"priceOverride":false},
+  {"name":"Дверной ограничитель MORELLI DS3 SC, цвет матовый хром","price":592,"sourceBase":592,"parentId":29250,"offerId":29252,"priceOverride":false},
+  {"name":"Дверной упор Punto DFIX/F50 (DS PF-50) BL-24, цвет черный","price":200,"sourceBase":200,"parentId":39548,"offerId":39550,"priceOverride":false},
+  {"name":"Магнитный скрытый стопор \"FANTOM\" MAGNETIC DOOR STOP, прозрачный","price":3600,"sourceBase":3600,"parentId":34312,"offerId":34314,"priceOverride":false},
+  {"name":"Магнитный скрытый стопор \"FANTOM\" PREMIUM HGT001, белый","price":3600,"sourceBase":3600,"parentId":16716,"offerId":16718,"priceOverride":false},
+  {"name":"Магнитный скрытый стопор \"FANTOM\" PREMIUM HGT001, прозрачный","price":3600,"sourceBase":3600,"parentId":16232,"offerId":16234,"priceOverride":false,"purchasePrice":1812},
+  {"name":"Магнитный скрытый стопор \"FANTOM\" PREMIUM HGT004, чёрный","price":3600,"sourceBase":3600,"parentId":16704,"offerId":16706,"priceOverride":false},
+  {"name":"Магнитный скрытый стопор \"FANTOM\" PREMIUM HGT005, полированный хром","price":3600,"sourceBase":3600,"parentId":16712,"offerId":16714,"priceOverride":false},
+  {"name":"Магнитный скрытый стопор \"FANTOM\" PREMIUM HGT006, матовый хром","price":3600,"sourceBase":3600,"parentId":16708,"offerId":16710,"priceOverride":false,"purchasePrice":1435.42},
+  {"name":"Магнитный скрытый стопор \"FANTOM\" STANDART, прозрачный","price":2800,"sourceBase":2800,"parentId":25394,"offerId":25396,"priceOverride":false},
+  {"name":"Магнитный скрытый стопор \"FANTOM\" STANDART, черный","price":2800,"sourceBase":2800,"parentId":29406,"offerId":29408,"priceOverride":false},
+  {"name":"Ограничитель двери SECRET DS SC скрытый магнитный, цвет матовый хром (на клеевой основе)","price":2285,"sourceBase":2285,"parentId":28396,"offerId":28398,"priceOverride":false},
+  {"name":"Ограничитель дверной MORELLI SECRET DS BL магнитный скрытый, цвет чёрный (на клеевой основе)","price":2285,"sourceBase":2285,"parentId":34456,"offerId":34458,"priceOverride":false},
+  {"name":"Стопор магнитный, цвет - никель","price":2250,"sourceBase":2250,"parentId":28624,"offerId":28626,"priceOverride":false},
+  {"name":"Стоппер скрытый магнитный STANG, белый","price":1500,"sourceBase":1500,"parentId":25680,"offerId":25682,"priceOverride":false},
+  {"name":"Стоппер скрытый магнитный STANG, прозрачный","price":1500,"sourceBase":1500,"parentId":25672,"offerId":25674,"priceOverride":false},
+  {"name":"Стоппер скрытый магнитный STANG, черный","price":1500,"sourceBase":1500,"parentId":25676,"offerId":25678,"priceOverride":false},
+  {"name":"Упор дверной напольный Venezia ST 3, матовый хром","price":2700,"sourceBase":2700,"parentId":24914,"offerId":24916,"priceOverride":false,"purchasePrice":1000}
+]);
+
+const STOPPER_PRICE_AUDIT=Object.freeze({
+  category:"Стопоры",
+  source:"Hidden Doors — Ревизия фурнитуры — бренды v1 / Bitrix24 BASE",
+  sourceRows:18,
+  catalogRows:18,
+  imported:18,
+  exactMatched:18,
+  missing:0,
+  zero:0,
+  suspiciousLow:0,
+  suspiciousThreshold:100,
+  minSourceBase:200,
+  minWorkingBase:200,
+  maxBase:3600,
+  purchaseKnown:3
+});
+
+const STOPPER_PRICE_REVIEW=Object.freeze([]);
+
 function normalizeHardwarePriceName(value){
   return String(value||'')
     .toUpperCase().replace(/Ё/g,'Е')
@@ -4977,7 +5017,8 @@ const BITRIX_HARDWARE_BASE_PRICE_MAPS=Object.freeze({
   'Замки':new Map(BITRIX_LOCK_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Ручки':new Map(BITRIX_HANDLE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Завертки':new Map(BITRIX_TURN_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
-  'Цилиндровые механизмы':new Map(BITRIX_CYLINDER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
+  'Цилиндровые механизмы':new Map(BITRIX_CYLINDER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
+  'Стопоры':new Map(BITRIX_STOPPER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
 });
 function hardwareBasePriceMeta(category,name){
   const map=BITRIX_HARDWARE_BASE_PRICE_MAPS[category];
@@ -5023,6 +5064,7 @@ function companionItemUnitPrice(item){
   if(key==='DOOR-HANDLE'||key==='SLIDE42-HANDLE')return hardwareBasePrice('Ручки',item?.name||'');
   if(key==='DOOR-TURN')return hardwareBasePrice('Завертки',item?.name||'');
   if(key==='DOOR-CYLINDER')return hardwareBasePrice('Цилиндровые механизмы',item?.name||'');
+  if(key==='DOOR-STOPPER')return hardwareBasePrice('Стопоры',item?.name||'');
   return companion36UnitPrice(item);
 }
 function genericCatalogItemPrice(item){
@@ -5047,6 +5089,10 @@ function genericCatalogItemPrice(item){
   }
   if(/цилиндр/i.test(category+' '+name)){
     const p=hardwareBasePrice('Цилиндровые механизмы',name);
+    if(p!==null)return p;
+  }
+  if(/стоп|упор|ограничител/i.test(category+' '+name)){
+    const p=hardwareBasePrice('Стопоры',name);
     if(p!==null)return p;
   }
   return cart36FallbackUnitPrice(item);
@@ -5290,7 +5336,7 @@ function doorOrderSections(){
       field('Ручка',searchableCatalog('doorHandle','Ручки')+`<div id="doorHandlePriceHint" class="mini hinge-price-hint"></div>`)+
       field('Завертка',searchableCatalog('doorTurn','Завертки')+`<div id="doorTurnPriceHint" class="mini hinge-price-hint"></div>`)+
       `<div id="doorCylinderFieldWrap" class="hidden">${field('Цилиндр',searchableCatalog('doorCylinder','Цилиндровые механизмы')+`<div id="doorCylinderPriceHint" class="mini hinge-price-hint"></div><div class="mini">Обязательное поле для замков типа «Под цилиндр».</div>`)}</div>`+
-      field('Стопор',searchableCatalog('doorStopper','Стопоры'))+
+      field('Стопор',searchableCatalog('doorStopper','Стопоры')+`<div id="doorStopperPriceHint" class="mini hinge-price-hint"></div>`)+
       field('Автоматический порог',searchableCatalog('doorThreshold','Скрытый порог'))+
       field('Доводчик',searchableCatalog('doorCloser','Доводчики')+`<div class="mini">Категорию доводчиков пока не чистим: оставляем как есть и проверим отдельно.</div>`)+
     `</div>`
@@ -5422,6 +5468,17 @@ function updateDoorCylinderPriceHint(){
   }
   box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
 }
+function updateDoorStopperPriceHint(){
+  const box=$('doorStopperPriceHint');if(!box)return;
+  const name=$('doorStopper')?.value?.trim()||'';
+  const meta=name?hardwareBasePriceMeta('Стопоры',name):null;
+  if(!name){box.innerHTML='Выберите стопор.';return}
+  if(!meta){box.innerHTML='<span class="mini">Цена для этого стопора пока не подключена.</span>';return}
+  if(meta.price===null||meta.suspicious){
+    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
+  }
+  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+}
 function updateSlidingHandlePriceHint(){
   const box=$('slidingHandlePriceHint');if(!box)return;
   const name=$('slidingHandle')?.value||'Без ручки';
@@ -5448,7 +5505,7 @@ function hardwareCategoryPriceSummary(category,items){
 }
 function renderHardwareCategoryPriceSummary(category,items){
   const box=$('hardwarePriceSummary');if(!box)return;
-  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
+  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
   const s=hardwareCategoryPriceSummary(category,items);
   box.classList.remove('hidden');
   box.className='hinge-price-summary';
@@ -5463,7 +5520,7 @@ function renderHardwareSelectedPrice(){
   const uiCategory=$('hardwareCategory')?.value||'';
   const category=HARDWARE_MAP[uiCategory]||uiCategory;
   const item=$('catalogItem')?.value||'';
-  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы'].includes(category)){
+  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры'].includes(category)){
     box.classList.add('hidden');box.innerHTML='';return;
   }
   const meta=hardwareBasePriceMeta(category,item);
@@ -6882,6 +6939,10 @@ function companionItems(){
     if(cylinder){
       items.push({key:'DOOR-CYLINDER',type:'Фурнитура / Цилиндры',priceCategory:'Цилиндровые механизмы',qty:1,unit:'шт.',step:1,name:cylinder});
     }
+    const stopper=$('doorStopper')?.value?.trim()||'';
+    if(stopper){
+      items.push({key:'DOOR-STOPPER',type:'Фурнитура / Стопоры',priceCategory:'Стопоры',qty:1,unit:'шт.',step:1,name:stopper});
+    }
     if(!includeBox())return items;
     const system=product()==='single42'?'42':'59';
     const color=bundleBoxColorText(system);
@@ -6929,6 +6990,8 @@ function companionItems(){
     if(handle)items.push({key:'DOOR-HANDLE',type:'Фурнитура / Ручки',priceCategory:'Ручки',qty:1,unit:'шт.',step:1,name:handle});
     const turn=$('doorTurn')?.value?.trim()||'';
     if(turn)items.push({key:'DOOR-TURN',type:'Фурнитура / Завертки',priceCategory:'Завертки',qty:1,unit:'шт.',step:1,name:turn});
+    const stopper=$('doorStopper')?.value?.trim()||'';
+    if(stopper)items.push({key:'DOOR-STOPPER',type:'Фурнитура / Стопоры',priceCategory:'Стопоры',qty:1,unit:'шт.',step:1,name:stopper});
     if($('doubleBoltLeft')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-LEFT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
     if($('doubleBoltRight')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-RIGHT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
     if(!includeBox())return items;
@@ -7306,9 +7369,9 @@ function refreshDynamicDetails(){
   if($('trimFilm')) $('trimFilm').closest('div')?.parentElement?.classList.toggle('hidden',$('trimCover')?.value!=='ПВХ-пленка');
   if($('doborStandard')) $('doborStandard').value=[100,150,200].includes(doborWidth())?'Стандарт':'Нестандарт';
   if(product()==='leaf36') updateBundle36();
-  if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorCylinderPriceHint();}
+  if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorCylinderPriceHint();updateDoorStopperPriceHint();}
   if(product()==='sliding42'){syncSliding42Armadillo();updateSlidingHandlePriceHint();}
-  if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint()}
+  if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorStopperPriceHint()}
   if(product()==='hardware')renderHardwareSelectedPrice();
 }
 
@@ -7708,6 +7771,7 @@ function renderOrderExtras(){
   if(companions.some(x=>x.key==='DOOR-HANDLE'||x.key==='SLIDE42-HANDLE'))pricedExtraLabels.add('Ручка');
   if(companions.some(x=>x.key==='DOOR-TURN'))pricedExtraLabels.add('Завертка');
   if(companions.some(x=>x.key==='DOOR-CYLINDER'))pricedExtraLabels.add('Цилиндр');
+  if(companions.some(x=>x.key==='DOOR-STOPPER'))pricedExtraLabels.add('Стопор');
   const renderedExtras=extras.filter(([k])=>!pricedExtraLabels.has(k));
   renderedExtras.forEach(([k,v])=>lines.push(`<div><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`));
   companions.forEach(x=>{
