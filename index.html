@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v62 · Стопоры — цены</title>
+<title>Hidden Doors — Личный кабинет · Прототип v63 · Скрытые пороги — цены</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -5003,6 +5003,30 @@ const STOPPER_PRICE_AUDIT=Object.freeze({
 
 const STOPPER_PRICE_REVIEW=Object.freeze([]);
 
+const BITRIX_THRESHOLD_BASE_PRICES=Object.freeze([
+  {"name":"Автоматический порог EASY BLOCK F/1020","price":1350,"sourceBase":1350,"parentId":18804,"offerId":21366,"priceOverride":false,"purchasePrice":577.45},
+  {"name":"Автоматический порог EASY BLOCK F/820","price":1350,"sourceBase":1350,"parentId":18798,"offerId":21398,"priceOverride":false,"purchasePrice":577.45}
+]);
+
+const THRESHOLD_PRICE_AUDIT=Object.freeze({
+  category:"Скрытый порог",
+  source:"Hidden Doors — Ревизия фурнитуры — бренды v1 / Bitrix24 BASE",
+  sourceRows:2,
+  catalogRows:2,
+  imported:2,
+  exactMatched:2,
+  missing:0,
+  zero:0,
+  suspiciousLow:0,
+  suspiciousThreshold:100,
+  minSourceBase:1350,
+  minWorkingBase:1350,
+  maxBase:1350,
+  purchaseKnown:2
+});
+
+const THRESHOLD_PRICE_REVIEW=Object.freeze([]);
+
 function normalizeHardwarePriceName(value){
   return String(value||'')
     .toUpperCase().replace(/Ё/g,'Е')
@@ -5018,7 +5042,8 @@ const BITRIX_HARDWARE_BASE_PRICE_MAPS=Object.freeze({
   'Ручки':new Map(BITRIX_HANDLE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Завертки':new Map(BITRIX_TURN_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Цилиндровые механизмы':new Map(BITRIX_CYLINDER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
-  'Стопоры':new Map(BITRIX_STOPPER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
+  'Стопоры':new Map(BITRIX_STOPPER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
+  'Скрытый порог':new Map(BITRIX_THRESHOLD_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
 });
 function hardwareBasePriceMeta(category,name){
   const map=BITRIX_HARDWARE_BASE_PRICE_MAPS[category];
@@ -5065,6 +5090,7 @@ function companionItemUnitPrice(item){
   if(key==='DOOR-TURN')return hardwareBasePrice('Завертки',item?.name||'');
   if(key==='DOOR-CYLINDER')return hardwareBasePrice('Цилиндровые механизмы',item?.name||'');
   if(key==='DOOR-STOPPER')return hardwareBasePrice('Стопоры',item?.name||'');
+  if(key==='DOOR-THRESHOLD')return hardwareBasePrice('Скрытый порог',item?.name||'');
   return companion36UnitPrice(item);
 }
 function genericCatalogItemPrice(item){
@@ -5093,6 +5119,10 @@ function genericCatalogItemPrice(item){
   }
   if(/стоп|упор|ограничител/i.test(category+' '+name)){
     const p=hardwareBasePrice('Стопоры',name);
+    if(p!==null)return p;
+  }
+  if(/порог/i.test(category+' '+name)){
+    const p=hardwareBasePrice('Скрытый порог',name);
     if(p!==null)return p;
   }
   return cart36FallbackUnitPrice(item);
@@ -5337,7 +5367,7 @@ function doorOrderSections(){
       field('Завертка',searchableCatalog('doorTurn','Завертки')+`<div id="doorTurnPriceHint" class="mini hinge-price-hint"></div>`)+
       `<div id="doorCylinderFieldWrap" class="hidden">${field('Цилиндр',searchableCatalog('doorCylinder','Цилиндровые механизмы')+`<div id="doorCylinderPriceHint" class="mini hinge-price-hint"></div><div class="mini">Обязательное поле для замков типа «Под цилиндр».</div>`)}</div>`+
       field('Стопор',searchableCatalog('doorStopper','Стопоры')+`<div id="doorStopperPriceHint" class="mini hinge-price-hint"></div>`)+
-      field('Автоматический порог',searchableCatalog('doorThreshold','Скрытый порог'))+
+      field('Автоматический порог',searchableCatalog('doorThreshold','Скрытый порог')+`<div id="doorThresholdPriceHint" class="mini hinge-price-hint"></div>`)+
       field('Доводчик',searchableCatalog('doorCloser','Доводчики')+`<div class="mini">Категорию доводчиков пока не чистим: оставляем как есть и проверим отдельно.</div>`)+
     `</div>`
   )+
@@ -5479,6 +5509,17 @@ function updateDoorStopperPriceHint(){
   }
   box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
 }
+function updateDoorThresholdPriceHint(){
+  const box=$('doorThresholdPriceHint');if(!box)return;
+  const name=$('doorThreshold')?.value?.trim()||'';
+  const meta=name?hardwareBasePriceMeta('Скрытый порог',name):null;
+  if(!name){box.innerHTML='Выберите автоматический порог.';return}
+  if(!meta){box.innerHTML='<span class="mini">Цена для этого порога пока не подключена.</span>';return}
+  if(meta.price===null||meta.suspicious){
+    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
+  }
+  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+}
 function updateSlidingHandlePriceHint(){
   const box=$('slidingHandlePriceHint');if(!box)return;
   const name=$('slidingHandle')?.value||'Без ручки';
@@ -5505,7 +5546,7 @@ function hardwareCategoryPriceSummary(category,items){
 }
 function renderHardwareCategoryPriceSummary(category,items){
   const box=$('hardwarePriceSummary');if(!box)return;
-  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
+  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры','Скрытый порог'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
   const s=hardwareCategoryPriceSummary(category,items);
   box.classList.remove('hidden');
   box.className='hinge-price-summary';
@@ -5520,7 +5561,7 @@ function renderHardwareSelectedPrice(){
   const uiCategory=$('hardwareCategory')?.value||'';
   const category=HARDWARE_MAP[uiCategory]||uiCategory;
   const item=$('catalogItem')?.value||'';
-  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры'].includes(category)){
+  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры','Скрытый порог'].includes(category)){
     box.classList.add('hidden');box.innerHTML='';return;
   }
   const meta=hardwareBasePriceMeta(category,item);
@@ -6943,6 +6984,10 @@ function companionItems(){
     if(stopper){
       items.push({key:'DOOR-STOPPER',type:'Фурнитура / Стопоры',priceCategory:'Стопоры',qty:1,unit:'шт.',step:1,name:stopper});
     }
+    const threshold=$('doorThreshold')?.value?.trim()||'';
+    if(threshold){
+      items.push({key:'DOOR-THRESHOLD',type:'Фурнитура / Скрытые пороги',priceCategory:'Скрытый порог',qty:1,unit:'шт.',step:1,name:threshold});
+    }
     if(!includeBox())return items;
     const system=product()==='single42'?'42':'59';
     const color=bundleBoxColorText(system);
@@ -6992,6 +7037,8 @@ function companionItems(){
     if(turn)items.push({key:'DOOR-TURN',type:'Фурнитура / Завертки',priceCategory:'Завертки',qty:1,unit:'шт.',step:1,name:turn});
     const stopper=$('doorStopper')?.value?.trim()||'';
     if(stopper)items.push({key:'DOOR-STOPPER',type:'Фурнитура / Стопоры',priceCategory:'Стопоры',qty:1,unit:'шт.',step:1,name:stopper});
+    const threshold=$('doorThreshold')?.value?.trim()||'';
+    if(threshold)items.push({key:'DOOR-THRESHOLD',type:'Фурнитура / Скрытые пороги',priceCategory:'Скрытый порог',qty:1,unit:'шт.',step:1,name:threshold});
     if($('doubleBoltLeft')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-LEFT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
     if($('doubleBoltRight')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-RIGHT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
     if(!includeBox())return items;
@@ -7369,9 +7416,9 @@ function refreshDynamicDetails(){
   if($('trimFilm')) $('trimFilm').closest('div')?.parentElement?.classList.toggle('hidden',$('trimCover')?.value!=='ПВХ-пленка');
   if($('doborStandard')) $('doborStandard').value=[100,150,200].includes(doborWidth())?'Стандарт':'Нестандарт';
   if(product()==='leaf36') updateBundle36();
-  if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorCylinderPriceHint();updateDoorStopperPriceHint();}
+  if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorCylinderPriceHint();updateDoorStopperPriceHint();updateDoorThresholdPriceHint();}
   if(product()==='sliding42'){syncSliding42Armadillo();updateSlidingHandlePriceHint();}
-  if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorStopperPriceHint()}
+  if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorStopperPriceHint();updateDoorThresholdPriceHint()}
   if(product()==='hardware')renderHardwareSelectedPrice();
 }
 
@@ -7772,6 +7819,7 @@ function renderOrderExtras(){
   if(companions.some(x=>x.key==='DOOR-TURN'))pricedExtraLabels.add('Завертка');
   if(companions.some(x=>x.key==='DOOR-CYLINDER'))pricedExtraLabels.add('Цилиндр');
   if(companions.some(x=>x.key==='DOOR-STOPPER'))pricedExtraLabels.add('Стопор');
+  if(companions.some(x=>x.key==='DOOR-THRESHOLD'))pricedExtraLabels.add('Автопорог');
   const renderedExtras=extras.filter(([k])=>!pricedExtraLabels.has(k));
   renderedExtras.forEach(([k,v])=>lines.push(`<div><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`));
   companions.forEach(x=>{
