@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v81 · 42 mm coefficient pricing</title>
+<title>Hidden Doors — Личный кабинет · Прототип v82 · pricing control panel</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -874,6 +874,44 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 }
 @media(max-width:950px){.pricing-admin-grid{grid-template-columns:1fr 1fr}.pricing-admin-card.primary{grid-column:1/-1}}
 @media(max-width:650px){.pricing-admin-grid{grid-template-columns:1fr}.pricing-admin-card.primary{grid-column:auto}}
+
+
+/* v82: visual manual editor for 42 mm sales-price logic */
+.pricing-rule-editor{border:1px solid #d9cbb9;background:#fffdf9}
+.pricing-rule-editor-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
+.pricing-rule-mode{display:inline-flex;align-items:center;padding:6px 9px;border-radius:999px;font-size:10px;font-weight:900;white-space:nowrap}
+.pricing-rule-mode.approved{background:#e9f3eb;color:#315f40;border:1px solid #b9d2c0}
+.pricing-rule-mode.manual{background:#fff0d8;color:#80591f;border:1px solid #e6c58e}
+.pricing-rule-local-note{padding:10px 12px;margin-bottom:12px;border-radius:11px;background:#fff7e9;border:1px solid #e4c792;font-size:11px;line-height:1.45;color:#6b512f}
+.pricing-rule-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pricing-rule-block{padding:14px;border:1px solid #e5ddd3;border-radius:14px;background:#fbf9f6;min-width:0}
+.pricing-rule-block-title{margin-bottom:10px;font-size:11px;font-weight:900;color:#463c31}
+.pricing-rule-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pricing-rule-field,.pricing-height-rules label,.pricing-test-fields label{display:grid;gap:5px;font-size:10px;font-weight:800;color:#6d6257}
+.pricing-rule-input-wrap{display:flex;align-items:center;gap:7px;padding:0 9px;border:1px solid #ddd3c8;border-radius:10px;background:#fff}
+.pricing-rule-input-wrap input{width:100%;border:0!important;background:transparent!important;padding:9px 0!important;box-shadow:none!important}
+.pricing-rule-input-wrap em{font-style:normal;font-size:10px;font-weight:850;color:#8a7a68;white-space:nowrap}
+.pricing-rule-input-wrap.compact{max-width:115px}
+.pricing-height-rules{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pricing-height-rules label{grid-template-columns:minmax(90px,1fr) 105px;align-items:center}
+.pricing-width-rule{display:grid;gap:9px;font-size:11px;color:#5f554a}
+.pricing-width-rule>div{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-height:34px}
+.pricing-inline-input{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border:1px solid #ddd3c8;border-radius:9px;background:#fff}
+.pricing-inline-input input{width:74px;border:0!important;background:transparent!important;padding:6px 2px!important;box-shadow:none!important}
+.pricing-rule-static{padding:8px 10px!important;border-radius:9px;background:#f2eee8}
+.pricing-test-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pricing-test-fields input,.pricing-test-fields select{width:100%}
+.pricing-rule-preview{margin-top:11px;padding:12px;border-radius:12px;background:#fff8ec;border:1px solid #ddc49b}
+.pricing-rule-preview-price{font-family:'Manrope','Inter',sans-serif;font-size:24px;font-weight:900;color:#2f271f}
+.pricing-rule-preview-formula{margin-top:4px;font-size:11px;line-height:1.5;color:#655849}
+.pricing-rule-preview-error{font-size:11px;font-weight:800;color:#8b3a2f}
+.pricing-rule-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:13px}
+.pricing-admin-message{font-size:11px;font-weight:800}
+.pricing-admin-message.success{color:#315f40}
+.pricing-admin-message.error{color:#8b3a2f}
+.pricing-rule-footnote{margin-top:10px;color:#7a6d5f}
+@media(max-width:900px){.pricing-rule-layout{grid-template-columns:1fr}}
+@media(max-width:560px){.pricing-rule-editor-head{display:grid}.pricing-rule-fields,.pricing-height-rules,.pricing-test-fields{grid-template-columns:1fr}.pricing-height-rules label{grid-template-columns:1fr 105px}}
 </style>
 </head>
 <body>
@@ -891,7 +929,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v81 · 42 mm coefficient pricing</div>
+        <div class="version-chip"><span>HD</span> v82 · pricing control panel</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1280,7 +1318,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       <div class="top" style="margin-bottom:14px">
         <div>
           <h2 style="font-size:20px;margin-bottom:4px">Цены и себестоимость</h2>
-          <div class="mini">Административный контур. Продажные прайсы, покрытие ценами и будущая себестоимость отделены от номенклатуры и интерфейса конфигуратора.</div>
+          <div class="mini">Административный контур. Здесь видны и управляются базовые цены, коэффициенты и правила расчёта; себестоимость остаётся отдельным слоем.</div>
         </div>
         <div class="pricing-admin-lock">Только администратор</div>
       </div>
@@ -1579,6 +1617,142 @@ function salesPriceCoverageStatusMeta(status){
     future:{label:'Следующий слой',cls:'info'}
   })[status]||{label:String(status||'—'),cls:'info'};
 }
+function pricing42AdminNumber(id){
+  return Number(typeof $==='function'?$(id)?.value:'');
+}
+function pricing42AdminValuesFromForm(){
+  return {
+    base:{
+      plywood:{gray:pricing42AdminNumber('pricing42PlywoodGray'),black:pricing42AdminNumber('pricing42PlywoodBlack')},
+      aluminum:{gray:pricing42AdminNumber('pricing42AluminumGray'),black:pricing42AdminNumber('pricing42AluminumBlack')}
+    },
+    heightFactors:[
+      pricing42AdminNumber('pricing42HeightFactor0'),
+      pricing42AdminNumber('pricing42HeightFactor1'),
+      pricing42AdminNumber('pricing42HeightFactor2'),
+      pricing42AdminNumber('pricing42HeightFactor3')
+    ],
+    widthRule:{above:pricing42AdminNumber('pricing42WidthAbove'),factor:pricing42AdminNumber('pricing42WidthFactor')}
+  };
+}
+function pricing42AdminDraftCalculation(){
+  const values=pricing42AdminValuesFromForm();
+  const frameKey=$('pricing42TestFrame')?.value||'plywood';
+  const edgeKey=$('pricing42TestEdge')?.value||'gray';
+  const height=Number($('pricing42TestHeight')?.value||2000);
+  const width=Number($('pricing42TestWidth')?.value||800);
+  const approved=typeof price42ApprovedBook==='function'?price42ApprovedBook('wholesale2'):null;
+  const limits=approved?.limits?.[frameKey];
+  if(!limits||height<limits.minHeight||height>limits.maxHeight)return {ok:false,reason:'Высота вне диапазона выбранного каркаса.'};
+  if(width<(approved?.limits?.minWidth||450)||width>(approved?.limits?.maxWidth||1000))return {ok:false,reason:'Ширина вне диапазона 450–1000 мм.'};
+  const base=Number(values.base?.[frameKey]?.[edgeKey]);
+  const rules=approved?.heightRules||[];
+  const index=rules.findIndex(x=>height>=x.min&&height<=x.max);
+  const heightFactor=Number(values.heightFactors?.[index]);
+  const widthFactor=width>Number(values.widthRule.above)?Number(values.widthRule.factor):1;
+  if(!Number.isFinite(base)||base<=0||index<0||!Number.isFinite(heightFactor)||heightFactor<=0||!Number.isFinite(widthFactor)||widthFactor<=0){
+    return {ok:false,reason:'Заполните корректные базовые цены и коэффициенты.'};
+  }
+  return {ok:true,base,heightFactor,widthFactor,price:Math.round(base*heightFactor*widthFactor),height,width,frameKey,edgeKey};
+}
+function renderPricing42RulePreview(){
+  const out=typeof $==='function'?$('pricing42RulePreview'):null;
+  if(!out)return;
+  const calc=pricing42AdminDraftCalculation();
+  if(!calc.ok){
+    out.innerHTML='<div class="pricing-rule-preview-error">'+escapeHtml(calc.reason||'Расчёт недоступен')+'</div>';
+    return;
+  }
+  const frame=calc.frameKey==='aluminum'?'AL каркас':'Фанера';
+  const edge=calc.edgeKey==='black'?'Чёрный анод':'Серый анод';
+  out.innerHTML=
+    '<div class="pricing-rule-preview-price">'+formatRub(calc.price)+'</div>'+
+    '<div class="pricing-rule-preview-formula">'+escapeHtml(frame+' · '+edge+' · '+calc.height+'×'+calc.width)+
+    '<br>'+formatRub(calc.base)+' × '+String(calc.heightFactor).replace('.',',')+' × '+String(calc.widthFactor).replace('.',',')+' = <b>'+formatRub(calc.price)+'</b></div>';
+}
+function applyPricing42AdminRules(){
+  if(typeof savePrice42AdminRules!=='function')return;
+  const result=savePrice42AdminRules(pricing42AdminValuesFromForm());
+  if(!result.ok){
+    const msg=$('pricing42AdminMessage');
+    if(msg){msg.className='pricing-admin-message error';msg.textContent=result.error||'Не удалось сохранить правила.'}
+    return;
+  }
+  renderPricingAdmin();
+  const msg=$('pricing42AdminMessage');
+  if(msg){msg.className='pricing-admin-message success';msg.textContent='Сохранено и применено. Новые расчёты 42 мм используют эти значения.'}
+  if(typeof renderSalesPrice42==='function')renderSalesPrice42();
+}
+function resetPricing42AdminRules(){
+  if(!confirm('Вернуть утверждённые значения 42 мм из Price Book? Ручные настройки этого браузера будут удалены.'))return;
+  if(typeof resetPrice42AdminRules==='function')resetPrice42AdminRules();
+  renderPricingAdmin();
+  const msg=$('pricing42AdminMessage');
+  if(msg){msg.className='pricing-admin-message success';msg.textContent='Утверждённые значения восстановлены.'}
+  if(typeof renderSalesPrice42==='function')renderSalesPrice42();
+}
+function pricing42Input(id,label,value,{step='1',suffix='₽'}={}){
+  return '<label class="pricing-rule-field"><span>'+escapeHtml(label)+'</span><div class="pricing-rule-input-wrap"><input id="'+id+'" type="number" min="0.01" step="'+step+'" value="'+escapeHtml(String(value))+'" oninput="renderPricing42RulePreview()"><em>'+escapeHtml(suffix)+'</em></div></label>';
+}
+function renderPricing42RuleEditor(){
+  if(typeof price42AdminRuleValues!=='function')return '';
+  const v=price42AdminRuleValues();
+  const approved=typeof price42ApprovedBook==='function'?price42ApprovedBook('wholesale2'):null;
+  const rules=approved?.heightRules||[];
+  const mode=v.manualOverride?'Ручные настройки активны':'Утверждённые значения';
+  const modeCls=v.manualOverride?'manual':'approved';
+  const updated=v.manualOverride&&v.manualUpdatedAt?new Date(v.manualUpdatedAt).toLocaleString('ru-RU'):'';
+  return '<div class="section pricing-rule-editor">'+
+    '<div class="pricing-rule-editor-head">'+
+      '<div><div class="section-title">42 мм · Опт 2 · Логика цены</div>'+
+      '<div class="mini">Здесь видна вся формула полотна. Меняете цену или коэффициент → «Сохранить и применить» → следующий расчёт в конфигураторе использует новое значение.</div></div>'+
+      '<span class="pricing-rule-mode '+modeCls+'">'+escapeHtml(mode)+'</span>'+
+    '</div>'+
+    (v.manualOverride?'<div class="pricing-rule-local-note"><b>Ручной режим прототипа.</b> Настройки сохранены только в этом браузере'+(updated?' · '+escapeHtml(updated):'')+'. Общий серверный Price Book подключим позже.</div>':'')+
+    '<div class="pricing-rule-layout">'+
+      '<div class="pricing-rule-block">'+
+        '<div class="pricing-rule-block-title">1. Базовая цена полотна · 2000 мм</div>'+
+        '<div class="pricing-rule-fields">'+
+          pricing42Input('pricing42PlywoodGray','Фанера · серый',v.base.plywood.gray)+
+          pricing42Input('pricing42PlywoodBlack','Фанера · чёрный',v.base.plywood.black)+
+          pricing42Input('pricing42AluminumGray','AL · серый',v.base.aluminum.gray)+
+          pricing42Input('pricing42AluminumBlack','AL · чёрный',v.base.aluminum.black)+
+        '</div>'+
+      '</div>'+
+      '<div class="pricing-rule-block">'+
+        '<div class="pricing-rule-block-title">2. Коэффициент высоты</div>'+
+        '<div class="pricing-height-rules">'+
+          rules.map((rule,index)=>'<label><span>'+escapeHtml(rule.label)+' мм</span><div class="pricing-rule-input-wrap compact"><em>×</em><input id="pricing42HeightFactor'+index+'" type="number" min="0.01" step="0.01" value="'+escapeHtml(String(v.heightFactors[index]))+'" oninput="renderPricing42RulePreview()"></div></label>').join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="pricing-rule-block">'+
+        '<div class="pricing-rule-block-title">3. Ширина и открывание</div>'+
+        '<div class="pricing-width-rule">'+
+          '<div>До <div class="pricing-inline-input"><input id="pricing42WidthAbove" type="number" min="1" step="1" value="'+escapeHtml(String(v.widthRule.above))+'" oninput="renderPricing42RulePreview()"> мм</div> → <b>×1,0</b></div>'+
+          '<div>Свыше порога → <div class="pricing-inline-input"><b>×</b><input id="pricing42WidthFactor" type="number" min="0.01" step="0.01" value="'+escapeHtml(String(v.widthRule.factor))+'" oninput="renderPricing42RulePreview()"></div></div>'+
+          '<div class="pricing-rule-static">Реверс / левое / правое → <b>на цену не влияет</b></div>'+
+          '<div class="pricing-rule-static">Максимум: фанера <b>2200 мм</b> · AL <b>2300 мм</b></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="pricing-rule-block pricing-rule-test">'+
+        '<div class="pricing-rule-block-title">4. Быстрая проверка формулы</div>'+
+        '<div class="pricing-test-fields">'+
+          '<label><span>Каркас</span><select id="pricing42TestFrame" onchange="renderPricing42RulePreview()"><option value="plywood">Фанера</option><option value="aluminum">Алюминий</option></select></label>'+
+          '<label><span>Анод</span><select id="pricing42TestEdge" onchange="renderPricing42RulePreview()"><option value="gray">Серый</option><option value="black">Чёрный</option></select></label>'+
+          '<label><span>Высота</span><input id="pricing42TestHeight" type="number" min="1700" max="2300" step="10" value="2100" oninput="renderPricing42RulePreview()"></label>'+
+          '<label><span>Ширина</span><input id="pricing42TestWidth" type="number" min="450" max="1000" step="10" value="800" oninput="renderPricing42RulePreview()"></label>'+
+        '</div>'+
+        '<div id="pricing42RulePreview" class="pricing-rule-preview"></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="pricing-rule-actions">'+
+      '<button class="primary" onclick="applyPricing42AdminRules()">Сохранить и применить</button>'+
+      '<button class="secondary" onclick="resetPricing42AdminRules()">Вернуть утверждённые значения</button>'+
+      '<div id="pricing42AdminMessage" class="pricing-admin-message"></div>'+
+    '</div>'+
+    '<div class="mini pricing-rule-footnote">Уже сохранённые строки заказа не пересчитываются автоматически: они сохраняют цену-снимок. Новые конфигурации используют актуальные правила.</div>'+
+  '</div>';
+}
 function renderPricingAdmin(){
   const root=typeof $==='function'?$('pricingAdminRoot'):null;
   if(!root)return;
@@ -1597,19 +1771,20 @@ function renderPricingAdmin(){
           '<span>Утверждён <b>'+escapeHtml(active?.approvedAt||'—')+'</b></span>'+
         '</div>'+
         '<div class="pricing-admin-policy"><b>Правило поиска цены:</b> '+escapeHtml(salesPriceBookPolicyLabel(active?.lookupPolicy))+
-          '. Если нет точного правила или явно утверждённой формулы — конфигуратор должен показывать «Цена не заполнена / по запросу», а не брать соседний размер или исполнение.</div>'+
+          '. Если нет точного правила или явно утверждённой формулы — конфигуратор показывает «Цена не заполнена / по запросу».</div>'+
       '</div>'+
       '<div class="pricing-admin-card">'+
         '<div class="pricing-admin-kicker">Контроль покрытия</div>'+
         '<div class="pricing-admin-big">'+connected+' / '+SALES_PRICE_COVERAGE.length+'</div>'+
-        '<div class="mini">блоков уже работают на утверждённой sales-price архитектуре · '+unresolved+' требуют дальнейшего подключения</div>'+
+        '<div class="mini">блоков работают на sales-price архитектуре · '+unresolved+' требуют дальнейшего подключения</div>'+
       '</div>'+
       '<div class="pricing-admin-card">'+
-        '<div class="pricing-admin-kicker">Будущая себестоимость</div>'+
-        '<div class="pricing-admin-title">Отдельный слой под тем же ядром</div>'+
-        '<div class="mini">Продажная цена и себестоимость не смешиваются. В дальнейшем сюда добавятся нормативная и фактическая себестоимость, маржа и отклонения.</div>'+
+        '<div class="pricing-admin-kicker">Себестоимость</div>'+
+        '<div class="pricing-admin-title">Отдельный слой</div>'+
+        '<div class="mini">Продажная цена и себестоимость не смешиваются. Позже здесь появятся норматив, факт, маржа и отклонение.</div>'+
       '</div>'+
     '</div>'+
+    renderPricing42RuleEditor()+
     '<div class="section">'+
       '<div class="section-title">Покрытие активным прайсом</div>'+
       '<div class="table-wrap"><table class="pricing-coverage-table"><thead><tr><th>Блок</th><th>Область</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody>'+
@@ -1626,11 +1801,12 @@ function renderPricingAdmin(){
       '<div class="pricing-rules">'+
         '<div><b>1.</b> Прайс имеет собственные ID, версию, тип цены, источник и статус.</div>'+
         '<div><b>2.</b> Для Опт 2 единственный активный источник сейчас — партнёрский прайс 2026.</div>'+
-        '<div><b>3.</b> Цена применяется по точному правилу либо по отдельно утверждённой формуле коэффициентов; неутверждённого наследования соседней цены нет.</div>'+
+        '<div><b>3.</b> Цена применяется по точному правилу либо по отдельно утверждённой формуле коэффициентов.</div>'+
         '<div><b>4.</b> BASE Bitrix24 не считается Опт 2 и показывается отдельно, пока не появится sales-tier цена фурнитуры.</div>'+
-        '<div><b>5.</b> Себестоимость будет храниться отдельным слоем и не будет автоматически менять продажную цену.</div>'+
+        '<div><b>5.</b> Ручные правки прототипа не меняют исходный прайс и могут быть сброшены к утверждённым значениям.</div>'+
       '</div>'+
     '</div>';
+  if(typeof renderPricing42RulePreview==='function')renderPricing42RulePreview();
 }
 
 // --- data/prices36.js ---
@@ -1894,8 +2070,116 @@ const SALES_PRICE_42_STANDARD=Object.freeze({
   })
 });
 
-function price42Book(priceType=activeSalesPriceType()){
+const PRICE42_MANUAL_RULE_STORE='hd_v82_price42_manual_rules';
+
+function price42ApprovedBook(priceType=activeSalesPriceType()){
   return SALES_PRICE_42_STANDARD[normalizeSalesPriceType(priceType)]||null;
+}
+function price42ManualOverrides(){
+  if(typeof getStore!=='function')return null;
+  const raw=getStore(PRICE42_MANUAL_RULE_STORE,null);
+  return raw&&typeof raw==='object'?raw:null;
+}
+function price42SafePositiveNumber(value,fallback){
+  const n=Number(value);
+  return Number.isFinite(n)&&n>0?n:fallback;
+}
+function price42Book(priceType=activeSalesPriceType()){
+  const type=normalizeSalesPriceType(priceType);
+  const approved=price42ApprovedBook(type);
+  if(!approved||type!=='wholesale2')return approved;
+  const manual=price42ManualOverrides();
+  if(!manual)return approved;
+  const approvedBase=approved.base||{};
+  const approvedRules=approved.heightRules||[];
+  return {
+    ...approved,
+    manualOverride:true,
+    manualUpdatedAt:manual.updatedAt||'',
+    base:{
+      plywood:{
+        gray:price42SafePositiveNumber(manual.base?.plywood?.gray,approvedBase.plywood?.gray),
+        black:price42SafePositiveNumber(manual.base?.plywood?.black,approvedBase.plywood?.black)
+      },
+      aluminum:{
+        gray:price42SafePositiveNumber(manual.base?.aluminum?.gray,approvedBase.aluminum?.gray),
+        black:price42SafePositiveNumber(manual.base?.aluminum?.black,approvedBase.aluminum?.black)
+      }
+    },
+    heightRules:approvedRules.map((rule,index)=>({
+      ...rule,
+      factor:price42SafePositiveNumber(manual.heightFactors?.[index],rule.factor)
+    })),
+    widthRule:{
+      above:price42SafePositiveNumber(manual.widthRule?.above,approved.widthRule?.above||900),
+      factor:price42SafePositiveNumber(manual.widthRule?.factor,approved.widthRule?.factor||1.2)
+    }
+  };
+}
+function price42AdminRuleValues(){
+  const book=price42Book('wholesale2');
+  return {
+    base:{
+      plywood:{gray:book?.base?.plywood?.gray??'',black:book?.base?.plywood?.black??''},
+      aluminum:{gray:book?.base?.aluminum?.gray??'',black:book?.base?.aluminum?.black??''}
+    },
+    heightFactors:(book?.heightRules||[]).map(x=>x.factor),
+    widthRule:{above:book?.widthRule?.above??900,factor:book?.widthRule?.factor??1.2},
+    manualOverride:!!book?.manualOverride,
+    manualUpdatedAt:book?.manualUpdatedAt||''
+  };
+}
+function savePrice42AdminRules(values){
+  const approved=price42ApprovedBook('wholesale2');
+  if(!approved)return {ok:false,error:'Активный прайс Опт 2 не найден.'};
+  const next={
+    base:{
+      plywood:{
+        gray:Number(values?.base?.plywood?.gray),
+        black:Number(values?.base?.plywood?.black)
+      },
+      aluminum:{
+        gray:Number(values?.base?.aluminum?.gray),
+        black:Number(values?.base?.aluminum?.black)
+      }
+    },
+    heightFactors:(values?.heightFactors||[]).map(Number),
+    widthRule:{above:Number(values?.widthRule?.above),factor:Number(values?.widthRule?.factor)},
+    updatedAt:new Date().toISOString()
+  };
+  const nums=[
+    next.base.plywood.gray,next.base.plywood.black,next.base.aluminum.gray,next.base.aluminum.black,
+    ...next.heightFactors,next.widthRule.above,next.widthRule.factor
+  ];
+  if(next.heightFactors.length!==(approved.heightRules||[]).length||nums.some(x=>!Number.isFinite(x)||x<=0)){
+    return {ok:false,error:'Все цены, коэффициенты и порог ширины должны быть положительными числами.'};
+  }
+  if(next.widthRule.above<Number(approved.limits?.minWidth||450)||next.widthRule.above>Number(approved.limits?.maxWidth||1000)){
+    return {ok:false,error:'Порог ширины должен оставаться внутри текущего диапазона 450–1000 мм.'};
+  }
+  if(typeof setStore!=='function')return {ok:false,error:'Локальное хранилище недоступно.'};
+  setStore(PRICE42_MANUAL_RULE_STORE,next);
+  return {ok:true};
+}
+function resetPrice42AdminRules(){
+  try{localStorage.removeItem(PRICE42_MANUAL_RULE_STORE)}catch(e){}
+}
+function price42HasManualRules(){return !!price42ManualOverrides()}
+function price42RuleCalculation({height,width,frameKey,edgeKey},priceType='wholesale2'){
+  const book=price42Book(priceType);
+  const h=Number(height),w=Number(width);
+  if(!book)return {ok:false,reason:'Нет активного прайса.'};
+  const limits=book.limits?.[frameKey];
+  if(!limits)return {ok:false,reason:'Неизвестный тип каркаса.'};
+  if(!Number.isFinite(h)||h<limits.minHeight||h>limits.maxHeight)return {ok:false,reason:'Высота вне допустимого диапазона.'};
+  if(!Number.isFinite(w)||w<book.limits.minWidth||w>book.limits.maxWidth)return {ok:false,reason:'Ширина вне допустимого диапазона.'};
+  const basePrice=Number(book.base?.[frameKey]?.[edgeKey]);
+  if(!Number.isFinite(basePrice))return {ok:false,reason:'Базовая цена не найдена.'};
+  const heightFactor=price42HeightFactor(h,book);
+  const widthFactor=price42WidthFactor(w,book);
+  if(heightFactor===null||widthFactor===null)return {ok:false,reason:'Не найден коэффициент.'};
+  const price=Math.round(basePrice*heightFactor*widthFactor);
+  return {ok:true,price,basePrice,heightFactor,widthFactor,height:h,width:w,frameKey,edgeKey,manualOverride:!!book.manualOverride};
 }
 function price42TypeLabel(priceType=activeSalesPriceType()){
   return salesPriceTypeLabel(priceType);
@@ -1948,14 +2232,13 @@ function price42Calculation(priceType=activeSalesPriceType()){
   const book=price42Book(priceType);
   const e=standard42PriceEligibility(priceType);
   if(!book||!e.eligible)return {...e,price:null,basePrice:null,priceType};
-  const basePrice=Number(book.base?.[e.frameKey]?.[e.edgeKey]);
-  if(!Number.isFinite(basePrice))return {...e,eligible:false,reasons:[...(e.reasons||[]),'базовая цена для выбранного каркаса/цвета не найдена'],price:null,basePrice:null,priceType};
-  const price=Math.round(basePrice*e.heightFactor*e.widthFactor);
-  return {...e,basePrice,price,priceType};
+  const ruleCalc=price42RuleCalculation({height:e.height,width:e.width,frameKey:e.frameKey,edgeKey:e.edgeKey},priceType);
+  if(!ruleCalc.ok)return {...e,eligible:false,reasons:[...(e.reasons||[]),ruleCalc.reason||'цена не рассчитана'],price:null,basePrice:null,priceType};
+  return {...e,...ruleCalc,priceType};
 }
 function price42SourceNote(book){
   if(!book)return '';
-  return book.source+' · price book '+(book.priceBookId||'—')+' · тип цены '+price42TypeLabel(book.priceType)+' · источник обновлён '+book.updated;
+  return book.source+' · price book '+(book.priceBookId||'—')+' · тип цены '+price42TypeLabel(book.priceType)+' · источник обновлён '+book.updated+(book.manualOverride?' · активны ручные настройки ЛК':'');
 }
 function price42StandardSnapshot(){
   if(product()!=='single42')return {visible:false};
@@ -1972,7 +2255,7 @@ function price42StandardSnapshot(){
   const edgeLabel=calc.edgeKey==='black'?'чёрный анод':'серый анод';
   const factors=[];
   if(calc.heightFactor!==1)factors.push('высота ×'+String(calc.heightFactor).replace('.',','));
-  if(calc.widthFactor!==1)factors.push('ширина >900 ×'+String(calc.widthFactor).replace('.',','));
+  if(calc.widthFactor!==1)factors.push('ширина >'+String(book?.widthRule?.above||900)+' ×'+String(calc.widthFactor).replace('.',','));
   const formula=factors.length
     ?'<div>База 2000: '+formatRub(calc.basePrice)+' · '+factors.join(' · ')+'</div>'
     :'<div>База 2000 без коэффициентов</div>';
@@ -1981,7 +2264,7 @@ function price42StandardSnapshot(){
     html:'<div><b>Полотно 42 мм:</b> '+formatRub(calc.price)+'</div>'+
       '<div>'+calc.height+'×'+calc.width+' · '+escapeHtml($('opening')?.value||'')+' · '+price42FrameLabel(calc.frameKey)+' · '+edgeLabel+'</div>'+
       formula,
-    note:price42SourceNote(book)+' · реверс цену не меняет · высота 1700–1999 ×1,2; 2000 ×1,0; 2001–2200 ×1,2; 2201–2300 ×1,3 · ширина свыше 900 мм ×1,2.'
+    note:price42SourceNote(book)+' · реверс цену не меняет · коэффициенты высоты: '+(book.heightRules||[]).map(x=>x.label+' ×'+String(x.factor).replace('.',',')).join('; ')+' · ширина свыше '+String(book.widthRule?.above||900)+' мм ×'+String(book.widthRule?.factor||1.2).replace('.',',')+'.'
   };
 }
 function renderSalesPrice42(){
