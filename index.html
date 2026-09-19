@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v37 · Цены 36 мм</title>
+<title>Hidden Doors — Личный кабинет · Прототип v39 · Визуальный склад</title>
 <style>
 :root{
   --bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
@@ -64,7 +64,7 @@ th{background:#f9fafb;font-weight:800}
 .appnav button{background:#fff;color:#111827;border:1px solid var(--line);padding:10px 14px}
 .appnav button.active{background:var(--dark);color:#fff;border-color:var(--dark)}
 .appview.hidden{display:none!important}
-.toolbar{display:grid;grid-template-columns:1.5fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px}
+.toolbar{display:grid;grid-template-columns:1.5fr .75fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px}
 .toolbar .check{display:flex;gap:7px;align-items:center;padding:10px 0;font-size:13px}
 .toolbar .check input{width:auto}
 .stock-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -215,6 +215,22 @@ th{background:#f9fafb;font-weight:800}
 
 /* v35: paste-long-name import */
 .import-char-input{width:250px;min-height:58px;padding:8px 9px;font-size:11px;line-height:1.35;border-radius:8px;resize:vertical}
+
+/* v39: visual stock cards */
+.stock-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.stock-card{padding:0;overflow:hidden;display:flex;flex-direction:column;min-height:100%}
+.stock-card-media{height:280px;background:#f8fafc;border-bottom:1px solid var(--line);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.stock-card-media a{display:flex;width:100%;height:100%;align-items:center;justify-content:center}
+.stock-card-media img{width:100%;height:100%;object-fit:contain;padding:14px;background:#fff}
+.stock-card-media-empty{background:linear-gradient(135deg,#f8fafc,#eef2f7);color:#94a3b8;font-weight:800;font-size:13px}
+.stock-model-chip{position:absolute;left:10px;bottom:10px;background:rgba(17,24,39,.9);color:#fff;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:850}
+.stock-card-body{padding:14px;display:flex;flex-direction:column;flex:1}
+.stock-card-head{display:flex;gap:14px;justify-content:space-between;align-items:flex-start}
+.stock-card-head h3{margin-top:4px}
+.stock-price{font-size:20px;font-weight:900;white-space:nowrap}
+.stock-visual-meta{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:10px;background:#f8fafc;font-size:11px;color:#475569;margin:2px 0 8px}
+.stock-actions{margin-top:auto;padding-top:12px}
+@media(max-width:700px){.stock-card-media{height:240px}.stock-card-head{flex-direction:column}.stock-price{font-size:18px}}
 </style>
 </head>
 <body>
@@ -222,7 +238,7 @@ th{background:#f9fafb;font-weight:800}
   <div class="top">
     <div>
       <h1>Hidden Doors — Личный кабинет</h1>
-      <div class="sub">Прототип v38 · полный конфигуратор · цены в заказе</div>
+      <div class="sub">Прототип v39 · полный конфигуратор · визуальный склад</div>
     </div>
     <div class="rolebox">
       <label for="role">Роль</label>
@@ -354,7 +370,7 @@ th{background:#f9fafb;font-weight:800}
       <div class="top" style="margin-bottom:14px">
         <div>
           <h2 style="font-size:20px;margin-bottom:4px">Готовое со склада</h2>
-          <div class="mini">Интерактивный склад готовой продукции. Конфигуратор автоматически ищет совпадение по текущим параметрам. Остатки в прототипе демонстрационные; источник позже заменяется на мастер-базу / Bitrix24 / 1С.</div>
+          <div class="mini">Интерактивный склад готовой продукции. Для 36 мм карточки показывают рендер модели и партнёрскую цену. Остатки в прототипе пока демонстрационные; реальный склад позже подключается из мастер-базы / Bitrix24 / 1С.</div>
         </div>
       </div>
 
@@ -368,6 +384,10 @@ th{background:#f9fafb;font-weight:800}
         <div>
           <label>Поиск по SKU / названию / характеристикам</label>
           <input id="stockSearch" placeholder="Например: Frame 102, 2000×800, Эмалит Белый">
+        </div>
+        <div>
+          <label>Линейка</label>
+          <select id="stockLine"></select>
         </div>
         <div>
           <label>Категория</label>
@@ -710,6 +730,7 @@ function cart36FallbackUnitPrice(item){
   const name=String(item.name||'');
   const sku=String(item.sku||'');
   const baseKey=String(item.baseKey||'');
+  if(/Грунт под покраску/i.test(name))return null;
   if(baseKey==='BUNDLE-P36-BOX'||sku.startsWith('BUNDLE-P36-BOX-')||/Короб телескопический 36/i.test(name))return PARTNER_PRICE_36.trim.box;
   if(baseKey==='BUNDLE-P36-TRIM'||sku.startsWith('BUNDLE-P36-TRIM-')||/Наличник телескопический 36/i.test(name))return PARTNER_PRICE_36.trim.casing;
   if(category==='Дверь 36'||/Дверь\s*\/\s*36 мм/i.test(name))return PARTNER_PRICE_36.doorLeaf;
@@ -3236,39 +3257,115 @@ function updateCartCount(){
   if($('cartCount'))$('cartCount').textContent=count;
 }
 
+
+function stockProductLine(item){
+  const text=(String(item?.category||'')+' '+String(item?.name||'')).toLowerCase();
+  if(/(?:^|\D)36\s*мм|дверь 36|погонаж 36/.test(text))return '36 мм';
+  if(/(?:^|\D)42\s*мм|скрытая 42|погонаж 42/.test(text))return '42 мм';
+  if(/(?:^|\D)59\s*мм|скрытая 59|погонаж 59/.test(text))return '59 мм';
+  return 'Другое';
+}
+function normalizeStockVisualText(value){
+  return String(value||'').toUpperCase().replace(/Ё/g,'Е').replace(/[_-]+/g,' ').replace(/[^A-ZА-Я0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function stock36DoorVisual(item){
+  if(item?.category!=='Дверь 36')return null;
+  const hay=normalizeStockVisualText(item.name);
+  const candidates=[];
+  for(const group of DOOR36_CATALOG){
+    for(const model of group.models){
+      const source=String(model.source||'').replace(/\.[^.]+$/,'').replace(/_Magnolia$/i,'').replace(/_/g,' ');
+      candidates.push({model:model.name,source,needle:normalizeStockVisualText(source)});
+    }
+  }
+  candidates.sort((a,b)=>b.needle.length-a.needle.length);
+  const hit=candidates.find(x=>x.needle&&hay.includes(x.needle));
+  if(!hit)return null;
+  const meta=door36ModelMeta(hit.model);
+  const driveId=DOOR36_IMAGE_IDS[hit.model]||'';
+  return {
+    model:hit.model,
+    legacy:hit.source,
+    collection:meta?.collection||'',
+    group:meta?.group||'',
+    imageUrl:driveId?door36ImageUrl(driveId):'',
+    driveUrl:driveId?door36DriveUrl(driveId):''
+  };
+}
+function stockItemUnitPrice(item){
+  if(stockProductLine(item)!=='36 мм')return null;
+  return cart36FallbackUnitPrice(item);
+}
+function stockItemVisualHtml(item){
+  const visual=stock36DoorVisual(item);
+  if(visual?.imageUrl){
+    const img='<img src="'+visual.imageUrl+'" alt="'+escapeHtml(visual.model)+'" loading="lazy" referrerpolicy="no-referrer">';
+    return '<div class="stock-card-media">'+(visual.driveUrl?'<a href="'+visual.driveUrl+'" target="_blank" rel="noopener">'+img+'</a>':img)+
+      '<div class="stock-model-chip">'+escapeHtml(visual.model)+'</div></div>';
+  }
+  const label=item.category==='Погонаж 36'?'Погонаж 36':'Фото пока не привязано';
+  return '<div class="stock-card-media stock-card-media-empty"><span>'+escapeHtml(label)+'</span></div>';
+}
+function stockItemVisualMeta(item){
+  const visual=stock36DoorVisual(item);
+  if(!visual)return '';
+  return '<div class="stock-visual-meta"><b>'+escapeHtml(visual.collection+' / '+visual.group+' / '+visual.model)+'</b>'+
+    (visual.legacy?'<span>Исходное складское название: '+escapeHtml(visual.legacy)+'</span>':'')+'</div>';
+}
+
 function initStockFilters(){
   const cats=['Все категории',...new Set(STOCK_DEMO.map(x=>x.category))];
   $('stockCategory').innerHTML=options(cats,'Все категории');
+  if($('stockLine'))$('stockLine').innerHTML=options(['Все линейки','36 мм','42 мм','59 мм','Другое'],'Все линейки');
   $('stockSearch').addEventListener('input',renderStock);
   $('stockCategory').addEventListener('change',renderStock);
+  $('stockLine')?.addEventListener('change',renderStock);
   $('onlyAvailable').addEventListener('change',renderStock);
 }
 
 function renderStock(){
   const q=($('stockSearch')?.value||'').trim().toLowerCase();
   const cat=$('stockCategory')?.value||'Все категории';
+  const line=$('stockLine')?.value||'Все линейки';
   const only=$('onlyAvailable')?.checked??true;
   const filtered=STOCK_DEMO.filter(x=>{
-    const hay=`${x.sku} ${x.category} ${x.name} ${x.location}`.toLowerCase();
-    return (!q||hay.includes(q)) && (cat==='Все категории'||x.category===cat) && (!only||x.qty>0);
+    const visual=stock36DoorVisual(x);
+    const hay=`${x.sku} ${x.category} ${x.name} ${x.location} ${visual?.model||''} ${visual?.collection||''} ${visual?.group||''}`.toLowerCase();
+    return (!q||hay.includes(q)) &&
+      (cat==='Все категории'||x.category===cat) &&
+      (line==='Все линейки'||stockProductLine(x)===line) &&
+      (!only||x.qty>0);
   });
   $('stockSkuCount').textContent=STOCK_DEMO.length;
   $('stockAvailableCount').textContent=STOCK_DEMO.filter(x=>x.qty>0).length;
   $('stockUnitsCount').textContent=STOCK_DEMO.reduce((s,x)=>s+x.qty,0);
-  $('stockList').innerHTML=filtered.length?filtered.map(x=>`
+  $('stockList').innerHTML=filtered.length?filtered.map(x=>{
+    const price=stockItemUnitPrice(x);
+    const lineName=stockProductLine(x);
+    return `
     <div class="stock-card">
-      <h3>${escapeHtml(x.name)}</h3>
-      <div class="stock-meta">
-        <span class="stock-badge">${escapeHtml(x.sku)}</span>
-        <span class="stock-badge">${escapeHtml(x.category)}</span>
-        <span class="stock-badge ${x.qty>0?'ok':'zero'}">${x.qty>0?`В наличии: ${x.qty} ${x.unit}`:'Нет в наличии'}</span>
+      ${stockItemVisualHtml(x)}
+      <div class="stock-card-body">
+        <div class="stock-card-head">
+          <div>
+            <div class="mini">${escapeHtml(x.category)} · ${escapeHtml(lineName)}</div>
+            <h3>${escapeHtml(x.name)}</h3>
+          </div>
+          <div class="stock-price">${price===null?'<span class="mini">Цена по запросу</span>':formatRub(price)}</div>
+        </div>
+        ${stockItemVisualMeta(x)}
+        <div class="stock-meta">
+          <span class="stock-badge">${escapeHtml(x.sku)}</span>
+          <span class="stock-badge ${x.qty>0?'ok':'zero'}">${x.qty>0?`В наличии: ${x.qty} ${x.unit}`:'Нет в наличии'}</span>
+        </div>
+        <div class="mini">${escapeHtml(x.location)}</div>
+        <div class="stock-actions">
+          <input id="stockQty_${x.sku}" type="number" min="1" max="${Math.max(1,x.qty)}" value="1" ${x.qty<=0?'disabled':''}>
+          <button onclick="addStockToCart('${x.sku}')" ${x.qty<=0?'disabled':''}>Добавить в заказ</button>
+        </div>
       </div>
-      <div class="mini">${escapeHtml(x.location)}</div>
-      <div class="stock-actions">
-        <input id="stockQty_${x.sku}" type="number" min="1" max="${Math.max(1,x.qty)}" value="1" ${x.qty<=0?'disabled':''}>
-        <button onclick="addStockToCart('${x.sku}')" ${x.qty<=0?'disabled':''}>Добавить в заказ</button>
-      </div>
-    </div>`).join(''):'<div class="empty full">По выбранным фильтрам ничего не найдено.</div>';
+    </div>`;
+  }).join(''):'<div class="empty full">По выбранным фильтрам ничего не найдено.</div>';
 }
 
 function addStockToCart(sku){
@@ -3278,8 +3375,9 @@ function addStockToCart(sku){
   const existing=cart.find(x=>x.sku===sku);
   const current=existing?Number(existing.qty):0;
   const total=Math.min(item.qty,current+requested);
-  if(existing)existing.qty=total;
-  else cart.push({sku:item.sku,name:item.name,category:item.category,stock:item.qty,unit:item.unit,qty:Math.min(requested,item.qty)});
+  const unitPrice=stockItemUnitPrice(item);
+  if(existing){existing.qty=total;if(unitPrice!==null)existing.unitPrice=unitPrice;}
+  else cart.push({sku:item.sku,name:item.name,category:item.category,stock:item.qty,unit:item.unit,qty:Math.min(requested,item.qty),unitPrice});
   saveCart(cart);
   alert(`Добавлено в заказ: ${item.sku}`);
 }
