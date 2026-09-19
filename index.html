@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v41 · Фирменный стиль</title>
+<title>Hidden Doors — Личный кабинет · Прототип v42 · Цены погонажа 36</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -519,7 +519,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       </div>
     </div>
     <div class="brand-header-side">
-      <div class="version-chip"><span>HD</span> v41 · Brand UI</div>
+      <div class="version-chip"><span>HD</span> v42 · Trim prices</div>
       <div class="rolebox">
         <label for="role">Роль</label>
         <select id="role">
@@ -1002,10 +1002,11 @@ function partnerPrice36Snapshot(){
     };
   }
   if(product()==='trim36'){
-    if($('trimCover')?.value!=='ПВХ-пленка'){
-      return {visible:true,available:false,title:'Цена по запросу',note:'В текущем партнёрском прайсе цена погонажа зафиксирована для исполнения в ПВХ-плёнке.'};
-    }
     const item=trim36PartnerUnitPrice();
+    const connector=$('trimType')?.value==='Соединительная планка для стыковки доборов';
+    if(!connector && $('trimCover')?.value!=='ПВХ-пленка'){
+      return {visible:true,available:false,title:'Цена по запросу',note:'В текущем партнёрском прайсе цена этого погонажа зафиксирована для исполнения в ПВХ-плёнке.'};
+    }
     if(item.price===null){
       return {
         visible:true,available:false,title:'Цена по запросу',
@@ -1038,7 +1039,8 @@ function configured36CartUnitPrice(){
     return PARTNER_PRICE_36.doorLeaf;
   }
   if(product()==='trim36'){
-    if($('trimCover')?.value!=='ПВХ-пленка')return null;
+    const connector=$('trimType')?.value==='Соединительная планка для стыковки доборов';
+    if(!connector && $('trimCover')?.value!=='ПВХ-пленка')return null;
     return trim36PartnerUnitPrice().price;
   }
   return null;
@@ -1055,6 +1057,7 @@ function cart36FallbackUnitPrice(item){
   const name=String(item.name||'');
   const sku=String(item.sku||'');
   const baseKey=String(item.baseKey||'');
+  if(category==='Погонаж 36'&&/Соединительная планка/i.test(name))return PARTNER_PRICE_36.trim.connector;
   if(/Грунт под покраску/i.test(name))return null;
   if(baseKey==='BUNDLE-P36-BOX'||sku.startsWith('BUNDLE-P36-BOX-')||/Короб телескопический 36/i.test(name))return PARTNER_PRICE_36.trim.box;
   if(baseKey==='BUNDLE-P36-TRIM'||sku.startsWith('BUNDLE-P36-TRIM-')||/Наличник телескопический 36/i.test(name))return PARTNER_PRICE_36.trim.casing;
@@ -1072,7 +1075,8 @@ function cart36FallbackUnitPrice(item){
   return null;
 }
 function cartItemUnitPrice(item){
-  if(Number.isFinite(Number(item?.unitPrice)))return Number(item.unitPrice);
+  const stored=item?.unitPrice;
+  if(stored!==null&&stored!==undefined&&stored!==''&&Number.isFinite(Number(stored)))return Number(stored);
   return cart36FallbackUnitPrice(item);
 }
 function cartItemLineTotal(item){
