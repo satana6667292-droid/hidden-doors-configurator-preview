@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v59 · Завертки — подтверждённые цены</title>
+<title>Hidden Doors — Личный кабинет · Прототип v60 · Цилиндры — цены и контроль</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -4901,6 +4901,70 @@ const TURN_PRICE_REVIEW=Object.freeze([]);
 
 const TURN_PRICE_SOURCE_ONLY=Object.freeze([]);
 
+const BITRIX_CYLINDER_BASE_PRICES=Object.freeze([
+  {"name":"Евроцилиндр GUARDIAN GB со штоком мм (46/31/60SH) Ni 5 ключей, цвет никель","price":1950,"sourceBase":1950,"parentId":30098,"offerId":30100,"priceOverride":false},
+  {"name":"Евроцилиндр Rucetti R 60 C SN 60 мм ключ/завертка, цвет мат никель","price":650,"sourceBase":650,"parentId":26058,"offerId":26060,"priceOverride":false},
+  {"name":"Евроцилиндр ключ-завертка MORELLI 60CK SN, никель 3ключа","price":1173,"sourceBase":1173,"parentId":21482,"offerId":21484,"priceOverride":false},
+  {"name":"Ключевой цилиндр MORELLI 60CK PC с заверткой (60 мм), цвет - хром","price":1122,"sourceBase":1122,"parentId":37374,"offerId":37376,"priceOverride":false},
+  {"name":"Ключевой цилиндр MORELLI 60CK W 60 мм с заверткой, цвет белый","price":1173,"sourceBase":1173,"parentId":29646,"offerId":29648,"priceOverride":false},
+  {"name":"Ключевой цилиндр MORELLI HS 60CK PG ключ/вертушка, цвет золото","price":1071,"sourceBase":1071,"parentId":37052,"offerId":37054,"priceOverride":false},
+  {"name":"Ключевой цилиндр MORELLI 60CK BL с заверткой (60мм), цвет - черный","price":1173,"sourceBase":1173,"parentId":27936,"offerId":27938,"priceOverride":false},
+  {"name":"Ключевой цилиндр MORELLI ключ/ключ (60 мм) 60C BL Цвет - Черный","price":898,"sourceBase":898,"parentId":27812,"offerId":27814,"priceOverride":false},
+  {"name":"Ключевой цилиндр MORELLI ключ/ключ (60мм) 60C PC , цвет хром","price":836,"sourceBase":836,"parentId":29040,"offerId":29042,"priceOverride":false},
+  {"name":"Механизм цилиндровый Vantage PC80 (35Cх45) SВ 5 ключей, цвет мат. золото","price":1550,"sourceBase":1550,"parentId":42566,"offerId":42568,"priceOverride":false},
+  {"name":"Механизм цилиндровый Vantage PC80 (45Cх35) SВ 5 ключей, цвет мат. золото (для полотна 59 мм)","price":1530,"sourceBase":1530,"parentId":39772,"offerId":39774,"priceOverride":false},
+  {"name":"Механизм цилиндровый с перфо ключом (Серия Z) Vantage Z80 (35x45) CP, цвет хром","price":1130,"sourceBase":1130,"parentId":37354,"offerId":37356,"priceOverride":false},
+  {"name":"Механизм цилиндровый с перфо ключом Vantage ZC80 (35Cx45) CP ключ/вертушка, цвет хром","price":1130,"sourceBase":1130,"parentId":37358,"offerId":37360,"priceOverride":false},
+  {"name":"Цилиндр FORTAUR FT-CKZ60-PC ключ/вертушка, цвет хром","price":470,"sourceBase":470,"parentId":26642,"offerId":26644,"priceOverride":false},
+  {"name":"Цилиндр механический STD AL ЛПВ 80 (45-35в)ключ/вертушка, цвет хром (со смещением, для полотна 59мм, вертушка со стороны без четверти)","price":750,"sourceBase":750,"parentId":26808,"offerId":26810,"priceOverride":false},
+  {"name":"Цилиндр механический STD AL ЛПВ 80 (45-35в)ключ/вертушка, цвет черный (со смещением, для полотна 59мм, вертушка со стороны без четверти)","price":750,"sourceBase":750,"parentId":26804,"offerId":26806,"priceOverride":false},
+  {"name":"Цилиндрический механизм (Польша), цвет антрацит","price":3360,"sourceBase":3360,"parentId":26932,"offerId":26934,"priceOverride":false},
+  {"name":"Цилиндрический механизм (Россия), цвет антрацит","price":2100,"sourceBase":2100,"parentId":26936,"offerId":26938,"priceOverride":false},
+  {"name":"Цилиндровый Fuaro (Фуаро) механизм (200 ZM/80) 2000ZM Knob 80 (30+10+40В) 5Key с вертушкой BL-24, цвет черный","price":800,"sourceBase":800,"parentId":38584,"offerId":38586,"priceOverride":false},
+  {"name":"Цилиндровый Fuaro (Фуаро) механизм(200 ZM/80) 2000ZM Knob 80 (40+10+30В) 5Key с вертушкой BL-24, цвет черный","price":900,"sourceBase":900,"parentId":38588,"offerId":38590,"priceOverride":false},
+  {"name":"Цилиндровый механизм VЕTTORE ZN M80 ZC NI (35T*45), ключ/вертушка, 5 ключей, цвет никель (со смещением, для полотна 59мм, вертушка со стороны без четверти)","price":600,"sourceBase":600,"parentId":26812,"offerId":26814,"priceOverride":false},
+  {"name":"Цилиндровый механизм  VЕTTORE ключ/вертушка ZN M60 ZC MBP (30T*30), 5 ключей  (Чёрный Матовый)","price":470,"sourceBase":470,"parentId":27940,"offerId":27942,"priceOverride":false},
+  {"name":"Цилиндровый механизм Ajax (AX200/60) AX2000Key60 (25+10+25) CP, цвет хром","price":300,"sourceBase":300,"parentId":37476,"offerId":37478,"priceOverride":false},
+  {"name":"Цилиндровый механизм Avers JM-80(35/45)-G, ключ/ключ, золотой (со смещением, для полотна 59мм)","price":750,"sourceBase":750,"parentId":39658,"offerId":39660,"priceOverride":false},
+  {"name":"Цилиндровый механизм Avers ZM-80(35/45)-BL, ключ/ключ, черный (со смещением, для полотна 59мм)","price":650,"sourceBase":650,"parentId":29096,"offerId":29098,"priceOverride":false},
+  {"name":"Цилиндровый механизм Avers ZM-80(35/45)-CR, ключ/ключ, хром (со смещением, для полотна 59мм)","price":650,"sourceBase":650,"parentId":27438,"offerId":27440,"priceOverride":false},
+  {"name":"Цилиндровый механизм Avers ключ/вертушка ZM-60-C-CR, хром","price":470,"sourceBase":470,"parentId":25344,"offerId":25346,"priceOverride":false},
+  {"name":"Цилиндровый механизм Code Deco ZM-80(35/45)-BLM, цвет матовый черный (со смещением, для полотна 59 мм)","price":973,"sourceBase":973,"parentId":30290,"offerId":30292,"priceOverride":false},
+  {"name":"Цилиндровый механизм Fuaro (D-PRO500/80) D-PRO5000Key80(30+10+40) PB, цвет латунь 5Key","price":1350,"sourceBase":1350,"parentId":30180,"offerId":30182,"priceOverride":false},
+  {"name":"Цилиндровый механизм Fuaro (Фуаро) (200 ZA/80) 2000ZAKey80(30+10+40) 5Key BL, цвет черный","price":750,"sourceBase":750,"parentId":38598,"offerId":38600,"priceOverride":false},
+  {"name":"Цилиндровый механизм Fuaro D-PRO5007 Tang 90 w/k (55+10+25) без верт. BL-24, цвет черный","price":1800,"sourceBase":1800,"parentId":29942,"offerId":29944,"priceOverride":false},
+  {"name":"Цилиндровый механизм PALLINI Р 60СК SN ключ/вертушка 5 ключей, цвет матовый никель","price":700,"sourceBase":700,"parentId":42334,"offerId":42336,"priceOverride":false},
+  {"name":"Цилиндровый механизм Punto MaxPro7000Key65mm(25+10+30) SN, цвет никель (для 42 полотен REVERSE/7 ключей)","price":1000,"sourceBase":1000,"parentId":39960,"offerId":39962,"priceOverride":false},
+  {"name":"Цилиндровый механизм Vantage VC-80 (35+10+35) ключ/ключ SB, цвет золото матовое","price":407,"sourceBase":407,"parentId":40292,"offerId":40294,"priceOverride":false},
+  {"name":"Цилиндровый механизм Vantage ZC 80 мм (45с/35) CP, цвет хром (5 ключей)","price":1130,"sourceBase":1130,"parentId":39404,"offerId":39406,"priceOverride":false},
+  {"name":"Цилиндровый механизм Vantage Р80(35*45) ключ/ключ SB золото матовое (со смещением, для полотна 59мм)","price":1,"sourceBase":1,"parentId":40708,"offerId":40710,"priceOverride":false},
+  {"name":"Цилиндровый механизм VETTORE ZN M60 ZC MBP (30T*30), 5 ключей, цвет чёрный матовый","price":740,"sourceBase":740,"parentId":42452,"offerId":42454,"priceOverride":false},
+  {"name":"Цилиндровый механизм НОРА-М ЕСО Z ЛПВ-80 (45*35в) ключ/повортник, цвет черный (со смещением, для полотная 59 мм, вертушка со стороны без четверти)","price":1220,"sourceBase":1220,"parentId":29208,"offerId":29210,"priceOverride":false},
+  {"name":"Цилиндровый механизм Р 60C MatBlack PALLINI 60 мм, 5 ключей, кл/кл, цвет черный матовый","price":650,"sourceBase":650,"parentId":39352,"offerId":39354,"priceOverride":false},
+  {"name":"Цилиндровый механизм Р 60CK MatBlack PALLINI 60 мм, 5 ключей, кл/бр, цвет черный матовый","price":740,"sourceBase":740,"parentId":39356,"offerId":39358,"priceOverride":false},
+  {"name":"Цилиндровый механизм с повышенной секретностью ключ/вертушка серия P 80 (40Сх40), матовое золото","price":850,"sourceBase":850,"parentId":25222,"offerId":25224,"priceOverride":false}
+]);
+
+const CYLINDER_PRICE_AUDIT=Object.freeze({
+  category:"Цилиндровые механизмы",
+  source:"Hidden Doors — Ревизия фурнитуры — бренды v1 / Bitrix24 BASE",
+  sourceRows:41,
+  catalogRows:41,
+  imported:41,
+  exactMatched:41,
+  missing:0,
+  zero:0,
+  suspiciousLow:1,
+  suspiciousThreshold:100,
+  minSourceBase:1,
+  minWorkingBase:300,
+  maxBase:3360
+});
+
+const CYLINDER_PRICE_REVIEW=Object.freeze([
+  {name:"Цилиндровый механизм Vantage Р80(35*45) ключ/ключ SB золото матовое (со смещением, для полотна 59мм)",sourceBase:1,parentId:40708,offerId:40710,reason:"Подозрительно низкий BASE: 1 ₽ — требуется ручная проверка; не включать в числовые итоги до решения"}
+]);
+
 function normalizeHardwarePriceName(value){
   return String(value||'')
     .toUpperCase().replace(/Ё/g,'Е')
@@ -4914,7 +4978,8 @@ const BITRIX_HARDWARE_BASE_PRICE_MAPS=Object.freeze({
   'Петли':new Map(BITRIX_HINGE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Замки':new Map(BITRIX_LOCK_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Ручки':new Map(BITRIX_HANDLE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
-  'Завертки':new Map(BITRIX_TURN_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
+  'Завертки':new Map(BITRIX_TURN_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
+  'Цилиндровые механизмы':new Map(BITRIX_CYLINDER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
 });
 function hardwareBasePriceMeta(category,name){
   const map=BITRIX_HARDWARE_BASE_PRICE_MAPS[category];
@@ -4959,6 +5024,7 @@ function companionItemUnitPrice(item){
   if(key==='DOOR-LOCK')return hardwareBasePrice('Замки',item?.name||'');
   if(key==='DOOR-HANDLE'||key==='SLIDE42-HANDLE')return hardwareBasePrice('Ручки',item?.name||'');
   if(key==='DOOR-TURN')return hardwareBasePrice('Завертки',item?.name||'');
+  if(key==='DOOR-CYLINDER')return hardwareBasePrice('Цилиндровые механизмы',item?.name||'');
   return companion36UnitPrice(item);
 }
 function genericCatalogItemPrice(item){
@@ -4979,6 +5045,10 @@ function genericCatalogItemPrice(item){
   }
   if(/заверт/i.test(category)){
     const p=hardwareBasePrice('Завертки',name);
+    if(p!==null)return p;
+  }
+  if(/цилиндр/i.test(category+' '+name)){
+    const p=hardwareBasePrice('Цилиндровые механизмы',name);
     if(p!==null)return p;
   }
   return cart36FallbackUnitPrice(item);
@@ -5221,7 +5291,7 @@ function doorOrderSections(){
       field('Замок',searchableCatalog('doorLock','Замки')+`<div id="doorLockPriceHint" class="mini hinge-price-hint"></div>`)+
       field('Ручка',searchableCatalog('doorHandle','Ручки')+`<div id="doorHandlePriceHint" class="mini hinge-price-hint"></div>`)+
       field('Завертка',searchableCatalog('doorTurn','Завертки')+`<div id="doorTurnPriceHint" class="mini hinge-price-hint"></div>`)+
-      `<div id="doorCylinderFieldWrap" class="hidden">${field('Цилиндр',searchableCatalog('doorCylinder','Цилиндровые механизмы')+`<div class="mini">Обязательное поле для замков типа «Под цилиндр».</div>`)}</div>`+
+      `<div id="doorCylinderFieldWrap" class="hidden">${field('Цилиндр',searchableCatalog('doorCylinder','Цилиндровые механизмы')+`<div id="doorCylinderPriceHint" class="mini hinge-price-hint"></div><div class="mini">Обязательное поле для замков типа «Под цилиндр».</div>`)}</div>`+
       field('Стопор',searchableCatalog('doorStopper','Стопоры'))+
       field('Автоматический порог',searchableCatalog('doorThreshold','Скрытый порог'))+
       field('Доводчик',searchableCatalog('doorCloser','Доводчики')+`<div class="mini">Категорию доводчиков пока не чистим: оставляем как есть и проверим отдельно.</div>`)+
@@ -5343,6 +5413,17 @@ function updateDoorTurnPriceHint(){
   }
   box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
 }
+function updateDoorCylinderPriceHint(){
+  const box=$('doorCylinderPriceHint');if(!box)return;
+  const name=$('doorCylinder')?.value?.trim()||'';
+  const meta=name?hardwareBasePriceMeta('Цилиндровые механизмы',name):null;
+  if(!name){box.innerHTML='Выберите цилиндр.';return}
+  if(!meta){box.innerHTML='<span class="mini">Цена для этого цилиндра пока не подключена.</span>';return}
+  if(meta.price===null||meta.suspicious){
+    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
+  }
+  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+}
 function updateSlidingHandlePriceHint(){
   const box=$('slidingHandlePriceHint');if(!box)return;
   const name=$('slidingHandle')?.value||'Без ручки';
@@ -5369,7 +5450,7 @@ function hardwareCategoryPriceSummary(category,items){
 }
 function renderHardwareCategoryPriceSummary(category,items){
   const box=$('hardwarePriceSummary');if(!box)return;
-  if(!['Петли','Замки','Ручки','Завертки'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
+  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
   const s=hardwareCategoryPriceSummary(category,items);
   box.classList.remove('hidden');
   box.className='hinge-price-summary';
@@ -5384,7 +5465,7 @@ function renderHardwareSelectedPrice(){
   const uiCategory=$('hardwareCategory')?.value||'';
   const category=HARDWARE_MAP[uiCategory]||uiCategory;
   const item=$('catalogItem')?.value||'';
-  if(!['Петли','Замки','Ручки','Завертки'].includes(category)){
+  if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы'].includes(category)){
     box.classList.add('hidden');box.innerHTML='';return;
   }
   const meta=hardwareBasePriceMeta(category,item);
@@ -6799,6 +6880,10 @@ function companionItems(){
     if(turn){
       items.push({key:'DOOR-TURN',type:'Фурнитура / Завертки',priceCategory:'Завертки',qty:1,unit:'шт.',step:1,name:turn});
     }
+    const cylinder=$('doorCylinder')?.value?.trim()||'';
+    if(cylinder){
+      items.push({key:'DOOR-CYLINDER',type:'Фурнитура / Цилиндры',priceCategory:'Цилиндровые механизмы',qty:1,unit:'шт.',step:1,name:cylinder});
+    }
     if(!includeBox())return items;
     const system=product()==='single42'?'42':'59';
     const color=bundleBoxColorText(system);
@@ -7223,7 +7308,7 @@ function refreshDynamicDetails(){
   if($('trimFilm')) $('trimFilm').closest('div')?.parentElement?.classList.toggle('hidden',$('trimCover')?.value!=='ПВХ-пленка');
   if($('doborStandard')) $('doborStandard').value=[100,150,200].includes(doborWidth())?'Стандарт':'Нестандарт';
   if(product()==='leaf36') updateBundle36();
-  if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();}
+  if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorCylinderPriceHint();}
   if(product()==='sliding42'){syncSliding42Armadillo();updateSlidingHandlePriceHint();}
   if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint()}
   if(product()==='hardware')renderHardwareSelectedPrice();
@@ -7624,6 +7709,7 @@ function renderOrderExtras(){
   if(companions.some(x=>x.key==='DOOR-LOCK'))pricedExtraLabels.add('Замок');
   if(companions.some(x=>x.key==='DOOR-HANDLE'||x.key==='SLIDE42-HANDLE'))pricedExtraLabels.add('Ручка');
   if(companions.some(x=>x.key==='DOOR-TURN'))pricedExtraLabels.add('Завертка');
+  if(companions.some(x=>x.key==='DOOR-CYLINDER'))pricedExtraLabels.add('Цилиндр');
   const renderedExtras=extras.filter(([k])=>!pricedExtraLabels.has(k));
   renderedExtras.forEach(([k,v])=>lines.push(`<div><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`));
   companions.forEach(x=>{
