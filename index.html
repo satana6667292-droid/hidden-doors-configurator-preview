@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v64 · Доводчики — цены</title>
+<title>Hidden Doors — Личный кабинет · Прототип v66 · Карточный каталог фурнитуры</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -522,6 +522,18 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 .handle-price-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
 .handle-brand{font-size:11px;font-weight:850;color:#76644f}
 .handle-price-name{font-size:13px;font-weight:750;line-height:1.35;color:#2d261f}
+
+/* v66: unified visual cards for every hardware category */
+.hardware-catalog-card .hinge-card-image{min-height:170px}
+.hardware-card-topline{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.hardware-card-title{min-height:48px;display:flex;align-items:flex-start}
+.hardware-catalog-card .hinge-card-name{min-height:42px}
+.hardware-catalog-card .hinge-card-source{line-height:1.35}
+.hardware-catalog-card .hinge-photo-status.pending{background:#f3f4f6;color:#6b7280}
+@media(max-width:650px){
+  .hardware-catalog-card .hinge-card-image{min-height:135px}
+  .hardware-card-title{min-height:58px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -5810,7 +5822,11 @@ const HARDWARE_TYPE_ORDER={
   'Замки':['Сантехнические / WC / межкомнатные защёлки','Под цилиндр','Задвижки / ригели','Специальные системы / СКУД / антипаника','Комплектующие к замкам','Прочие / проверить'],
   'Ручки':['Основные / для распашных дверей','Для откатных / раздвижных дверей','Скрытые / интегрированные','Ручки-скобы','Ручки-защёлки / специальные','Прочие / проверить'],
   'Завертки':['Сантехнические завертки / WC','Накладки под цилиндр','Вставки / вертушки на шток','Прочие / проверить'],
-  'Стопоры':['Магнитные','Обычные / механические']
+  'Цилиндры':['Ключ / ключ','Ключ / вертушка','Прочие / проверить'],
+  'Стопоры':['Магнитные','Обычные / механические'],
+  'Автоматические пороги':['Автоматические пороги'],
+  'Доводчики':['Скрытые / врезные','Накладные со скользящей тягой','Накладные / прочие'],
+  'Системы открывания':['Раздвижные / скрытые','Складные','Рото','Pivot','Прочие системы']
 };
 
 function hardwareTypeForItem(category,item){
@@ -5849,8 +5865,32 @@ function hardwareTypeForItem(category,item){
     return 'Прочие / проверить';
   }
 
+  if(category==='Цилиндры'){
+    if(/ключ\/верт|ключ\/повор|ключ\/бараш|ck\b|zc\b|knob/i.test(s))return 'Ключ / вертушка';
+    if(/ключ\/ключ|key\b|\bc\b/i.test(s))return 'Ключ / ключ';
+    return 'Прочие / проверить';
+  }
+
   if(category==='Стопоры'){
     return /магнит/.test(s)?'Магнитные':'Обычные / механические';
+  }
+
+  if(category==='Автоматические пороги'){
+    return 'Автоматические пороги';
+  }
+
+  if(category==='Доводчики'){
+    if(/скрыт|врезн|boxer|aktivstop|dc80/i.test(s))return 'Скрытые / врезные';
+    if(/скольз/.test(s))return 'Накладные со скользящей тягой';
+    return 'Накладные / прочие';
+  }
+
+  if(category==='Системы открывания'){
+    if(/pivot|пивот/.test(s))return 'Pivot';
+    if(/рото|roto/.test(s))return 'Рото';
+    if(/склад|compack|book|книж/.test(s))return 'Складные';
+    if(/раздвиж|пенал|кассет|hidden|invisible|magic|slid|pocket/.test(s))return 'Раздвижные / скрытые';
+    return 'Прочие системы';
   }
 
   return 'Все позиции';
@@ -6245,7 +6285,7 @@ function selectHingeCatalogCard(index){
   if(!item)return;
   if($('catalogItem'))$('catalogItem').value=item;
   renderHingeCatalogCards();
-  renderHandleCatalogCards();
+  renderHardwareCatalogCards();
   renderHardwareSelectedPrice();
   render();
 }
@@ -6345,6 +6385,104 @@ function selectHandleCatalogCard(index){
   render();
 }
 
+function hardwareCurrentItems(){
+  const category=$('hardwareCategory')?.value||'';
+  if(!category)return [];
+  const brand=$('hardwareBrand')?.value||'';
+  const group=hardwareBrandGroups().find(g=>g.brand===brand);
+  return group?.items||[];
+}
+function hardwareCardShortLabel(item){
+  let name=String(item||'')
+    .replace(/^Дверная\s+/i,'')
+    .replace(/^Дверной\s+/i,'')
+    .replace(/^Дверное\s+/i,'')
+    .replace(/^Цилиндровый механизм\s*/i,'')
+    .replace(/^Магнитный скрытый\s*/i,'')
+    .replace(/^Автоматический\s*/i,'')
+    .replace(/^Скрытый дверной\s*/i,'')
+    .trim();
+  return name.length>88?name.slice(0,85)+'…':name;
+}
+function hardwareCardPlaceholderSvg(category,item){
+  const cat=String(category||'Фурнитура').slice(0,28);
+  const label=hardwareCardShortLabel(item).slice(0,42);
+  const brand=(hardwareBrandForItem(item)==='Не определено'?'Фото уточняется':hardwareBrandForItem(item)).slice(0,28);
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900">'+
+    '<rect width="100%" height="100%" fill="#f7f3ed"/>'+
+    '<rect x="115" y="105" width="670" height="690" rx="44" fill="#fffdfa" stroke="#ded4c8" stroke-width="4"/>'+
+    '<circle cx="450" cy="330" r="112" fill="#ede5da"/>'+
+    '<path d="M385 330h130M450 265v130" stroke="#ae9270" stroke-width="22" stroke-linecap="round"/>'+
+    '<text x="450" y="535" text-anchor="middle" font-family="Arial" font-size="30" font-weight="700" fill="#3c342c">'+escapeHtml(cat)+'</text>'+
+    '<text x="450" y="585" text-anchor="middle" font-family="Arial" font-size="24" fill="#6b5d50">'+escapeHtml(brand)+'</text>'+
+    '<foreignObject x="165" y="620" width="570" height="115"><div xmlns="http://www.w3.org/1999/xhtml" style="font-family:Arial;font-size:21px;line-height:1.25;text-align:center;color:#77695b">'+escapeHtml(label)+'</div></foreignObject>'+
+    '</svg>';
+  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+}
+const HARDWARE_IMAGE_OVERRIDES=Object.freeze({});
+function hardwareCardPhotoMeta(category,item){
+  const exact=HARDWARE_IMAGE_OVERRIDES[item];
+  if(exact)return {image:exact,source:'Точное фото товара',status:'exact'};
+  return {
+    image:hardwareCardPlaceholderSvg(category,item),
+    source:'Фото товара из Bitrix ещё не подключено к публичному preview',
+    status:'pending'
+  };
+}
+function hardwareCardPriceText(category,item){
+  const meta=hardwareBasePriceMeta(category,item);
+  if(!meta)return 'Цена пока не подключена';
+  if(meta.price===null||meta.suspicious)return 'Цена по запросу';
+  return 'BASE · '+formatRub(meta.price)+' / шт.';
+}
+function renderHardwareCatalogCards(){
+  const wrap=$('hardwareCatalogWrap'),grid=$('hardwareCatalogGrid');
+  if(!wrap||!grid)return;
+  const uiCategory=$('hardwareCategory')?.value||'';
+  const visible=!!uiCategory && uiCategory!=='Петли';
+  wrap.classList.toggle('hidden',!visible);
+  if(!visible){grid.innerHTML='';return}
+  const sourceCategory=HARDWARE_MAP[uiCategory]||uiCategory;
+  const selected=$('catalogItem')?.value||'';
+  const items=hardwareCurrentItems();
+  const brand=$('hardwareBrand')?.value||'';
+  const type=$('hardwareType')?.value||'';
+  if($('hardwareCatalogTitle'))$('hardwareCatalogTitle').textContent='Каталог: '+uiCategory;
+  if($('hardwareCatalogCount'))$('hardwareCatalogCount').textContent=
+    items.length+' карточек · '+(type==='Все позиции'?'все типы':type)+' · '+(brand==='Не определено'?'без бренда / проверить':brand);
+  const summary=hardwareCategoryPriceSummary(sourceCategory,items);
+  const banner=items.length?'<div class="hinge-price-summary"><div><b>BASE Bitrix24</b> · '+summary.priced+' из '+items.length+' позиций с рабочей ценой'+
+    (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
+    ((summary.unresolved||summary.missing||summary.overrides)
+      ?'<div class="mini">Контроль: требуют решения — '+summary.unresolved+' · ручных корректировок — '+summary.overrides+(summary.missing?' · без привязки — '+summary.missing:'')+'</div>'
+      :'<div class="mini">Все позиции текущей выборки имеют обычную BASE-цену.</div>')+'</div>':'';
+  grid.innerHTML=banner+items.map((item,i)=>{
+    const photo=hardwareCardPhotoMeta(uiCategory,item);
+    const meta=hardwareBasePriceMeta(sourceCategory,item);
+    const problem=meta&&(meta.price===null||meta.suspicious);
+    const brandName=hardwareBrandForItem(item);
+    const typeName=hardwareTypeForItem(uiCategory,item);
+    return '<button type="button" class="hinge-card hardware-catalog-card '+(item===selected?'active':'')+'" onclick="selectHardwareCatalogCard('+i+')" title="'+escapeHtml(item)+'">'+
+      '<div class="hinge-card-image"><img src="'+escapeHtml(photo.image)+'" alt="'+escapeHtml(hardwareCardShortLabel(item))+'" loading="lazy"></div>'+
+      '<div class="hinge-card-body">'+
+        '<div class="hardware-card-topline"><span class="handle-brand">'+escapeHtml(brandName==='Не определено'?'Без бренда / проверить':brandName)+'</span><span class="hinge-type-tag">'+escapeHtml(typeName)+'</span></div>'+
+        '<div class="hinge-card-model hardware-card-title">'+escapeHtml(hardwareCardShortLabel(item))+'</div>'+
+        '<div class="hinge-card-price '+(problem?'unpriced':meta?.priceOverride?'override':'')+'">'+escapeHtml(hardwareCardPriceText(sourceCategory,item))+'</div>'+
+        (problem?'<div class="hinge-price-flag warning">Проверить BASE · '+(meta?.sourceBase===null?'не заполнен':formatRub(meta?.sourceBase))+'</div>':'')+
+        '<div class="hinge-card-meta"><span class="hinge-photo-status pending">Фото из Bitrix: подключение следующим слоем</span></div>'+
+        '<div class="hinge-card-name">'+escapeHtml(item)+'</div>'+
+        '<div class="hinge-card-source">'+escapeHtml(photo.source)+'</div>'+
+      '</div></button>';
+  }).join('');
+}
+function selectHardwareCatalogCard(index){
+  const item=hardwareCurrentItems()[index];if(!item)return;
+  if($('catalogItem'))$('catalogItem').value=item;
+  renderHardwareCatalogCards();
+  renderHardwareSelectedPrice();
+  render();
+}
+
 function updateHardwareDatalist(resetBrand=false,resetType=false){
   const c=$('hardwareCategory'); if(!c)return;
   const typeGroups=hardwareTypeGroups();
@@ -6374,6 +6512,7 @@ function updateHardwareDatalist(resetBrand=false,resetType=false){
   renderHardwareTypeTiles();
   renderHardwareBrandTiles();
   renderHingeCatalogCards();
+  renderHardwareCatalogCards();
   renderHardwareSelectedPrice();
 }
 function selectHardwareType(type){
@@ -6424,15 +6563,15 @@ function renderHardware(){
          </div>
          <div id="hingeCatalogGrid" class="hinge-card-grid"></div>
        </div>
-       <div id="handleCatalogWrap" class="hinge-pilot hidden">
+       <div id="hardwareCatalogWrap" class="hinge-pilot hidden">
          <div class="hinge-pilot-head">
            <div>
-             <div class="hinge-pilot-title">Каталог ручек с BASE-ценами</div>
-             <div id="handleCatalogCount" class="mini"></div>
+             <div id="hardwareCatalogTitle" class="hinge-pilot-title">Каталог фурнитуры</div>
+             <div id="hardwareCatalogCount" class="mini"></div>
            </div>
-           <div class="hinge-pilot-note">Карточки показывают рабочий BASE из выгрузки Bitrix24. Пять позиций с исходным BASE 1 ₽ помечены «Цена по запросу» до согласования на этапе 3.</div>
+           <div class="hinge-pilot-note">Карточка связана с реальной номенклатурой и рабочей BASE-ценой. Там, где публичное фото ещё не подключено, показывается нейтральный placeholder — без подмены товара похожей картинкой.</div>
          </div>
-         <div id="handleCatalogGrid" class="handle-price-grid"></div>
+         <div id="hardwareCatalogGrid" class="hinge-card-grid"></div>
        </div>`
     )+
     section('Структура каталога',`<div class="note">В v24 начата строгая по-SKU ревизия изображений. Первый эталонный раздел: <b>Петли → Скрытые → Krona Koblenz / KUBICA</b>. В нём отображается код отделки производителя, запрещены приблизительные фото другого цвета, а спорные коды/цвета помечаются для согласования. Остальные разделы пока сохраняют режим v23.</div>`);
@@ -7562,6 +7701,11 @@ function handleInput(e){
   if(e.target.id==='trim42Type') renderTrim42Dynamic();
   if(e.target.id==='trim59Type') renderTrim59Dynamic();
   if(e.target.id==='hardwareCategory') updateHardwareDatalist(true,true);
+  if(product()==='hardware' && e.target.id==='catalogItem'){
+    renderHingeCatalogCards();
+    renderHardwareCatalogCards();
+    renderHardwareSelectedPrice();
+  }
   if(e.target.id==='additionalType') updateAdditionalDatalist();
   if(product()==='leaf36' && e.target.id==='film36') syncBundle36FilmsFromDoor();
   if(product()==='leaf36' && e.target.id==='cover36' && $('cover36')?.value==='ПВХ-пленка') syncBundle36FilmsFromDoor();
