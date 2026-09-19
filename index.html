@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v80 · Price Book foundation</title>
+<title>Hidden Doors — Личный кабинет · Прототип v81 · 42 mm coefficient pricing</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -891,7 +891,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v80 · Price Book foundation</div>
+        <div class="version-chip"><span>HD</span> v81 · 42 mm coefficient pricing</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1522,7 +1522,7 @@ const SALES_PRICE_BOOKS=Object.freeze([
     sourceFileId:'10fH0RYUWVd5UWXJT6t7U8Iu1gJbI4LPpQWGPeQMF7mc',
     sourceUpdated:'22.01.2026',
     approvedAt:'19.09.2026',
-    lookupPolicy:'exact'
+    lookupPolicy:'exact-or-approved-formula'
   })
 ]);
 const ACTIVE_SALES_PRICE_BOOK_BY_TYPE=Object.freeze({
@@ -1541,7 +1541,7 @@ function salesPriceBookStatusLabel(status){
   return ({active:'Активен',draft:'Черновик',archived:'Архив'})[status]||String(status||'—');
 }
 function salesPriceBookPolicyLabel(policy){
-  return policy==='exact'?'Только точное совпадение':String(policy||'—');
+  return policy==='exact'?'Только точное совпадение':policy==='exact-or-approved-formula'?'Точное правило или утверждённая формула':String(policy||'—');
 }
 function activeSalesPriceBookNote(priceType=activeSalesPriceType()){
   const book=activeSalesPriceBook(priceType);
@@ -1563,8 +1563,8 @@ function exactSalesPriceMatch(required,actual){
 const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 · 7 705 ₽'}),
   Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Опт 2 · формула и позиции подключены'}),
-  Object.freeze({block:'42 мм',area:'Фанера · 2000 · грунт · серый/чёрный анод',status:'connected',note:'Опт 2 · партнёрский прайс 2026'}),
-  Object.freeze({block:'42 мм',area:'2100/2200, AL и прочие исполнения',status:'pending',note:'Цена есть в источнике частично, подключение следующим блоком'}),
+  Object.freeze({block:'42 мм',area:'Полотно · фанера 1700–2200 / AL 1700–2300 · грунт · серый/чёрный анод',status:'connected',note:'Опт 2 · база 2000 + утверждённые коэффициенты высоты/ширины'}),
+  Object.freeze({block:'42 мм',area:'Короб / комплект / sales-tier фурнитуры',status:'pending',note:'Коммерческая логика состава утверждена, ценовые строки подключаются следующим блоком'}),
   Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Прайс проанализирован, расчёт ещё не подключён'}),
   Object.freeze({block:'Фурнитура',area:'Петли / замки / ручки / прочее',status:'external',note:'Сейчас BASE Bitrix24, sales-tier ещё не связан'}),
   Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL / ПВХ',status:'pending',note:'Цены источника зафиксированы, автоматические правила ещё не подключены'}),
@@ -1597,7 +1597,7 @@ function renderPricingAdmin(){
           '<span>Утверждён <b>'+escapeHtml(active?.approvedAt||'—')+'</b></span>'+
         '</div>'+
         '<div class="pricing-admin-policy"><b>Правило поиска цены:</b> '+escapeHtml(salesPriceBookPolicyLabel(active?.lookupPolicy))+
-          '. Если точной строки нет — конфигуратор должен показывать «Цена не заполнена / по запросу», а не брать соседний размер или исполнение.</div>'+
+          '. Если нет точного правила или явно утверждённой формулы — конфигуратор должен показывать «Цена не заполнена / по запросу», а не брать соседний размер или исполнение.</div>'+
       '</div>'+
       '<div class="pricing-admin-card">'+
         '<div class="pricing-admin-kicker">Контроль покрытия</div>'+
@@ -1626,7 +1626,7 @@ function renderPricingAdmin(){
       '<div class="pricing-rules">'+
         '<div><b>1.</b> Прайс имеет собственные ID, версию, тип цены, источник и статус.</div>'+
         '<div><b>2.</b> Для Опт 2 единственный активный источник сейчас — партнёрский прайс 2026.</div>'+
-        '<div><b>3.</b> Цена применяется только при точном совпадении утверждённых характеристик.</div>'+
+        '<div><b>3.</b> Цена применяется по точному правилу либо по отдельно утверждённой формуле коэффициентов; неутверждённого наследования соседней цены нет.</div>'+
         '<div><b>4.</b> BASE Bitrix24 не считается Опт 2 и показывается отдельно, пока не появится sales-tier цена фурнитуры.</div>'+
         '<div><b>5.</b> Себестоимость будет храниться отдельным слоем и не будет автоматически менять продажную цену.</div>'+
       '</div>'+
@@ -1858,8 +1858,9 @@ function cartPriceSummary(cart){
 }
 
 // --- data/prices42.js ---
-// 42 mm standard door-leaf sales prices.
-// Source: approved «Партнёрский прайс Hidden Doors 2026». Opt 2 uses exact-match pricing.
+// 42 mm sales prices.
+// Source: approved «Партнёрский прайс Hidden Doors 2026» plus approved coefficient rules.
+// Opt 2 is calculated from the 2000 mm base price. Opening direction/reverse does not change price.
 const SALES_PRICE_42_STANDARD=Object.freeze({
   retail:null,
   wholesale1:null,
@@ -1871,8 +1872,25 @@ const SALES_PRICE_42_STANDARD=Object.freeze({
     priceBookId:'partner-2026-v1',
     updated:'22.01.2026',
     standardHeight:2000,
-    standardWidths:Object.freeze([600,700,800,900]),
-    leaf:Object.freeze({gray:9856,black:10293})
+    base:Object.freeze({
+      plywood:Object.freeze({gray:9856,black:10293}),
+      aluminum:Object.freeze({gray:14916,black:15353})
+    }),
+    // Compatibility alias for older standard-2000 code paths.
+    leaf:Object.freeze({gray:9856,black:10293}),
+    limits:Object.freeze({
+      plywood:Object.freeze({minHeight:1700,maxHeight:2200}),
+      aluminum:Object.freeze({minHeight:1700,maxHeight:2300}),
+      minWidth:450,
+      maxWidth:1000
+    }),
+    heightRules:Object.freeze([
+      Object.freeze({min:1700,max:1999,factor:1.2,label:'1700–1999'}),
+      Object.freeze({min:2000,max:2000,factor:1,label:'2000'}),
+      Object.freeze({min:2001,max:2200,factor:1.2,label:'2001–2200'}),
+      Object.freeze({min:2201,max:2300,factor:1.3,label:'2201–2300'})
+    ]),
+    widthRule:Object.freeze({above:900,factor:1.2})
   })
 });
 
@@ -1887,19 +1905,53 @@ function price42EdgeKey(edge=$('SingleEdgeColor')?.value||''){
   if(edge==='Черный анод')return 'black';
   return '';
 }
-function standard42PriceEligibility(){
+function price42FrameKey(frame=$('frame')?.value||''){
+  if(frame==='Каркас из фанеры')return 'plywood';
+  if(frame==='Алюминиевый каркас')return 'aluminum';
+  return '';
+}
+function price42FrameLabel(frameKey){
+  return frameKey==='aluminum'?'алюминиевый каркас':'каркас из фанеры';
+}
+function price42HeightFactor(height,book=price42Book()){
+  const h=Number(height);
+  const rule=book?.heightRules?.find(x=>h>=x.min&&h<=x.max);
+  return rule?rule.factor:null;
+}
+function price42WidthFactor(width,book=price42Book()){
+  const w=Number(width);
+  if(!Number.isFinite(w))return null;
+  return w>Number(book?.widthRule?.above||900)?Number(book?.widthRule?.factor||1.2):1;
+}
+function standard42PriceEligibility(priceType=activeSalesPriceType()){
   if(product()!=='single42')return {eligible:false,reason:'not42'};
+  const book=price42Book(priceType);
   const height=currentHeight(),width=currentWidth();
-  const frame=$('frame')?.value||'';
+  const frame=$('frame')?.value||'',frameKey=price42FrameKey(frame);
   const side1=$('SingleSide1Type')?.value||'',side2=$('SingleSide2Type')?.value||'';
-  const edge=$('SingleEdgeColor')?.value||'';
+  const edge=$('SingleEdgeColor')?.value||'',edgeKey=price42EdgeKey(edge);
   const reasons=[];
-  if(height!==2000)reasons.push('высота должна быть 2000 мм');
-  if(![600,700,800,900].includes(width))reasons.push('стандартная ширина: 600 / 700 / 800 / 900 мм');
-  if(frame!=='Каркас из фанеры')reasons.push('цена подтверждена для каркаса из фанеры');
+  if(!book)reasons.push('для выбранного типа цены нет активной книги цен');
+  if(!frameKey)reasons.push('неизвестная конструкция полотна');
+  const limits=frameKey&&book?.limits?.[frameKey];
+  if(limits&&(height<limits.minHeight||height>limits.maxHeight))reasons.push('высота вне диапазона '+limits.minHeight+'–'+limits.maxHeight+' мм для выбранного каркаса');
+  if(!limits)reasons.push('для выбранного каркаса не задан диапазон высот');
+  if(width<Number(book?.limits?.minWidth||450)||width>Number(book?.limits?.maxWidth||1000))reasons.push('ширина вне утверждённого диапазона 450–1000 мм');
   if(side1!=='Грунт под покраску'||side2!=='Грунт под покраску')reasons.push('обе стороны должны быть «Грунт под покраску»');
-  if(!['Серый анод','Черный анод'].includes(edge))reasons.push('торец должен быть серый или чёрный анод');
-  return {eligible:reasons.length===0,reasons,height,width,frame,side1,side2,edge,edgeKey:price42EdgeKey(edge)};
+  if(!edgeKey)reasons.push('торец должен быть серый или чёрный анод');
+  const heightFactor=price42HeightFactor(height,book);
+  if(heightFactor===null)reasons.push('для этой высоты нет утверждённого коэффициента');
+  const widthFactor=price42WidthFactor(width,book);
+  return {eligible:reasons.length===0,reasons,height,width,frame,frameKey,side1,side2,edge,edgeKey,heightFactor,widthFactor};
+}
+function price42Calculation(priceType=activeSalesPriceType()){
+  const book=price42Book(priceType);
+  const e=standard42PriceEligibility(priceType);
+  if(!book||!e.eligible)return {...e,price:null,basePrice:null,priceType};
+  const basePrice=Number(book.base?.[e.frameKey]?.[e.edgeKey]);
+  if(!Number.isFinite(basePrice))return {...e,eligible:false,reasons:[...(e.reasons||[]),'базовая цена для выбранного каркаса/цвета не найдена'],price:null,basePrice:null,priceType};
+  const price=Math.round(basePrice*e.heightFactor*e.widthFactor);
+  return {...e,basePrice,price,priceType};
 }
 function price42SourceNote(book){
   if(!book)return '';
@@ -1910,20 +1962,26 @@ function price42StandardSnapshot(){
   const type=activeSalesPriceType(),typeLabel=price42TypeLabel(type),book=price42Book(type);
   if(!book)return {
     visible:true,available:false,title:'Цена не заполнена',priceType:type,
-    note:'Тип цены «'+typeLabel+'» создан, но цена стандартного полотна 42 мм для него пока не заполнена. Сейчас подтверждён только тип «Опт 2».'
+    note:'Тип цены «'+typeLabel+'» создан, но цена полотна 42 мм для него пока не заполнена.'
   };
-  const eligibility=standard42PriceEligibility();
-  if(!eligibility.eligible)return {
+  const calc=price42Calculation(type);
+  if(!calc.eligible||calc.price===null)return {
     visible:true,available:false,title:'Цена по запросу',priceType:type,
-    note:'Для «'+typeLabel+'» сейчас заполнены только стандартные полотна 42 мм из активного партнёрского прайса 2026: '+eligibility.reasons.join('; ')+'.'
+    note:'Для «'+typeLabel+'» цена 42 мм рассчитывается только по утверждённым правилам: '+(calc.reasons||[]).join('; ')+'.'
   };
-  const price=book.leaf[eligibility.edgeKey]??null;
-  if(!Number.isFinite(Number(price)))return {visible:true,available:false,title:'Цена по запросу',priceType:type,note:'Цена для выбранного исполнения 42 мм не найдена.'};
-  const edgeLabel=eligibility.edgeKey==='black'?'чёрный матовый алюминий':'серый алюминий';
+  const edgeLabel=calc.edgeKey==='black'?'чёрный анод':'серый анод';
+  const factors=[];
+  if(calc.heightFactor!==1)factors.push('высота ×'+String(calc.heightFactor).replace('.',','));
+  if(calc.widthFactor!==1)factors.push('ширина >900 ×'+String(calc.widthFactor).replace('.',','));
+  const formula=factors.length
+    ?'<div>База 2000: '+formatRub(calc.basePrice)+' · '+factors.join(' · ')+'</div>'
+    :'<div>База 2000 без коэффициентов</div>';
   return {
-    visible:true,available:true,title:formatRub(price),priceType:type,
-    html:'<div><b>Полотно 42 мм:</b> '+formatRub(price)+'</div><div>2000×'+eligibility.width+' · '+escapeHtml($('opening')?.value||'')+' · '+edgeLabel+'</div>',
-    note:price42SourceNote(book)+' · цена одинакова для ширин 600/700/800/900 и всех четырёх вариантов открывания. Короб в эту цену не включён.'
+    visible:true,available:true,title:formatRub(calc.price),priceType:type,
+    html:'<div><b>Полотно 42 мм:</b> '+formatRub(calc.price)+'</div>'+
+      '<div>'+calc.height+'×'+calc.width+' · '+escapeHtml($('opening')?.value||'')+' · '+price42FrameLabel(calc.frameKey)+' · '+edgeLabel+'</div>'+
+      formula,
+    note:price42SourceNote(book)+' · реверс цену не меняет · высота 1700–1999 ×1,2; 2000 ×1,0; 2001–2200 ×1,2; 2201–2300 ×1,3 · ширина свыше 900 мм ×1,2.'
   };
 }
 function renderSalesPrice42(){
@@ -1938,12 +1996,8 @@ function renderSalesPrice42(){
   note.textContent=snapshot.note||'';
 }
 function configured42StandardUnitPrice(priceType=activeSalesPriceType()){
-  const book=price42Book(priceType);
-  if(!book)return null;
-  const eligibility=standard42PriceEligibility();
-  if(!eligibility.eligible)return null;
-  const price=book.leaf[eligibility.edgeKey];
-  return Number.isFinite(Number(price))?Number(price):null;
+  const calc=price42Calculation(priceType);
+  return calc.eligible&&Number.isFinite(Number(calc.price))?Number(calc.price):null;
 }
 function is42StandardLeafCatalogItem(item){
   if(!item)return false;
@@ -1966,7 +2020,7 @@ function cart42StandardFallbackUnitPrice(item,priceType=item?.priceType||activeS
   if(!is42StandardLeafCatalogItem(item))return null;
   const book=price42Book(priceType);
   if(!book)return null;
-  const price=book.leaf[price42EdgeKeyFromName(item.name)];
+  const price=book.base?.plywood?.[price42EdgeKeyFromName(item.name)];
   return Number.isFinite(Number(price))?Number(price):null;
 }
 
@@ -6539,8 +6593,7 @@ function recommendedHingeFamily(){
 function recommendedHingeQty(){
   const h=currentHeight();
   if(product()==='single42'){
-    if(h<=2200)return 2;
-    return null; // новая высота 2300–2400 пока отсутствует в утверждённой таблице
+    return h<=2300?2:null;
   }
   if(product()==='single59'){
     const glass=single59GlassSidesCount();
@@ -6786,9 +6839,9 @@ function syncRecommendedDoorHinge(forceItem=true,forceQty=true){
     const family=recommendedHingeFamily();
     const q=recommendedHingeQty();
     if(product()==='single42' && q==null){
-      hint.textContent=`Рекомендация: ${family}. Для высоты 2300–2400 мм в текущей таблице Hidden Doors количество ещё не задано — укажите вручную.`;
+      hint.textContent=`Рекомендация: ${family}. Для выбранной высоты количество не задано.`;
     }else{
-      hint.textContent=`Рекомендация: ${family}; количество по таблице — ${q||'—'} шт.`;
+      hint.textContent=`Рекомендация: ${family}; количество по утверждённой таблице — ${q||'—'} шт.`;
     }
   }
   updateDoorHingePriceHint();
@@ -8356,7 +8409,7 @@ function renderSingle42(){
 function updateSingle42Frame(){
   const f=$('frame'); if(!f)return;
   const plywood=f.value==='Каркас из фанеры';
-  const maxH=plywood?2200:2400;
+  const maxH=plywood?2200:2300;
   if($('height') && $('customHeight')?.classList.contains('hidden')){
     const old=Number($('height').value||2000);
     $('height').innerHTML=options(range(1700,maxH,50),Math.min(old,maxH));
@@ -8957,7 +9010,7 @@ function renderSliding42(){
 function updateSliding42Frame(){
   const f=$('frame'); if(!f)return;
   const plywood=f.value==='Каркас из фанеры';
-  const maxH=plywood?2200:2400;
+  const maxH=plywood?2200:2300;
   if($('height') && $('customHeight')?.classList.contains('hidden')){
     const old=Number($('height').value||2000);
     $('height').innerHTML=options(range(1700,maxH,50),Math.min(old,maxH));
@@ -9026,7 +9079,7 @@ function renderDouble42(){
 function updateDouble42Frame(){
   const f=$('frame'); if(!f)return;
   const plywood=f.value==='Каркас из фанеры';
-  const maxH=plywood?2200:2400;
+  const maxH=plywood?2200:2300;
   if($('height') && $('customHeight')?.classList.contains('hidden')){
     const old=Number($('height').value||2000);
     $('height').innerHTML=options(range(1700,maxH,50),Math.min(old,maxH));
@@ -9306,7 +9359,7 @@ function validate(){
     return {errs,warns};
   }
   if(product()==='single42'){
-    const h=currentHeight(),w=currentWidth(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2400;
+    const h=currentHeight(),w=currentWidth(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2300;
     if(h<1700||h>maxH)errs.push(`Высота должна быть 1700–${maxH} мм для выбранного каркаса.`);
     if(!Number.isFinite(w)||w<=0)errs.push('Некорректная ширина.');
     if(w<450||w>1000)warns.push('Ширина вне базовой сетки 450–1000 мм. Жёсткий технический предел для обычной 42 пока не утверждён.');
@@ -9316,7 +9369,7 @@ function validate(){
     if(doorLockRequiresCylinder() && !$('doorCylinder')?.value?.trim())errs.push('Для выбранного замка под цилиндр обязательно выберите цилиндр.');
   }
   if(product()==='sliding42'){
-    const h=currentHeight(),w=currentWidth(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2400;
+    const h=currentHeight(),w=currentWidth(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2300;
     if(h<1700||h>maxH)errs.push(`Высота должна быть 1700–${maxH} мм для выбранного каркаса.`);
     if(!Number.isFinite(w)||w<=0)errs.push('Некорректная ширина.');
     if(w<450||w>1000)warns.push('Ширина вне базовой сетки 450–1000 мм. Жёсткий технический предел откатной 42 пока не утверждён.');
@@ -9353,7 +9406,7 @@ function validate(){
     }
   }
   if(product()==='double42'){
-    const h=currentHeight(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2400;
+    const h=currentHeight(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2300;
     const lw=doubleWidth('left'),rw=doubleWidth('right');
     if(h<1700||h>maxH)errs.push(`Общая высота должна быть 1700–${maxH} мм.`);
     if(lw<400||lw>1000)errs.push('Левая створка: ширина 400–1000 мм.');
