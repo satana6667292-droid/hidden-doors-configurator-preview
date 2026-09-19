@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v43 · Объединение системных дублей</title>
+<title>Hidden Doors — Личный кабинет · Прототип v44 · Автоконтроль дублей</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -519,7 +519,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       </div>
     </div>
     <div class="brand-header-side">
-      <div class="version-chip"><span>HD</span> v43 · Duplicate merge</div>
+      <div class="version-chip"><span>HD</span> v44 · Duplicate guard</div>
       <div class="rolebox">
         <label for="role">Роль</label>
         <select id="role">
@@ -4299,6 +4299,21 @@ function findHardwareDuplicateCandidate({name='',article='',excludeSku=''}={}){
   }
   return possible;
 }
+function hardwareDuplicateExistingLabel(duplicate){
+  const e=duplicate?.entry||{};
+  const source=e.source==='catalog'?'системный каталог':'добавленная номенклатура';
+  const sku=e.sku?' · SKU '+e.sku:'';
+  const article=e.article?' · арт. '+e.article:'';
+  const category=hardwareDuplicateDisplayCategory(e);
+  return (category?category+' · ':'')+(e.name||'существующая позиция')+sku+article+' · '+source;
+}
+function hardwareDuplicateGuardMessage(duplicate){
+  if(!duplicate)return '';
+  const prefix=duplicate.kind==='hard'
+    ?'Такая позиция уже есть. Добавлять повтор не нужно.'
+    :'Позиция с таким артикулом уже встречается в каталоге. Повторное добавление заблокировано.';
+  return prefix+' '+hardwareDuplicateExistingLabel(duplicate);
+}
 
 function currentHardwareDuplicateGroups(){
   const entries=allHardwareEntries();
@@ -4749,7 +4764,22 @@ function dictionaryHardwareReady(){
 function dictionaryRefreshSaveState(){
   updateCylinderThumbSideVisibility();
   const btn=$('dictionarySaveBtn'); if(!btn)return;
-  btn.disabled=!dictionaryHardwareReady();
+  const ready=dictionaryHardwareReady();
+  const name=$('dictHwName')?.value?.trim()||'';
+  const article=$('dictHwArticle')?.value?.trim()||'';
+  const duplicate=(name||article)?findHardwareDuplicateCandidate({name,article}):null;
+  btn.disabled=!ready||!!duplicate;
+
+  const box=$('dictionaryEditorMessage');
+  if(duplicate&&box){
+    box.dataset.autoDuplicate='1';
+    box.className='status err';
+    box.innerHTML='<b>Автоконтроль дублей:</b> '+escapeHtml(hardwareDuplicateGuardMessage(duplicate));
+  }else if(box?.dataset.autoDuplicate==='1'){
+    delete box.dataset.autoDuplicate;
+    box.className='status hidden';
+    box.textContent='';
+  }
 }
 function normalizedExtraParams(){
   return dictionaryExtraParams.map(x=>({name:(x.name||'').trim(),value:(x.value||'').trim()})).filter(x=>x.name&&x.value);
@@ -4766,8 +4796,7 @@ function saveHardwareDictionaryEntry(type){
   const article=$('dictHwArticle').value.trim().toUpperCase();
   const duplicate=findHardwareDuplicateCandidate({name:$('dictHwName').value.trim(),article});
   if(duplicate){
-    const where=duplicate.entry?.category?' ['+duplicate.entry.category+'] '+duplicate.entry.name:'';
-    dictionaryShowError((duplicate.kind==='hard'?'Дубль не сохранён. ':'Нужно уточнить артикул перед сохранением. ')+duplicate.reason+where);
+    dictionaryShowError('Автоконтроль дублей: '+hardwareDuplicateGuardMessage(duplicate));
     return;
   }
   const item={
@@ -4839,15 +4868,39 @@ function saveHardwareDictionaryEntry(type){
 function dictionaryAddRal(){
   const raw=prompt('Введите RAL, например RAL 1013:'); if(!raw)return;
   const norm=raw.trim().toUpperCase().startsWith('RAL ')?raw.trim().toUpperCase():'RAL '+raw.trim().toUpperCase().replace('RAL','').trim();
-  const vals=getRals(); if(!vals.includes(norm)){vals.push(norm);setStore('hd_v4_rals',vals)}
+  const vals=getRals();
+  if(vals.some(x=>String(x).toUpperCase()===norm)){
+    alert('Автоконтроль дублей: '+norm+' уже есть. Повтор не добавлен.');
+    return;
+  }
+  vals.push(norm);setStore('hd_v4_rals',vals);
   renderDictionaries(); renderForm();
+}
+function filmDuplicateCandidate(name,article){
+  const nn=normalizeHardwareName(name);
+  const aa=normalizeHardwareArticle(article);
+  for(const existing of getFilms42()){
+    const text=String(existing||'');
+    const parts=text.split('—');
+    const existingName=parts.length>1?parts.slice(0,-1).join('—').trim():text.trim();
+    const existingArticle=parts.length>1?parts[parts.length-1].trim():'';
+    if(aa&&normalizeHardwareArticle(existingArticle)===aa)return existing;
+    if(nn&&aa&&normalizeHardwareName(existingName)===nn&&normalizeHardwareArticle(existingArticle)===aa)return existing;
+  }
+  return '';
 }
 function dictionaryAddFilm(){
   const name=prompt('Название плёнки:');if(!name)return;
   const article=prompt('Артикул плёнки:');if(!article)return;
-  const item=`${name.trim()} — ${article.trim().toUpperCase()}`;
+  const cleanName=name.trim(),cleanArticle=article.trim().toUpperCase();
+  const duplicate=filmDuplicateCandidate(cleanName,cleanArticle);
+  if(duplicate){
+    alert('Автоконтроль дублей: такая ПВХ-плёнка уже есть. Повтор не добавлен.\n\n'+duplicate);
+    return;
+  }
+  const item=`${cleanName} — ${cleanArticle}`;
   const vals=getStore('hd_v4_films_general',[]);
-  if(!getFilms42().includes(item)){vals.push(item);setStore('hd_v4_films_general',vals)}
+  vals.push(item);setStore('hd_v4_films_general',vals);
   renderDictionaries(); renderForm();
 }
 
@@ -5216,11 +5269,10 @@ function validateImportRow(row){
     if(row.category!=='grille'&&!row.article.trim())return {status:'review',message:'Нет артикула'};
   }
   const batchDup=priorImportBatchDuplicate(row);
-  if(batchDup)return {status:'exists',message:'Дубль в файле'};
+  if(batchDup)return {status:'exists',message:'Дубль в этом импорте — не добавляется'};
   const hwDup=importHardwareDuplicateCandidate(row);
-  if(hwDup?.kind==='hard')return {status:'exists',message:'Уже есть'};
-  if(hwDup?.kind==='possible')return {status:'review',message:'Проверьте артикул/исполнение'};
-  if(existingImportMatch(row))return {status:'exists',message:'Уже есть'};
+  if(hwDup)return {status:'exists',message:'Уже есть — не добавляется · '+hardwareDuplicateExistingLabel(hwDup)};
+  if(existingImportMatch(row))return {status:'exists',message:'Уже есть — не добавляется'};
   return {status:'ready',message:'Готово'};
 }
 function buildNomenclatureImportProposals(){
@@ -5249,7 +5301,7 @@ function refreshImportRows(){
   nomenclatureImportRows.forEach(r=>Object.assign(r,validateImportRow(r)));
   const body=$('importProposalBody');if(!body)return;
   body.innerHTML=nomenclatureImportRows.map((r,i)=>'<tr>'+
-    '<td><input type="checkbox" '+(r.checked?'checked':'')+' onchange="updateImportRow('+i+',\'checked\',this.checked)"></td>'+
+    '<td><input type="checkbox" '+(r.checked?'checked':'')+' '+(r.status==='exists'?'disabled title="Дубль: автоматически исключён из добавления"':'')+' onchange="updateImportRow('+i+',\'checked\',this.checked)"></td>'+
     '<td><select onchange="updateImportRow('+i+',\'category\',this.value)">'+importCategoryOptions(r.category)+'</select></td>'+
     '<td><input value="'+escapeHtml(r.name)+'" title="'+escapeHtml(r.source)+'" oninput="updateImportRow('+i+',\'name\',this.value)"></td>'+
     '<td><input value="'+escapeHtml(r.brand)+'" oninput="updateImportRow('+i+',\'brand\',this.value)"></td>'+
@@ -5266,7 +5318,9 @@ function refreshImportRows(){
     '<div class="import-stat"><span class="mini">Готово добавить</span><b>'+ready+'</b></div>'+
     '<div class="import-stat"><span class="mini">Уже есть</span><b>'+exists+'</b></div>'+
     '<div class="import-stat"><span class="mini">Нужно уточнить</span><b>'+review+'</b></div>';
-  $('importQuestions').innerHTML=review?'<div class="import-question"><b>Нужно уточнение.</b> Проверьте строки со статусом «Нужно уточнить»: выберите правильный справочник, заполните полный артикул и проверьте автоматически распознанные характеристики. Можно снять галочку, чтобы не импортировать позицию.</div>':'';
+  $('importQuestions').innerHTML=
+    (exists?'<div class="status info" style="margin-bottom:8px"><b>Автоконтроль дублей:</b> '+exists+' поз. уже есть в номенклатуре и не будут добавлены повторно.</div>':'')+
+    (review?'<div class="import-question"><b>Нужно уточнение.</b> Проверьте строки со статусом «Нужно уточнить»: выберите правильный справочник, заполните полный артикул и проверьте автоматически распознанные характеристики. Можно снять галочку, чтобы не импортировать позицию.</div>':'');
   const btn=$('applyNomenclatureImportBtn');if(btn)btn.disabled=review>0||ready===0;
   if(review===0)setImportStep(3);else setImportStep(2);
 }
@@ -5341,6 +5395,8 @@ function applyNomenclatureImport(){
       const val='RAL '+m[1],vals=getRals();if(!vals.includes(val)){vals.push(val);setStore('hd_v4_rals',vals);added++}else skipped++;continue
     }
     if(['hinge','lock','handle','turn','cylinder','stop','threshold','closer','opening','grille'].includes(row.category)){
+      const duplicate=findHardwareDuplicateCandidate({name:row.name,article:row.article});
+      if(duplicate){skipped++;continue}
       const vals=getCustomDictionaryItems(row.category);
       vals.push(importedHardwareItem(row));saveCustomDictionaryItems(row.category,vals);added++;continue
     }
