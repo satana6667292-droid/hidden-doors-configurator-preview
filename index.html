@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v33 · Импорт номенклатуры</title>
+<title>Hidden Doors — Личный кабинет · Прототип v34 · Импорт + контроль дублей</title>
 <style>
 :root{
   --bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
@@ -220,7 +220,7 @@ th{background:#f9fafb;font-weight:800}
   <div class="top">
     <div>
       <h1>Hidden Doors — Личный кабинет</h1>
-      <div class="sub">Прототип v33 · полный конфигуратор · каталог 36 + импорт номенклатуры</div>
+      <div class="sub">Прототип v34 · полный конфигуратор · импорт + контроль дублей</div>
     </div>
     <div class="rolebox">
       <label for="role">Роль</label>
@@ -478,6 +478,16 @@ th{background:#f9fafb;font-weight:800}
         <button class="secondary" onclick="dictionaryAddRal()">+ RAL</button>
       </div>
       <div class="catalog-note" style="margin-bottom:14px"><b>Импорт номенклатуры из файла</b><br>PDF, изображения, Excel и текстовые файлы можно сначала распознать и сопоставить со справочниками. Изменения применяются только после ручного подтверждения.</div>
+      <div class="pane" style="margin-bottom:14px">
+        <div class="top" style="margin-bottom:8px">
+          <div>
+            <div class="pane-title">Контроль дублей фурнитуры</div>
+            <div class="mini">Проверка идёт по всем справочникам фурнитуры сразу. Точное совпадение полного наименования или структурированного артикула считается дублем; совпадение артикула внутри старого строкового каталога требует проверки исполнения/цвета.</div>
+          </div>
+          <button class="secondary" type="button" onclick="runHardwareDuplicateAudit()">Проверить дубли</button>
+        </div>
+        <div id="hardwareDuplicateAudit"><div class="mini">Проверка ещё не запускалась.</div></div>
+      </div>
       <div id="dictionaryGrid" class="dict-grid"></div>
     </section>
   </div>
@@ -3384,6 +3394,82 @@ function dictionaryShowMessage(text,type){
 function dictionaryShowError(text){dictionaryShowMessage(text,'err')}
 function dictionaryShowSuccess(text){dictionaryShowMessage(text,'ok')}
 
+
+const HARDWARE_DUPLICATE_SOURCE_MAP={
+  hinge:'Петли',lock:'Замки',handle:'Ручки',turn:'Завертки',cylinder:'Цилиндровые механизмы',
+  stop:'Стопоры',threshold:'Скрытый порог',closer:'Доводчики',opening:'Системы открывания',
+  grille:'Вентиляционные решетки',extra:'Доп.фурнитура'
+};
+function normalizeHardwareName(value){
+  return String(value||'').toUpperCase().replace(/Ё/g,'Е').replace(/[«»"']/g,'')
+    .replace(/[×ХX]/g,'X').replace(/[.,;:(){}\[\]]/g,' ').replace(/[-–—]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+function normalizeHardwareArticle(value){
+  return String(value||'').toUpperCase().replace(/Ё/g,'Е').replace(/[«»"']/g,'')
+    .replace(/\s*([.\/-])\s*/g,'$1').replace(/\s+/g,' ').trim();
+}
+function hardwareStaticEntries(){
+  return Object.entries(HARDWARE_DUPLICATE_SOURCE_MAP).flatMap(([type,cat])=>
+    catalogValues(cat).map(name=>({source:'catalog',type,category:cat,name:String(name||''),article:'',brand:'',model:''}))
+  );
+}
+function hardwareCustomEntries(){
+  return hardwareDictionaryTypes().flatMap(type=>
+    getCustomDictionaryItems(type).map(item=>({
+      source:'custom',type,category:type,
+      name:String(item.name||''),article:String(item.article||''),brand:String(item.brand||''),model:String(item.model||''),sku:String(item.sku||'')
+    }))
+  );
+}
+function allHardwareEntries(){return [...hardwareStaticEntries(),...hardwareCustomEntries()]}
+function staticNameContainsArticle(name,article){
+  const a=normalizeHardwareArticle(article);if(a.length<4)return false;
+  const n=String(name||'').toUpperCase().replace(/Ё/g,'Е').replace(/\s*([.\/-])\s*/g,'$1').replace(/\s+/g,' ');
+  return n.includes(a);
+}
+function findHardwareDuplicateCandidate({name='',article='',excludeSku=''}={}){
+  const nn=normalizeHardwareName(name),aa=normalizeHardwareArticle(article);
+  let possible=null;
+  for(const entry of allHardwareEntries()){
+    if(excludeSku&&entry.sku===excludeSku)continue;
+    if(nn&&normalizeHardwareName(entry.name)===nn)return {kind:'hard',reason:'Полное наименование уже есть',entry};
+    if(aa&&entry.source==='custom'&&normalizeHardwareArticle(entry.article)===aa)return {kind:'hard',reason:'Артикул уже есть в добавленной фурнитуре',entry};
+    if(!possible&&aa&&entry.source==='catalog'&&staticNameContainsArticle(entry.name,aa)){
+      possible={kind:'possible',reason:'Артикул уже встречается в текущем каталоге — проверьте цвет/исполнение',entry};
+    }
+  }
+  return possible;
+}
+function currentHardwareDuplicateGroups(){
+  const entries=allHardwareEntries();
+  const byName=new Map();
+  entries.forEach(e=>{const k=normalizeHardwareName(e.name);if(!k)return;if(!byName.has(k))byName.set(k,[]);byName.get(k).push(e)});
+  const exact=[...byName.values()].filter(g=>g.length>1);
+  const byArticle=new Map();
+  hardwareCustomEntries().forEach(e=>{const k=normalizeHardwareArticle(e.article);if(!k)return;if(!byArticle.has(k))byArticle.set(k,[]);byArticle.get(k).push(e)});
+  const structured=[...byArticle.values()].filter(g=>g.length>1);
+  return {entries,exact,structured};
+}
+function runHardwareDuplicateAudit(){
+  const box=$('hardwareDuplicateAudit');if(!box)return;
+  const report=currentHardwareDuplicateGroups();
+  const groups=[...report.exact];
+  for(const group of report.structured){
+    const sig=group.map(x=>normalizeHardwareName(x.name)).sort().join('|');
+    if(!groups.some(g=>g.map(x=>normalizeHardwareName(x.name)).sort().join('|')===sig))groups.push(group);
+  }
+  const duplicateRows=groups.reduce((sum,g)=>sum+Math.max(0,g.length-1),0);
+  if(!groups.length){
+    box.innerHTML='<div class="status ok"><b>Дубли не найдены.</b> Проверено '+report.entries.length+' позиций фурнитуры.</div>';
+    return;
+  }
+  box.innerHTML='<div class="status warn"><b>Найдены дубли: '+groups.length+' групп · '+duplicateRows+' лишних строк.</b><br>Ничего автоматически не удалено. Проверьте пары ниже.</div>'+
+    '<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>№</th><th>Категория</th><th>Наименование</th><th>Источник</th><th>Артикул</th></tr></thead><tbody>'+
+    groups.map((g,i)=>g.map((e,j)=>'<tr><td>'+(j===0?i+1:'↳')+'</td><td>'+escapeHtml(e.category)+'</td><td>'+escapeHtml(e.name)+'</td><td>'+escapeHtml(e.source==='catalog'?'Текущий каталог':'Добавлено вручную/импорт')+'</td><td>'+escapeHtml(e.article||'—')+'</td></tr>').join('')).join('')+
+    '</tbody></table></div>';
+}
+
 function renderDictionaries(){
   const box=$('dictionaryGrid'); if(!box)return;
   const cards=[
@@ -3625,16 +3711,21 @@ function normalizedExtraParams(){
   return dictionaryExtraParams.map(x=>({name:(x.name||'').trim(),value:(x.value||'').trim()})).filter(x=>x.name&&x.value);
 }
 function customArticleExists(article){
-  const a=article.trim().toUpperCase();
+  const a=normalizeHardwareArticle(article);
   return hardwareDictionaryTypes().some(type=>
-    getCustomDictionaryItems(type).some(x=>String(x.article||'').trim().toUpperCase()===a)
+    getCustomDictionaryItems(type).some(x=>normalizeHardwareArticle(x.article)===a)
   );
 }
 function saveHardwareDictionaryEntry(type){
   if(!hardwareDictionaryTypes().includes(type))return;
   if(!dictionaryHardwareReady()){dictionaryShowError('Заполните все обязательные поля.');return}
   const article=$('dictHwArticle').value.trim().toUpperCase();
-  if(article&&customArticleExists(article)){dictionaryShowError('Позиция с таким артикулом уже добавлена в справочник фурнитуры.');return}
+  const duplicate=findHardwareDuplicateCandidate({name:$('dictHwName').value.trim(),article});
+  if(duplicate){
+    const where=duplicate.entry?.category?' ['+duplicate.entry.category+'] '+duplicate.entry.name:'';
+    dictionaryShowError((duplicate.kind==='hard'?'Дубль не сохранён. ':'Нужно уточнить артикул перед сохранением. ')+duplicate.reason+where);
+    return;
+  }
   const item={
     sku:nextHardwareSku(),
     name:$('dictHwName').value.trim(),
@@ -3901,19 +3992,32 @@ function importNameFromLine(line,article){
 }
 function existingImportMatch(row){
   const art=(row.article||'').trim().toUpperCase();
-  const name=(row.name||'').trim().toLowerCase();
   if(row.category==='ral')return getRals().some(x=>x.toUpperCase()===(row.article||row.name).toUpperCase());
   if(row.category==='film36'||row.category==='filmGeneral'){
     return getFilms42().some(x=>art&&x.toUpperCase().includes(art))||getFilms42().some(x=>x.toLowerCase()===((row.name||'')+' — '+(row.article||'')).toLowerCase());
   }
   if(['hinge','lock','handle','turn','cylinder','stop','threshold','closer','opening','grille'].includes(row.category)){
-    const all=[...getCustomDictionaryItems(row.category)];
-    const bitrixMap={hinge:'Петли',lock:'Замки',handle:'Ручки',turn:'Завертки',cylinder:'Цилиндровые механизмы',stop:'Стопоры',threshold:'Скрытый порог',closer:'Доводчики',opening:'Системы открывания',grille:'Вентиляционные решетки'};
-    const source=catalogValues(bitrixMap[row.category]||'');
-    if(art&&all.some(x=>String(x.article||'').trim().toUpperCase()===art))return true;
-    return source.some(x=>(art&&String(x).toUpperCase().includes(art))||(name&&String(x).toLowerCase()===name));
+    const hit=findHardwareDuplicateCandidate({name:row.name,article:row.article});
+    return hit?.kind==='hard';
   }
   return false;
+}
+function importHardwareDuplicateCandidate(row){
+  if(!['hinge','lock','handle','turn','cylinder','stop','threshold','closer','opening','grille'].includes(row.category))return null;
+  return findHardwareDuplicateCandidate({name:row.name,article:row.article});
+}
+function priorImportBatchDuplicate(row){
+  if(!row?.checked)return null;
+  const idx=nomenclatureImportRows.indexOf(row);if(idx<=0)return null;
+  const aa=normalizeHardwareArticle(row.article),nn=normalizeHardwareName(row.name);
+  for(let i=0;i<idx;i++){
+    const prev=nomenclatureImportRows[i];
+    if(!prev?.checked)continue;
+    if(!['hinge','lock','handle','turn','cylinder','stop','threshold','closer','opening','grille'].includes(prev.category))continue;
+    if(aa&&normalizeHardwareArticle(prev.article)===aa)return {reason:'Дубль артикула внутри загружаемого файла',row:prev};
+    if(nn&&normalizeHardwareName(prev.name)===nn)return {reason:'Дубль наименования внутри загружаемого файла',row:prev};
+  }
+  return null;
 }
 function validateImportRow(row){
   if(!row.checked)return {status:'skip',message:'Исключено'};
@@ -3928,6 +4032,11 @@ function validateImportRow(row){
     if(!row.name.trim())return {status:'review',message:'Нет наименования'};
     if(!row.article.trim())return {status:'review',message:'Нет артикула'};
   }
+  const batchDup=priorImportBatchDuplicate(row);
+  if(batchDup)return {status:'exists',message:'Дубль в файле'};
+  const hwDup=importHardwareDuplicateCandidate(row);
+  if(hwDup?.kind==='hard')return {status:'exists',message:'Уже есть'};
+  if(hwDup?.kind==='possible')return {status:'review',message:'Проверьте артикул/исполнение'};
   if(existingImportMatch(row))return {status:'exists',message:'Уже есть'};
   return {status:'ready',message:'Готово'};
 }
@@ -3965,7 +4074,7 @@ function refreshImportRows(){
     '<div class="import-stat"><span class="mini">Готово добавить</span><b>'+ready+'</b></div>'+
     '<div class="import-stat"><span class="mini">Уже есть</span><b>'+exists+'</b></div>'+
     '<div class="import-stat"><span class="mini">Нужно уточнить</span><b>'+review+'</b></div>';
-  $('importQuestions').innerHTML=review?'<div class="import-question"><b>Нужно уточнение.</b> Проверьте строки со статусом «Нужно уточнить»: выберите правильный справочник и/или заполните отсутствующий артикул. Можно также снять галочку, чтобы не импортировать позицию.</div>':'';
+  $('importQuestions').innerHTML=review?'<div class="import-question"><b>Нужно уточнение.</b> Проверьте строки со статусом «Нужно уточнить»: выберите правильный справочник, заполните полный артикул и проверьте исполнение/цвет. Совпадение артикула с текущим каталогом специально блокирует импорт до уточнения. Можно снять галочку, чтобы не импортировать позицию.</div>':'';
   const btn=$('applyNomenclatureImportBtn');if(btn)btn.disabled=review>0||ready===0;
   if(review===0)setImportStep(3);else setImportStep(2);
 }
