@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v42 · Цены погонажа 36</title>
+<title>Hidden Doors — Личный кабинет · Прототип v43 · Объединение системных дублей</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -519,7 +519,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       </div>
     </div>
     <div class="brand-header-side">
-      <div class="version-chip"><span>HD</span> v42 · Trim prices</div>
+      <div class="version-chip"><span>HD</span> v43 · Duplicate merge</div>
       <div class="rolebox">
         <label for="role">Роль</label>
         <select id="role">
@@ -1282,7 +1282,34 @@ function finishPane(title,prefix,covers,filmMode,is59=false){
 // --- hardware.js ---
 const HARDWARE_MAP={'Петли':'Петли','Замки':'Замки','Ручки':'Ручки','Завертки':'Завертки','Цилиндры':'Цилиндровые механизмы','Стопоры':'Стопоры','Автоматические пороги':'Скрытый порог','Доводчики':'Доводчики','Системы открывания':'Системы открывания'};
 
-function catalogValues(cat){return BITRIX_CATALOG[cat]||[]}
+const HARDWARE_CATALOG_MERGE_STORE='hd_v43_catalog_duplicate_merges';
+function catalogDuplicateMergeKey(cat,value){
+  const normalized=typeof normalizeHardwareName==='function'
+    ?normalizeHardwareName(value)
+    :String(value||'').toUpperCase().replace(/\s+/g,' ').trim();
+  return String(cat||'')+'|'+normalized;
+}
+function catalogDuplicateMergeRules(){
+  return typeof getStore==='function'?getStore(HARDWARE_CATALOG_MERGE_STORE,{}):{};
+}
+function saveCatalogDuplicateMergeRule(cat,value){
+  const rules=catalogDuplicateMergeRules();
+  const key=catalogDuplicateMergeKey(cat,value);
+  rules[key]={category:String(cat||''),name:String(value||''),mergedAt:new Date().toISOString()};
+  setStore(HARDWARE_CATALOG_MERGE_STORE,rules);
+}
+function catalogValues(cat){
+  const raw=BITRIX_CATALOG[cat]||[];
+  const rules=catalogDuplicateMergeRules();
+  const seenMerged=new Set();
+  return raw.filter(value=>{
+    const key=catalogDuplicateMergeKey(cat,value);
+    if(!rules[key])return true;
+    if(seenMerged.has(key))return false;
+    seenMerged.add(key);
+    return true;
+  });
+}
 function datalistHtml(id,vals){return `<datalist id="${id}">${vals.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('')}</datalist>`}
 function searchableCatalog(id,cat,placeholder='Не требуется — начните вводить'){
   const vals=catalogValues(cat);
@@ -4291,12 +4318,27 @@ function hardwareDuplicateDisplayCategory(entry){
 }
 function hardwareDuplicateMergeMeta(group){
   const customs=group.filter(x=>x.source==='custom');
-  const hasCatalog=group.some(x=>x.source==='catalog');
-  const types=[...new Set(customs.map(x=>x.type).filter(Boolean))];
-  if(hasCatalog)return {canMerge:false,reason:'Есть системная позиция — автоматическое объединение отключено'};
+  const catalogs=group.filter(x=>x.source==='catalog');
+  const hasCatalog=catalogs.length>0;
+  const customTypes=[...new Set(customs.map(x=>x.type).filter(Boolean))];
+  if(catalogs.length>=2&&customs.length===0){
+    const catalogTypes=[...new Set(catalogs.map(x=>x.type).filter(Boolean))];
+    const normalizedNames=[...new Set(catalogs.map(x=>normalizeHardwareName(x.name)).filter(Boolean))];
+    if(catalogTypes.length===1&&normalizedNames.length===1){
+      return {
+        canMerge:true,
+        mode:'catalog',
+        type:catalogTypes[0],
+        category:HARDWARE_DUPLICATE_SOURCE_MAP[catalogTypes[0]]||catalogs[0].category||'',
+        count:catalogs.length
+      };
+    }
+    return {canMerge:false,reason:'Системные позиции различаются по справочнику или наименованию'};
+  }
+  if(hasCatalog)return {canMerge:false,reason:'Смешанная группа: системная + пользовательская позиция — требуется ручной выбор основной'};
   if(customs.length<2)return {canMerge:false,reason:'Недостаточно пользовательских дублей'};
-  if(types.length!==1)return {canMerge:false,reason:'Позиции находятся в разных справочниках'};
-  return {canMerge:true,type:types[0],count:customs.length};
+  if(customTypes.length!==1)return {canMerge:false,reason:'Позиции находятся в разных справочниках'};
+  return {canMerge:true,mode:'custom',type:customTypes[0],count:customs.length};
 }
 function hardwareSkuSequence(sku){
   const m=String(sku||'').match(/^HD-HW-(\d{6})$/);
@@ -4374,6 +4416,31 @@ function mergeHardwareDuplicateGroup(groupIndex){
   if(!group)return;
   const meta=hardwareDuplicateMergeMeta(group);
   if(!meta.canMerge){alert(meta.reason);return}
+  if(meta.mode==='catalog'){
+    const catalogEntries=group.filter(x=>x.source==='catalog');
+    const survivor=catalogEntries[0];
+    const raw=(BITRIX_CATALOG[meta.category]||[]);
+    const sameRaw=raw.filter(name=>normalizeHardwareName(name)===normalizeHardwareName(survivor.name));
+    const extraCount=Math.max(0,sameRaw.length-1);
+    const ok=confirm(
+      'Объединить '+catalogEntries.length+' одинаковые системные позиции?\n\n'+
+      'В каталоге останется одна строка:\n'+survivor.name+'\n\n'+
+      'Исходный импорт Bitrix24 не удаляется: повторные строки будут скрыты правилом объединения.'
+    );
+    if(!ok)return;
+    saveCatalogDuplicateMergeRule(meta.category,survivor.name);
+    renderDictionaries();
+    runHardwareDuplicateAudit();
+    const box=$('hardwareDuplicateAudit');
+    if(box){
+      const note=document.createElement('div');
+      note.className='status ok';
+      note.style.marginBottom='10px';
+      note.innerHTML='<b>Системные дубли объединены.</b> Оставлена одна позиция; скрыто повторов: '+extraCount+'.';
+      box.prepend(note);
+    }
+    return;
+  }
   const records=[];
   for(const entry of group.filter(x=>x.source==='custom')){
     const found=findCustomHardwareRecord(entry);
@@ -4427,7 +4494,7 @@ function runHardwareDuplicateAudit(){
     box.innerHTML='<div class="status ok"><b>Дубли не найдены.</b> Проверено '+report.entries.length+' позиций фурнитуры.</div>';
     return;
   }
-  box.innerHTML='<div class="status warn"><b>Найдены дубли: '+groups.length+' групп · '+duplicateRows+' лишних строк.</b><br>Пользовательские дубли можно объединить: сохранится один SKU, недостающие характеристики перенесутся в него. Системные позиции автоматически не удаляются.</div>'+
+  box.innerHTML='<div class="status warn"><b>Найдены дубли: '+groups.length+' групп · '+duplicateRows+' лишних строк.</b><br>Нажмите «Объединить» для полностью одинаковых пользовательских или системных позиций. Для системных дублей исходный импорт не удаляется — повтор скрывается правилом объединения.</div>'+
     '<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>№</th><th>SKU</th><th>Категория</th><th>Наименование</th><th>Источник</th><th>Артикул</th><th>Действие</th></tr></thead><tbody>'+
     groups.map((g,i)=>{
       const meta=hardwareDuplicateMergeMeta(g);
