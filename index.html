@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v96 · Компактная себестоимость</title>
+<title>Hidden Doors — Личный кабинет · Прототип v98 · 36 полотно + короб</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1416,7 +1416,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
-<!-- v96-compact-cost-table -->
+<!-- v98-36-leaf-box-combined -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1431,7 +1431,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v96 · Компактная таблица</div>
+        <div class="version-chip"><span>HD</span> v98 · 36 полотно + короб</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -3771,7 +3771,6 @@ const COST_DOBOR_FILM_STORE='hd_v86_cost_dobor_film';
 
 const COST_ADMIN_MODELS=Object.freeze([
   Object.freeze({id:'leaf36',label:'36 · Полотно'}),
-  Object.freeze({id:'box36',label:'36 · Короб'}),
   Object.freeze({id:'dobor36',label:'36 · Доборы'}),
   Object.freeze({id:'ply42',label:'42 · Фанера'}),
   Object.freeze({id:'alu42',label:'42 · Алюминий'}),
@@ -3805,8 +3804,11 @@ function costAdminModelNav(){
 function renderCostAdmin(){
   const id=activeCostAdminModel();
   let body='';
-  if(id==='leaf36')body=typeof renderCost36LeafAdmin==='function'?renderCost36LeafAdmin():renderCost36Admin();
-  if(id==='box36')body=renderCost36BoxAdmin();
+  if(id==='leaf36'){
+    const leaf=typeof renderCost36LeafAdmin==='function'?renderCost36LeafAdmin():renderCost36Admin();
+    const box=typeof renderCost36BoxAdmin==='function'?renderCost36BoxAdmin():'';
+    body=leaf+box;
+  }
   if(id==='dobor36')body=renderCost36DoborAdmin();
   if(id==='ply42')body=renderCost42PlywoodAdmin();
   if(id==='alu42')body=renderCost42AluminumAdmin();
