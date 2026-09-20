@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v98 · 36 полотно + короб</title>
+<title>Hidden Doors — Личный кабинет · Прототип v98 · Комплект 36</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1413,10 +1413,24 @@ th,td{border-color:#ece5dc;padding:10px 11px}
   letter-spacing:-.01em!important;
   white-space:nowrap!important;
 }
+
+
+/* v98: 36 mm cost as one product view */
+#pricingAdminRoot .cost36-combined-subhead{
+  margin-top:22px;
+  padding-top:16px;
+  border-top:1px solid #dfd2c2;
+}
+#pricingAdminRoot .cost36-combined-block:first-of-type .cost36-combined-subhead{
+  margin-top:8px;
+}
+#pricingAdminRoot .cost36-kit-summary{
+  margin-bottom:10px;
+}
 </style>
 </head>
 <body>
-<!-- v98-36-leaf-box-combined -->
+<!-- v98-36-leaf-box-casing-combined -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -3400,8 +3414,9 @@ function renderCost36Preview(){
       if(key==='dev')el.textContent=r.hasActual?((r.deviation>=0?'+':'')+cost36Money(r.deviation)):'—';
     });
   });
+  if(typeof renderCost36CombinedSummary==='function')renderCost36CombinedSummary();
 }
-function renderCost36LeafAdmin(){
+function renderCost36LeafAdmin({embedded=false}={}){
   const state=cost36State(),v=state.values,rib=cost36RibGeometry(v),calc=calculateCost36(v);
   const mode=state.manualOverride?'Ручные настройки активны':'Исходные значения таблицы';
   const modeCls=state.manualOverride?'manual':'approved';
@@ -3422,7 +3437,10 @@ function renderCost36LeafAdmin(){
     '</tr>';
   }).join('');
   const num=(id,label,value,suffix,step='0.01')=>'<label class="cost36-field"><span>'+escapeHtml(label)+'</span><div class="pricing-rule-input-wrap"><input id="'+id+'" type="number" min="0" step="'+step+'" value="'+escapeHtml(String(value))+'" oninput="renderCost36Preview()"><em>'+escapeHtml(suffix)+'</em></div></label>';
-  return pricingAdminSectionHeader('Себестоимость · 36 мм ПВХ','Эталонная схема: закупка → списание → норма → технологический отход → норматив → факт → отклонение.','v93 · упаковка')+
+  const leafHead=embedded
+    ?'<div class="pricing-section-head cost36-combined-subhead"><div><div class="pricing-section-title">Полотно 36 мм</div><div class="mini">Каркасно-щитовая конструкция · материалы, расходники, упаковка, работы и накладные.</div></div><span class="pricing-section-badge">Полотно</span></div>'
+    :pricingAdminSectionHeader('Себестоимость · 36 мм ПВХ','Эталонная схема: закупка → списание → норма → технологический отход → норматив → факт → отклонение.','v98 · комплект');
+  return leafHead+
     '<div class="cost36-kpi-grid">'+
       '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Материалы</div><div id="cost36MaterialsTotal" class="pricing-admin-big">'+cost36Money(calc.sums.materials)+'</div></div>'+
       '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Расходники</div><div id="cost36ConsumablesTotal" class="pricing-admin-big">'+cost36Money(calc.sums.consumables)+'</div></div>'+
@@ -3623,8 +3641,9 @@ function renderCost36BoxPreview(){
       if(key==='norm')el.textContent=cost36Plain(r.norm);
     });
   });
+  if(typeof renderCost36CombinedSummary==='function')renderCost36CombinedSummary();
 }
-function renderCost36BoxAdmin(){
+function renderCost36BoxAdmin({embedded=false}={}){
   const state=cost36BoxState(),v=state.values,c=calculateCost36Box(v);
   const num=(id,label,value,suffix,step='0.01')=>'<label class="cost36-field"><span>'+escapeHtml(label)+'</span><div class="pricing-rule-input-wrap"><input id="'+id+'" type="number" min="0" step="'+step+'" value="'+escapeHtml(String(value))+'" oninput="renderCost36BoxPreview()"><em>'+escapeHtml(suffix)+'</em></div></label>';
   const rows=(v.resources||[]).map((r,i)=>{
@@ -3643,7 +3662,10 @@ function renderCost36BoxAdmin(){
       '<td data-live="dev">'+(cr.hasActual?((cr.deviation>=0?'+':'')+cost36Money(cr.deviation)):'—')+'</td>'+
     '</tr>';
   }).join('');
-  return pricingAdminSectionHeader('Себестоимость · короб 36 мм','Покупаем готовые палки короба, сами не производим. В цехе ламинируем ПВХ, добавляем уплотнитель и упаковку.','v93 · короб 36')+
+  const boxHead=embedded
+    ?'<div class="pricing-section-head cost36-combined-subhead"><div><div class="pricing-section-title">Короб 36 мм</div><div class="mini">Покупные палки короба + ПВХ-ламинация + уплотнитель + упаковка.</div></div><span class="pricing-section-badge">Короб</span></div>'
+    :pricingAdminSectionHeader('Себестоимость · короб 36 мм','Покупаем готовые палки короба, сами не производим. В цехе ламинируем ПВХ, добавляем уплотнитель и упаковку.','v98 · в составе комплекта');
+  return boxHead+
     '<div class="cost36-kpi-grid">'+
       '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Покупные комплектующие</div><div id="cost36BoxComponents" class="pricing-admin-big">'+cost36Money(c.sums.components)+'</div><div class="mini">Короб + уплотнитель</div></div>'+
       '<div class="pricing-admin-card"><div class="pricing-admin-kicker">ПВХ-плёнка</div><div id="cost36BoxFilmCost" class="pricing-admin-big">'+cost36Money(c.sums.materials)+'</div><div id="cost36BoxFilmNorm" class="mini">'+(c.filmConfigured?cost36Plain(c.filmNorm)+' м²':'Нужно задать ширину развёртки')+'</div></div>'+
@@ -3671,8 +3693,129 @@ function renderCost36BoxAdmin(){
       '<div class="pricing-rule-actions"><button class="primary" onclick="saveCost36BoxRules()">Сохранить и применить</button><button class="secondary" onclick="resetCost36BoxRules()">Вернуть исходные значения</button><div id="cost36BoxMessage" class="pricing-admin-message"></div></div>'+
     '</div>';
 }
+const COST36_CASING_STORE='hd_v98_cost36_casing';
+const COST36_CASING_DEFAULTS=Object.freeze({
+  size:'8×70×2150',
+  purchaseUnit:'шт.',
+  purchasePrice:346,
+  writeoffUnit:'шт.',
+  conversionQty:1,
+  norm:5,
+  wastePct:0,
+  actualQty:''
+});
+function cost36CasingState(){
+  const saved=typeof getStore==='function'?getStore(COST36_CASING_STORE,null):null;
+  return {values:{...COST36_CASING_DEFAULTS,...(saved?.values||{})},manualOverride:!!saved,updatedAt:saved?.updatedAt||''};
+}
+function cost36CasingFormValues(){
+  const base=cost36CasingState().values;
+  return {
+    ...base,
+    purchasePrice:cost36Num('cost36CasingPurchasePrice',base.purchasePrice),
+    conversionQty:cost36Num('cost36CasingConversion',base.conversionQty),
+    norm:cost36Num('cost36CasingNorm',base.norm),
+    wastePct:cost36Num('cost36CasingWaste',base.wastePct),
+    actualQty:cost36Actual('cost36CasingActual')
+  };
+}
+function calculateCost36Casing(values){
+  const purchasePrice=Math.max(0,Number(values.purchasePrice||0));
+  const conversionQty=Math.max(.000001,Number(values.conversionQty||1));
+  const unitPrice=purchasePrice/conversionQty;
+  const norm=Math.max(0,Number(values.norm||0));
+  const wastePct=Math.max(0,Number(values.wastePct||0));
+  const writeoffNorm=norm*(1+wastePct/100);
+  const normativeCost=unitPrice*writeoffNorm;
+  const hasActual=values.actualQty!==''&&values.actualQty!==null&&values.actualQty!==undefined&&Number.isFinite(Number(values.actualQty));
+  const actualQty=hasActual?Math.max(0,Number(values.actualQty)):null;
+  const actualCost=hasActual?actualQty*unitPrice:null;
+  return {purchasePrice,conversionQty,unitPrice,norm,wastePct,writeoffNorm,normativeCost,hasActual,actualQty,actualCost,deviation:hasActual?actualCost-normativeCost:null};
+}
+function saveCost36CasingRules(){
+  const values=cost36CasingFormValues();
+  setStore(COST36_CASING_STORE,{values,updatedAt:new Date().toISOString()});
+  renderPricingAdmin();
+  const msg=$('cost36CasingMessage');if(msg){msg.className='pricing-admin-message success';msg.textContent='Данные наличника 36 сохранены.'}
+}
+function resetCost36CasingRules(){
+  if(!confirm('Вернуть исходные данные наличника 36?'))return;
+  localStorage.removeItem(COST36_CASING_STORE);
+  renderPricingAdmin();
+}
+function renderCost36CasingPreview(){
+  const c=calculateCost36Casing(cost36CasingFormValues());
+  const set=(id,val)=>{const el=$(id);if(el)el.innerHTML=val};
+  set('cost36CasingCardUnit',cost36Money(c.unitPrice));
+  set('cost36CasingTableUnit',cost36Money(c.unitPrice));
+  set('cost36CasingWriteoff',cost36Plain(c.writeoffNorm)+' шт.');
+  set('cost36CasingTableCost',cost36Money(c.normativeCost));
+  set('cost36CasingCardCost',cost36Money(c.normativeCost));
+  set('cost36CasingTableDev',c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation));
+  set('cost36CasingCardDev',c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation));
+  if(typeof renderCost36CombinedSummary==='function')renderCost36CombinedSummary();
+}
+function renderCost36CasingAdmin(){
+  const state=cost36CasingState(),v=state.values,c=calculateCost36Casing(v);
+  return '<div class="pricing-section-head cost36-combined-subhead"><div><div class="pricing-section-title">Наличник 36 мм</div><div class="mini">Телескопический наличник '+escapeHtml(v.size)+' · в комплекте двери 5 шт.</div></div><span class="pricing-section-badge">Наличник</span></div>'+
+    '<div class="cost36-kpi-grid">'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Цена / шт.</div><div id="cost36CasingCardUnit" class="pricing-admin-big">'+cost36Money(c.unitPrice)+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Количество / дверь</div><div class="pricing-admin-big">'+cost36Plain(c.norm)+' шт.</div></div>'+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Нормативная стоимость</div><div id="cost36CasingCardCost" class="pricing-admin-big">'+cost36Money(c.normativeCost)+'</div><div class="mini">5 наличников на комплект двери</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Отклонение факт − норма</div><div id="cost36CasingCardDev" class="pricing-admin-big">'+(c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation))+'</div></div>'+
+    '</div>'+
+    '<div class="section pricing-rule-editor"><div class="section-title">Ресурс наличника</div>'+
+      '<div class="cost36-reference-note"><b>Зафиксировано:</b> текущий размер каталога '+escapeHtml(v.size)+', ранее согласованная закупочная себестоимость 346 ₽/шт., количество на одну дверь — 5 шт.</div>'+
+      '<div class="table-wrap"><table class="cost36-reference-table"><thead><tr><th>Группа</th><th>Ресурс</th><th>Закупка</th><th>Списание / конверсия</th><th>Цена ед.</th><th>Норма</th><th>Тех. отход</th><th>К списанию</th><th>Норм. стоимость</th><th>Факт</th><th>Отклонение</th></tr></thead><tbody>'+
+        '<tr><td><span class="cost36-group components">Комплектующие</span></td><td><b>Наличник телескопический 36</b><div class="mini">'+escapeHtml(v.size)+'</div></td>'+
+        '<td><div class="cost36-inline-edit"><input value="'+escapeHtml(v.purchaseUnit)+'" disabled><input id="cost36CasingPurchasePrice" type="number" min="0" step="0.01" value="'+escapeHtml(String(v.purchasePrice))+'" oninput="renderCost36CasingPreview()"><span>₽</span></div></td>'+
+        '<td><div class="cost36-inline-edit"><input value="'+escapeHtml(v.writeoffUnit)+'" disabled><input id="cost36CasingConversion" type="number" min="0.0001" step="0.0001" value="'+escapeHtml(String(v.conversionQty))+'" oninput="renderCost36CasingPreview()"></div></td>'+
+        '<td><b id="cost36CasingTableUnit">'+cost36Money(c.unitPrice)+'</b></td>'+
+        '<td><div class="cost36-inline-number"><input id="cost36CasingNorm" type="number" min="0" step="1" value="'+escapeHtml(String(v.norm))+'" oninput="renderCost36CasingPreview()"><span>шт.</span></div></td>'+
+        '<td><div class="cost36-inline-number"><input id="cost36CasingWaste" type="number" min="0" step="0.1" value="'+escapeHtml(String(v.wastePct||0))+'" oninput="renderCost36CasingPreview()"><span>%</span></div></td>'+
+        '<td><b id="cost36CasingWriteoff">'+cost36Plain(c.writeoffNorm)+' шт.</b></td>'+
+        '<td><b id="cost36CasingTableCost">'+cost36Money(c.normativeCost)+'</b></td>'+
+        '<td><div class="cost36-inline-number"><input id="cost36CasingActual" type="number" min="0" step="0.001" value="'+(v.actualQty===''?'':escapeHtml(String(v.actualQty)))+'" placeholder="—" oninput="renderCost36CasingPreview()"><span>шт.</span></div></td>'+
+        '<td id="cost36CasingTableDev">'+(c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation))+'</td></tr>'+
+      '</tbody></table></div>'+
+      '<div class="pricing-rule-actions"><button class="primary" onclick="saveCost36CasingRules()">Сохранить и применить</button><button class="secondary" onclick="resetCost36CasingRules()">Вернуть исходные значения</button><div id="cost36CasingMessage" class="pricing-admin-message"></div></div>'+
+    '</div>';
+}
+function cost36CombinedCurrent(){
+  const leafValues=$('cost36Width')?cost36FormValues():cost36State().values;
+  const boxValues=$('cost36BoxSticks')?cost36BoxFormValues():cost36BoxState().values;
+  const casingValues=$('cost36CasingPurchasePrice')?cost36CasingFormValues():cost36CasingState().values;
+  const leaf=calculateCost36(leafValues);
+  const box=calculateCost36Box(boxValues);
+  const casing=calculateCost36Casing(casingValues);
+  return {leaf,box,casing,direct:leaf.direct+box.direct+casing.normativeCost,incomplete:!box.filmConfigured};
+}
+function renderCost36CombinedSummary(){
+  const c=cost36CombinedCurrent();
+  const set=(id,val)=>{const el=$(id);if(el)el.innerHTML=val};
+  set('cost36KitLeaf',cost36Money(c.leaf.direct));
+  set('cost36KitBox',cost36Money(c.box.direct)+(c.box.filmConfigured?'':'*'));
+  set('cost36KitCasing',cost36Money(c.casing.normativeCost));
+  set('cost36KitTotal',cost36Money(c.direct)+(c.incomplete?'*':''));
+  const note=$('cost36KitNote');
+  if(note)note.innerHTML=c.incomplete?'<b>* Короб пока считается без декоративной ПВХ-плёнки:</b> ширина развёртки ещё не задана. Остальные текущие нормы и цены сохранены без изменений.':'Полотно + короб + 5 наличников рассчитаны по текущим нормативам.';
+}
+function renderCost36CombinedAdmin(){
+  const c=cost36CombinedCurrent();
+  return pricingAdminSectionHeader('Себестоимость · дверь 36 мм','В одной вкладке: полотно, короб и наличник. Все исходные нормы и редактируемые данные сохранены в своих блоках.','v98 · единый продукт')+
+    '<div class="cost36-kpi-grid cost36-kit-summary">'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Полотно · прямая</div><div id="cost36KitLeaf" class="pricing-admin-big">'+cost36Money(c.leaf.direct)+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Короб · прямая</div><div id="cost36KitBox" class="pricing-admin-big">'+cost36Money(c.box.direct)+(c.box.filmConfigured?'':'*')+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Наличник · 5 шт.</div><div id="cost36KitCasing" class="pricing-admin-big">'+cost36Money(c.casing.normativeCost)+'</div></div>'+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Комплект · прямая нормативная</div><div id="cost36KitTotal" class="pricing-admin-big">'+cost36Money(c.direct)+(c.incomplete?'*':'')+'</div></div>'+
+    '</div>'+
+    '<div id="cost36KitNote" class="cost36-reference-note">'+(c.incomplete?'<b>* Короб пока считается без декоративной ПВХ-плёнки:</b> ширина развёртки ещё не задана. Остальные текущие нормы и цены сохранены без изменений.':'Полотно + короб + 5 наличников рассчитаны по текущим нормативам.')+'</div>'+
+    '<div class="cost36-combined-block">'+renderCost36LeafAdmin({embedded:true})+'</div>'+
+    '<div class="cost36-combined-block">'+renderCost36BoxAdmin({embedded:true})+'</div>'+
+    '<div class="cost36-combined-block">'+renderCost36CasingAdmin()+'</div>';
+}
 function renderCost36Admin(){
-  return cost36ProductNavHtml()+(cost36ActiveProduct()==='box'?renderCost36BoxAdmin():renderCost36LeafAdmin());
+  return renderCost36CombinedAdmin();
 }
 
 // --- data/production-bom.js ---
@@ -3788,6 +3931,7 @@ const COST_GENERIC_GROUPS=Object.freeze({
 
 function activeCostAdminModel(){
   const raw=typeof getStore==='function'?getStore(COST_ADMIN_MODEL_STORE,'leaf36'):'leaf36';
+  if(raw==='box36')return 'leaf36';
   return COST_ADMIN_MODELS.some(x=>x.id===raw)?raw:'leaf36';
 }
 function setCostAdminModel(id){
