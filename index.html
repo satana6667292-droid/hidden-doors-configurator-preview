@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v85 · reference cost model</title>
+<title>Hidden Doors — Личный кабинет · Прототип v86 · 36 box cost</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1021,6 +1021,16 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 .cost36-deviation{font-weight:850}
 @media(max-width:1050px){.cost36-kpi-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.cost36-kpi-grid{grid-template-columns:1fr}}
+
+
+/* v86: 36 mm cost-object switch + purchased box */
+.cost36-product-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 14px}
+.cost36-product-nav button{display:grid;gap:4px;text-align:left;padding:13px 14px;border:1px solid #ded4c8;border-radius:13px;background:#f7f3ee;color:#51473d}
+.cost36-product-nav button.active{background:#1f1b17;color:#fff;border-color:#1f1b17}
+.cost36-product-nav button b{font-size:13px}
+.cost36-product-nav button span{font-size:10px;line-height:1.4;opacity:.72}
+.cost36-source-warning{margin:12px 0 2px;padding:11px 12px;border:1px solid #e3c58e;border-radius:12px;background:#fff4de;color:#735528;font-size:11px;line-height:1.5}
+@media(max-width:650px){.cost36-product-nav{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1038,7 +1048,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v85 · reference cost model</div>
+        <div class="version-chip"><span>HD</span> v86 · 36 box cost</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1715,7 +1725,7 @@ const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Прайс проанализирован, расчёт ещё не подключён'}),
   Object.freeze({block:'Фурнитура',area:'Петли / замки / ручки / прочее',status:'external',note:'Сейчас BASE Bitrix24, sales-tier ещё не связан'}),
   Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL / ПВХ',status:'pending',note:'Цены источника зафиксированы, автоматические правила ещё не подключены'}),
-  Object.freeze({block:'Себестоимость',area:'36 мм ПВХ · нормативная / фактическая',status:'connected',note:'Эталонная схема: закупка → списание → норма → тех. отход → факт → отклонение; 42/59 подключаются следующим этапом'})
+  Object.freeze({block:'Себестоимость',area:'36 мм · полотно ПВХ + короб',status:'connected',note:'Полотно и покупной короб считаются отдельными объектами по схеме закупка → списание → норма → тех. отход → факт → отклонение'})
 ]);
 
 function salesPriceCoverageStatusMeta(status){
@@ -1791,7 +1801,7 @@ function renderPricingOverview(){
         ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
         ['hardware','Фурнитура','Пока BASE Bitrix24; sales-tier ещё не подключён','info'],
         ['extras','Доп. работы','Цены источника собраны, автоматизация впереди','warn'],
-        ['cost','Себестоимость','36 мм ПВХ переведён на эталонную нормативно-фактическую модель','ok']
+        ['cost','Себестоимость','36 мм: полотно и короб уже считаются отдельными объектами себестоимости','ok']
       ].map(([id,title,desc,status])=>'<button class="pricing-category-card" onclick="setPricingAdminSection(\''+id+'\')">'+
         '<span class="pricing-category-card-top"><b>'+escapeHtml(title)+'</b><span class="pricing-status '+status+'">'+escapeHtml(status==='ok'?'Подключено':status==='warn'?'В работе':'Отдельный слой')+'</span></span>'+
         '<span>'+escapeHtml(desc)+'</span>'+
@@ -2738,7 +2748,7 @@ function renderCost36Preview(){
     });
   });
 }
-function renderCost36Admin(){
+function renderCost36LeafAdmin(){
   const state=cost36State(),v=state.values,rib=cost36RibGeometry(v),calc=calculateCost36(v);
   const mode=state.manualOverride?'Ручные настройки активны':'Исходные значения таблицы';
   const modeCls=state.manualOverride?'manual':'approved';
@@ -2801,6 +2811,193 @@ function renderCost36Admin(){
       '</div></div><div class="cost36-overhead-summary"><b>Почему два выпуска?</b><p><b>Нормальная мощность</b> используется для нормативной себестоимости и цены. <b>Фактический выпуск</b> — только для анализа периода. Так падение выпуска не искажает нормативную цену изделия.</p></div></div>'+
       '<div class="pricing-rule-actions"><button class="primary" onclick="saveCost36AdminRules()">Сохранить и применить</button><button class="secondary" onclick="resetCost36AdminRules()">Вернуть исходные значения</button><div id="cost36Message" class="pricing-admin-message"></div></div>'+
     '</div>';
+}
+
+
+// v86: 36 mm purchased box + in-house PVC lamination as a separate cost object.
+const COST36_PRODUCT_STORE='hd_v86_cost36_product';
+const COST36_BOX_STORE='hd_v86_cost36_box';
+
+const COST36_BOX_DEFAULTS=Object.freeze({
+  geometry:Object.freeze({
+    sticksPerKit:3,
+    stickLengthMm:2070,
+    filmWrapWidthMm:0
+  }),
+  resources:Object.freeze([
+    Object.freeze({id:'boxBlank',group:'components',name:'Заготовка короба 36 мм',purchaseUnit:'палка',purchasePrice:310,writeoffUnit:'палка',conversionQty:1,normMode:'fixed',norm:3,wastePct:0,actualQty:'',sourceNote:'Таблица: 275 ₽ палка + 35 ₽ доставка = 310 ₽'}),
+    Object.freeze({id:'boxPvc',group:'materials',name:'ПВХ-плёнка для ламинации короба',purchaseUnit:'м²',purchasePrice:165,writeoffUnit:'м²',conversionQty:1,normMode:'box-film',norm:0,wastePct:0,actualQty:'',sourceNote:'Цена м² взята из того же листа 36 мм; норма считается по геометрии'}),
+    Object.freeze({id:'seal',group:'components',name:'Уплотнительная резинка',purchaseUnit:'бухта',purchasePrice:3560,writeoffUnit:'м',conversionQty:250,normMode:'fixed',norm:6.2,wastePct:0,actualQty:'',sourceNote:'Таблица: 2 560 ₽ за 250 м + 1 000 ₽ доставка'}),
+    Object.freeze({id:'boxCardboard',group:'packaging',name:'Картон упаковки короба',purchaseUnit:'лист',purchasePrice:94,writeoffUnit:'дет.',conversionQty:12,normMode:'fixed',norm:3,wastePct:0,actualQty:'',sourceNote:'Таблица: 12 деталей из листа'}),
+    Object.freeze({id:'boxStretch',group:'packaging',name:'Стрейч упаковки короба',purchaseUnit:'комплектная норма',purchasePrice:55,writeoffUnit:'комплект',conversionQty:1,normMode:'fixed',norm:1,wastePct:0,actualQty:'',sourceNote:'Таблица фиксирует 5 м и 55 ₽; длина рулона для корректной конверсии в метры в источнике не указана'})
+  ]),
+  operations:Object.freeze({lamination:0,other:0})
+});
+
+function cost36ActiveProduct(){
+  const id=typeof getStore==='function'?getStore(COST36_PRODUCT_STORE,'leaf'):'leaf';
+  return id==='box'?'box':'leaf';
+}
+function setCost36Product(id){
+  if(typeof setStore==='function')setStore(COST36_PRODUCT_STORE,id==='box'?'box':'leaf');
+  renderPricingAdmin();
+}
+function cost36ProductNavHtml(){
+  const active=cost36ActiveProduct();
+  return '<div class="cost36-product-nav">'+
+    '<button class="'+(active==='leaf'?'active':'')+'" onclick="setCost36Product(\'leaf\')"><b>Полотно 36</b><span>Каркасно-щитовая конструкция</span></button>'+
+    '<button class="'+(active==='box'?'active':'')+'" onclick="setCost36Product(\'box\')"><b>Короб 36</b><span>Покупная заготовка + ламинация ПВХ</span></button>'+
+  '</div>';
+}
+function cost36BoxDefaultValues(){return cost36Clone(COST36_BOX_DEFAULTS)}
+function cost36BoxState(){
+  const saved=typeof getStore==='function'?getStore(COST36_BOX_STORE,null):null;
+  return {values:saved?.values||cost36BoxDefaultValues(),manualOverride:!!saved,updatedAt:saved?.updatedAt||''};
+}
+function cost36BoxFilmNorm(values){
+  const g=values.geometry||{};
+  const sticks=Math.max(0,Number(g.sticksPerKit||0));
+  const length=Math.max(0,Number(g.stickLengthMm||0));
+  const width=Math.max(0,Number(g.filmWrapWidthMm||0));
+  return sticks*length*width/1000000;
+}
+function cost36BoxNormForResource(resource,values){
+  if(resource.normMode==='box-film')return cost36BoxFilmNorm(values);
+  return Math.max(0,Number(resource.norm||0));
+}
+function cost36BoxResourceCalc(resource,values){
+  const purchasePrice=Math.max(0,Number(resource.purchasePrice||0));
+  const conversionQty=Math.max(0,Number(resource.conversionQty||0));
+  const unitPrice=conversionQty>0?purchasePrice/conversionQty:0;
+  const norm=cost36BoxNormForResource(resource,values);
+  const wastePct=Math.max(0,Number(resource.wastePct||0));
+  const writeoffNorm=norm*(1+wastePct/100);
+  const normativeCost=unitPrice*writeoffNorm;
+  const hasActual=resource.actualQty!==''&&resource.actualQty!==null&&resource.actualQty!==undefined&&Number.isFinite(Number(resource.actualQty));
+  const actualQty=hasActual?Math.max(0,Number(resource.actualQty)):null;
+  const actualCost=hasActual?actualQty*unitPrice:null;
+  return {...resource,purchasePrice,conversionQty,unitPrice,norm,wastePct,writeoffNorm,normativeCost,hasActual,actualQty,actualCost,deviation:hasActual?actualCost-normativeCost:null};
+}
+function cost36BoxFormValues(){
+  const base=cost36BoxState().values;
+  const values=cost36Clone(base);
+  values.geometry={
+    sticksPerKit:cost36Num('cost36BoxSticks',base.geometry.sticksPerKit),
+    stickLengthMm:cost36Num('cost36BoxLength',base.geometry.stickLengthMm),
+    filmWrapWidthMm:cost36Num('cost36BoxFilmWidth',base.geometry.filmWrapWidthMm)
+  };
+  values.resources=(base.resources||[]).map((r,i)=>({
+    ...r,
+    purchaseUnit:cost36Text('cost36BoxPurchaseUnit_'+i,r.purchaseUnit),
+    purchasePrice:cost36Num('cost36BoxPurchasePrice_'+i,r.purchasePrice),
+    writeoffUnit:cost36Text('cost36BoxWriteoffUnit_'+i,r.writeoffUnit),
+    conversionQty:cost36Num('cost36BoxConversion_'+i,r.conversionQty),
+    norm:r.normMode==='fixed'?cost36Num('cost36BoxNorm_'+i,r.norm):Number(r.norm||0),
+    wastePct:cost36Num('cost36BoxWaste_'+i,r.wastePct),
+    actualQty:cost36Actual('cost36BoxActual_'+i)
+  }));
+  values.operations={
+    lamination:cost36Num('cost36BoxLamination',base.operations?.lamination||0),
+    other:cost36Num('cost36BoxOtherWork',base.operations?.other||0)
+  };
+  return values;
+}
+function calculateCost36Box(values){
+  const rows=values.resources.map(r=>cost36BoxResourceCalc(r,values));
+  const sums={materials:0,components:0,consumables:0,packaging:0};
+  rows.forEach(r=>{if(sums[r.group]!==undefined)sums[r.group]+=r.normativeCost});
+  const operations=Number(values.operations.lamination||0)+Number(values.operations.other||0);
+  const direct=sums.materials+sums.components+sums.consumables+sums.packaging+operations;
+  const actualRows=rows.filter(r=>r.hasActual);
+  const allActual=rows.length>0&&actualRows.length===rows.length;
+  const actualDirect=allActual?rows.reduce((s,r)=>s+Number(r.actualCost||0),0)+operations:null;
+  const deviation=actualDirect===null?null:actualDirect-direct;
+  const filmConfigured=Number(values.geometry.filmWrapWidthMm||0)>0;
+  return {rows,sums,operations,direct,actualRowsCount:actualRows.length,allActual,actualDirect,deviation,filmConfigured,filmNorm:cost36BoxFilmNorm(values)};
+}
+function saveCost36BoxRules(){
+  const values=cost36BoxFormValues();
+  setStore(COST36_BOX_STORE,{values,updatedAt:new Date().toISOString()});
+  renderPricingAdmin();
+  const msg=$('cost36BoxMessage');if(msg){msg.className='pricing-admin-message success';msg.textContent='Себестоимость короба 36 сохранена.'}
+}
+function resetCost36BoxRules(){
+  if(!confirm('Вернуть исходные значения короба 36 из таблицы?'))return;
+  localStorage.removeItem(COST36_BOX_STORE);renderPricingAdmin();
+}
+function renderCost36BoxPreview(){
+  const values=cost36BoxFormValues(),c=calculateCost36Box(values);
+  const set=(id,val)=>{const el=$(id);if(el)el.innerHTML=val};
+  set('cost36BoxComponents',cost36Money(c.sums.components));
+  set('cost36BoxFilmCost',cost36Money(c.sums.materials));
+  set('cost36BoxPackaging',cost36Money(c.sums.packaging));
+  set('cost36BoxDirect',c.filmConfigured?cost36Money(c.direct):cost36Money(c.direct)+'*');
+  set('cost36BoxActual',c.actualDirect===null?'Не заполнен':cost36Money(c.actualDirect));
+  set('cost36BoxDeviation',c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation));
+  set('cost36BoxFilmNorm',c.filmConfigured?cost36Plain(c.filmNorm)+' м²':'Нужно задать ширину развёртки');
+  const warn=$('cost36BoxFilmWarning');
+  if(warn)warn.classList.toggle('hidden',c.filmConfigured);
+  c.rows.forEach((r,i)=>{
+    const row=document.querySelector('[data-box-cost-row="'+i+'"]');if(!row)return;
+    row.querySelectorAll('[data-live]').forEach(el=>{
+      const key=el.getAttribute('data-live');
+      if(key==='unit')el.textContent=cost36Money(r.unitPrice);
+      if(key==='writeoff')el.textContent=cost36Plain(r.writeoffNorm);
+      if(key==='cost')el.textContent=cost36Money(r.normativeCost);
+      if(key==='dev')el.textContent=r.hasActual?((r.deviation>=0?'+':'')+cost36Money(r.deviation)):'—';
+      if(key==='norm')el.textContent=cost36Plain(r.norm);
+    });
+  });
+}
+function renderCost36BoxAdmin(){
+  const state=cost36BoxState(),v=state.values,c=calculateCost36Box(v);
+  const num=(id,label,value,suffix,step='0.01')=>'<label class="cost36-field"><span>'+escapeHtml(label)+'</span><div class="pricing-rule-input-wrap"><input id="'+id+'" type="number" min="0" step="'+step+'" value="'+escapeHtml(String(value))+'" oninput="renderCost36BoxPreview()"><em>'+escapeHtml(suffix)+'</em></div></label>';
+  const rows=(v.resources||[]).map((r,i)=>{
+    const cr=cost36BoxResourceCalc(r,v);
+    return '<tr data-box-cost-row="'+i+'">'+
+      '<td><span class="cost36-group '+escapeHtml(r.group)+'">'+escapeHtml(cost36GroupLabel(r.group))+'</span></td>'+
+      '<td><b>'+escapeHtml(r.name)+'</b><div class="mini">'+escapeHtml(r.sourceNote||'')+'</div></td>'+
+      '<td><div class="cost36-inline-edit"><input id="cost36BoxPurchaseUnit_'+i+'" value="'+escapeHtml(r.purchaseUnit)+'"><input id="cost36BoxPurchasePrice_'+i+'" type="number" min="0" step="0.01" value="'+escapeHtml(String(r.purchasePrice))+'" oninput="renderCost36BoxPreview()"><span>₽</span></div></td>'+
+      '<td><div class="cost36-inline-edit"><input id="cost36BoxWriteoffUnit_'+i+'" value="'+escapeHtml(r.writeoffUnit)+'"><input id="cost36BoxConversion_'+i+'" type="number" min="0.0001" step="0.0001" value="'+escapeHtml(String(r.conversionQty))+'" oninput="renderCost36BoxPreview()"></div></td>'+
+      '<td><b data-live="unit">'+cost36Money(cr.unitPrice)+'</b></td>'+
+      '<td><div class="cost36-inline-number"><input id="cost36BoxNorm_'+i+'" type="number" min="0" step="0.001" value="'+escapeHtml(String(cr.norm))+'" '+(r.normMode!=='fixed'?'disabled':'')+' oninput="renderCost36BoxPreview()"><span>'+escapeHtml(r.writeoffUnit)+'</span></div></td>'+
+      '<td><div class="cost36-inline-number"><input id="cost36BoxWaste_'+i+'" type="number" min="0" step="0.1" value="'+escapeHtml(String(r.wastePct||0))+'" oninput="renderCost36BoxPreview()"><span>%</span></div></td>'+
+      '<td><b data-live="writeoff">'+cost36Plain(cr.writeoffNorm)+'</b> '+escapeHtml(r.writeoffUnit)+'</td>'+
+      '<td><b data-live="cost">'+cost36Money(cr.normativeCost)+'</b></td>'+
+      '<td><div class="cost36-inline-number"><input id="cost36BoxActual_'+i+'" type="number" min="0" step="0.001" value="'+(r.actualQty===''?'':escapeHtml(String(r.actualQty)))+'" placeholder="—" oninput="renderCost36BoxPreview()"><span>'+escapeHtml(r.writeoffUnit)+'</span></div></td>'+
+      '<td data-live="dev">'+(cr.hasActual?((cr.deviation>=0?'+':'')+cost36Money(cr.deviation)):'—')+'</td>'+
+    '</tr>';
+  }).join('');
+  return pricingAdminSectionHeader('Себестоимость · короб 36 мм','Покупаем готовые палки короба, сами не производим. В цехе ламинируем ПВХ, добавляем уплотнитель и упаковку.','v86 · короб 36')+
+    '<div class="cost36-kpi-grid">'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Покупные комплектующие</div><div id="cost36BoxComponents" class="pricing-admin-big">'+cost36Money(c.sums.components)+'</div><div class="mini">Короб + уплотнитель</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">ПВХ-плёнка</div><div id="cost36BoxFilmCost" class="pricing-admin-big">'+cost36Money(c.sums.materials)+'</div><div id="cost36BoxFilmNorm" class="mini">'+(c.filmConfigured?cost36Plain(c.filmNorm)+' м²':'Нужно задать ширину развёртки')+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Упаковка</div><div id="cost36BoxPackaging" class="pricing-admin-big">'+cost36Money(c.sums.packaging)+'</div></div>'+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Прямая нормативная</div><div id="cost36BoxDirect" class="pricing-admin-big">'+cost36Money(c.direct)+(c.filmConfigured?'':'*')+'</div><div class="mini">'+(c.filmConfigured?'Короб + ламинация + упаковка':'* Пока без декоративной ПВХ-плёнки')+'</div></div>'+
+    '</div>'+
+    '<div class="cost36-kpi-grid second">'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Фактическая прямая</div><div id="cost36BoxActual" class="pricing-admin-big">'+(c.actualDirect===null?'Не заполнен':cost36Money(c.actualDirect))+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Отклонение факт − норма</div><div id="cost36BoxDeviation" class="pricing-admin-big">'+(c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation))+'</div></div>'+
+    '</div>'+
+    '<div class="section pricing-rule-editor">'+
+      '<div class="pricing-rule-editor-head"><div><div class="section-title">1. Геометрия комплекта и ламинации</div><div class="mini">Три готовые палки закупаем. ПВХ считается по фактической площади развёртки, а не фиксированной доплатой.</div></div><span class="pricing-rule-mode '+(state.manualOverride?'manual':'approved')+'">'+(state.manualOverride?'Ручные настройки активны':'Исходные значения таблицы')+'</span></div>'+
+      '<div class="cost36-fields">'+
+        num('cost36BoxSticks','Палок короба в комплекте',v.geometry.sticksPerKit,'шт.','1')+
+        num('cost36BoxLength','Длина одной палки',v.geometry.stickLengthMm,'мм','1')+
+        num('cost36BoxFilmWidth','Ширина развёртки ПВХ на палку',v.geometry.filmWrapWidthMm,'мм','1')+
+      '</div>'+
+      '<div id="cost36BoxFilmWarning" class="cost36-source-warning '+(c.filmConfigured?'hidden':'')+'"><b>Открытый параметр:</b> в исходной таблице нет ширины развёртки декоративной ПВХ-плёнки. Формула уже готова: 3 × длина палки × ширина развёртки. Нужно только один раз зафиксировать фактическую ширину раскроя плёнки.</div>'+
+      '<div class="section-title cost36-subtitle">2. Ресурсы и списание</div>'+
+      '<div class="table-wrap"><table class="cost36-reference-table"><thead><tr><th>Группа</th><th>Ресурс</th><th>Закупка</th><th>Списание / конверсия</th><th>Цена ед.</th><th>Норма</th><th>Тех. отход</th><th>К списанию</th><th>Норм. стоимость</th><th>Факт</th><th>Отклонение</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="section-title cost36-subtitle">3. Работы</div><div class="cost36-material-grid"><div class="pricing-rule-block"><div class="cost36-fields two">'+
+        num('cost36BoxLamination','Ламинация короба / комплект',v.operations?.lamination||0,'₽','1')+
+        num('cost36BoxOtherWork','Прочие работы / комплект',v.operations?.other||0,'₽','1')+
+      '</div><div class="mini">Работа ламинации хранится отдельно от материала. Это позволит позже подключить сдельную оплату или норматив времени без изменения материальной части.</div></div></div>'+
+      '<div class="pricing-rule-actions"><button class="primary" onclick="saveCost36BoxRules()">Сохранить и применить</button><button class="secondary" onclick="resetCost36BoxRules()">Вернуть исходные значения</button><div id="cost36BoxMessage" class="pricing-admin-message"></div></div>'+
+    '</div>';
+}
+function renderCost36Admin(){
+  return cost36ProductNavHtml()+(cost36ActiveProduct()==='box'?renderCost36BoxAdmin():renderCost36LeafAdmin());
 }
 
 // --- data/bitrix-catalog.js ---
