@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v93 · Упаковка</title>
+<title>Hidden Doors — Личный кабинет · Прототип v94 · Отчёты упаковки</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1173,7 +1173,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
-<!-- v93-packaging-cost -->
+<!-- v94-packaging-report-fix -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1188,7 +1188,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v93 · Упаковка</div>
+        <div class="version-chip"><span>HD</span> v94 · Отчёты упаковки</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2713,7 +2713,8 @@ const HD93_HINGE_CUT_MM=Object.freeze({
 });
 
 function hd93num(v,d=0){
-  const n=Number(String(v??'').replace(',','.'));
+  if(v===null||v===undefined||String(v).trim()==='')return d;
+  const n=Number(String(v).replace(',','.'));
   return Number.isFinite(n)?n:d;
 }
 function hd93unit(price,qty){return hd93num(price)/Math.max(.000001,hd93num(qty,1))}
