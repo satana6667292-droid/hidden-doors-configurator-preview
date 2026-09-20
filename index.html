@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v88 · Production BOM audit</title>
+<title>Hidden Doors — Личный кабинет · Прототип v89 · Себестоимость по раскрою</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1052,10 +1052,45 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 .cost36-group.hardware{background:#eeeaf4;color:#625875}
 @media(max-width:1050px){.cost-generic-kpis{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.cost-generic-kpis{grid-template-columns:1fr}.cost-dobor-kit{grid-template-columns:1fr 1fr}}
+
+
+/* v89: transparent engineering cost / cutting model */
+.hd-cost-engineering{border:1px solid #d7c6ae;background:linear-gradient(180deg,#fffdf9 0%,#fbf7f1 100%)}
+.hd-cost-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:12px}
+.hd-cost-head .section-title{margin-bottom:4px}
+.hd-cost-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:0 0 12px;padding:12px;border:1px solid #e4d8c9;border-radius:13px;background:#fff}
+.hd-cost-controls select{width:100%}
+.hd-cost-kpis{display:grid;grid-template-columns:1.45fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.hd-cost-status-text{font-size:22px!important}
+.hd-cost-table-wrap{overflow:visible}
+.hd-cost-table{width:100%;min-width:980px;border-collapse:separate;border-spacing:0}
+.hd-cost-table th{font-size:10px;white-space:nowrap;color:#6c6054;background:#f4eee7}
+.hd-cost-table td{vertical-align:top;font-size:11px;line-height:1.45}
+.hd-cost-table th,.hd-cost-table td{padding:10px 11px;border-bottom:1px solid #e9dfd4}
+.hd-cost-table tbody tr:last-child td{border-bottom:0}
+.hd-cost-table tbody tr:hover td{background:#fffaf2}
+.hd-cost-row-invalid td{background:#fff7e9}
+.hd-cost-name{display:flex;align-items:center;gap:7px;min-width:150px}
+.hd-cost-info{display:inline-grid;place-items:center;width:20px;height:20px;padding:0;border-radius:50%;border:1px solid #cdbb9f;background:#fff;color:#6e5b42;font-size:12px;font-weight:900;line-height:1;cursor:help}
+.hd-cost-info:hover,.hd-cost-info:focus{background:#2b251f;color:#fff;border-color:#2b251f;outline:none}
+.hd-cost-money{font-family:'Manrope','Inter',sans-serif;font-weight:900;white-space:nowrap;color:#2f281f}
+.hd-cost-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.hd-cost-legend span{padding:7px 9px;border-radius:9px;border:1px solid #e1d5c7;background:#fff;font-size:9px;line-height:1.4;color:#6b5e50}
+.hd-cost-tooltip{position:fixed;z-index:9999;display:none;max-width:720px;max-height:72vh;overflow:auto;padding:13px;border:1px solid #bda989;border-radius:14px;background:#211d19;color:#f7f2ec;box-shadow:0 18px 54px rgba(25,20,15,.28)}
+.hd-cost-tooltip.show{display:block}
+.hd-cost-tip-title{font-family:'Manrope','Inter',sans-serif;font-size:14px;font-weight:900;margin-bottom:5px}
+.hd-cost-tip-rule{font-size:10px;line-height:1.55;color:#ded5ca;margin-bottom:8px}
+.hd-cost-tip-caption{margin:8px 0 5px;font-size:9px;font-weight:850;color:#bfae9a;text-transform:uppercase;letter-spacing:.04em}
+.hd-cost-tip-table{width:100%;border-collapse:collapse;font-size:9px;color:#f4eee7}
+.hd-cost-tip-table th,.hd-cost-tip-table td{padding:6px 7px;border:1px solid rgba(255,255,255,.13);vertical-align:top;text-align:left}
+.hd-cost-tip-table th{background:rgba(255,255,255,.08);white-space:nowrap}
+.hd-cost-tip-table td:last-child{white-space:nowrap;font-weight:850}
+@media(max-width:900px){.hd-cost-kpis{grid-template-columns:1fr 1fr}.hd-cost-kpis .primary{grid-column:1/-1}.hd-cost-controls{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.hd-cost-head{display:grid}.hd-cost-kpis,.hd-cost-controls{grid-template-columns:1fr}.hd-cost-kpis .primary{grid-column:auto}.hd-cost-tooltip{max-width:calc(100vw - 20px);max-height:68vh}.hd-cost-table-wrap{overflow-x:auto}.hd-cost-table{min-width:850px}}
 </style>
 </head>
 <body>
-<!-- v88-production-bom-audit -->
+<!-- v89-transparent-cost-cutting -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -3024,21 +3059,21 @@ function renderCost36Admin(){
 }
 
 // --- data/production-bom.js ---
-// v88: Production-compatible construction BOM geometry.
-// Source of business rules: hidden-doors-production-app/lib/materials.ts.
-// This module intentionally contains geometry/norm logic only; prices remain in the cost/price books.
+// v89: approved workshop geometry for 42/59 mm doors.
+// Physical part geometry only. Financial write-off and reusable remnants are modeled in cost-production-v89.js.
 const HD_PRODUCTION_BOM_SOURCE=Object.freeze({
-  repository:'satana6667292-droid/hidden-doors-production-app',
-  path:'lib/materials.ts',
-  checkedCommit:'b90adb5f8c0e55a5694d4d324b3baeb6c868b406'
+  repository:'satana6667292-droid/hidden-doors-configurator',
+  path:'src/data/production-bom.js',
+  checkedCommit:'approved-v89-2026-09-20',
+  basis:'Approved current workshop rules captured 2026-09-20; legacy Production code remains a comparison source until synchronized.'
 });
 
 const HD_PRODUCTION_PROFILE_STOCK=Object.freeze({
-  box:Object.freeze({stockLengthMm:5100,discardBelowMm:800}),
-  direct_edge:Object.freeze({stockLengthMm:6000,discardBelowMm:600}),
-  revers_edge:Object.freeze({stockLengthMm:6000,discardBelowMm:600}),
-  edge_59:Object.freeze({stockLengthMm:6000,discardBelowMm:600}),
-  carcass:Object.freeze({stockLengthMm:6000,discardBelowMm:600})
+  box:Object.freeze({stockLengthMm:5100,discardBelowMm:700,sawKerfMm:3,factoryAllowanceMm:'20–30'}),
+  direct_edge:Object.freeze({stockLengthMm:6000,discardBelowMm:600,sawKerfMm:3}),
+  revers_edge:Object.freeze({stockLengthMm:6000,discardBelowMm:600,sawKerfMm:3}),
+  edge_59:Object.freeze({stockLengthMm:6000,discardBelowMm:600,sawKerfMm:3}),
+  carcass:Object.freeze({stockLengthMm:6000,discardBelowMm:600,sawKerfMm:3})
 });
 
 function hdBomNumber(value){
@@ -3051,12 +3086,16 @@ function hdBomRepeatCuts(cuts,quantity){
 }
 function hdBomRequirement(role,cuts,quantity,note=''){
   const repeated=hdBomRepeatCuts(cuts,quantity);
+  const profile=HD_PRODUCTION_PROFILE_STOCK[role]||{};
   return {
     role,
     cutsMm:repeated,
     requiredLengthMm:repeated.reduce((sum,cut)=>sum+cut,0),
-    stockLengthMm:HD_PRODUCTION_PROFILE_STOCK[role]?.stockLengthMm||0,
-    discardBelowMm:HD_PRODUCTION_PROFILE_STOCK[role]?.discardBelowMm||0,
+    sawLossMm:repeated.length*Number(profile.sawKerfMm||0),
+    stockLengthMm:profile.stockLengthMm||0,
+    discardBelowMm:profile.discardBelowMm||0,
+    sawKerfMm:profile.sawKerfMm||0,
+    factoryAllowanceMm:profile.factoryAllowanceMm||'',
     note
   };
 }
@@ -3067,41 +3106,37 @@ function hdBuildProductionCompatibleBom(input={}){
   const quantity=Math.max(0,Math.round(Number(input.quantity)||1));
   const frameType=String(input.frameType||'aluminum').toLowerCase();
   const opening=String(input.opening||'direct').toLowerCase();
-  const requirements=[];
-  const issues=[];
-  const gaps=[];
+  const requirements=[],issues=[],gaps=[];
 
   if(!height||!width||!quantity){
     return {construction,height,width,quantity,requirements,issues:['Для расчёта нужны высота, ширина и количество.'],gaps};
   }
 
-  requirements.push(hdBomRequirement('box',[height+100,height+100,width+100],quantity,'Две стойки H+100 и верх W+100.'));
+  requirements.push(hdBomRequirement(
+    'box',[height+100,height+100,width+100],quantity,
+    'Короб: две стойки H+100 и верх W+100. Номинальный хлыст 5100 мм; заводские +20–30 мм покрывают пропилы и не считаются складским остатком.'
+  ));
 
   if(construction==='42'){
     if(/revers|реверс|обрат/.test(opening)){
-      requirements.push(hdBomRequirement('revers_edge',[height,height,width],quantity,'Revers: две стойки и верх профилем с четвертью.'));
-      requirements.push(hdBomRequirement('direct_edge',[width],quantity,'Revers: нижняя деталь — прямой профиль.'));
+      requirements.push(hdBomRequirement('revers_edge',[height+20,height+20,width+20],quantity,'Revers: две стойки и верх +20 мм из профиля с четвертью.'));
+      requirements.push(hdBomRequirement('direct_edge',[width+20],quantity,'Revers: нижняя деталь из прямого профиля, также +20 мм.'));
     }else{
-      requirements.push(hdBomRequirement('direct_edge',[height,height,width,width],quantity,'Прямое открывание: две стойки, верх и низ прямым профилем.'));
+      requirements.push(hdBomRequirement('direct_edge',[height+20,height+20,width+20,width+20],quantity,'Прямое открывание: четыре детали торца, каждая +20 мм под 45° и торцевание.'));
     }
   }else{
-    requirements.push(hdBomRequirement('edge_59',[height,height,width,width,width],quantity,'59 мм: две стойки и верх целыми; низ набирается из двух отдельных половин профиля, поэтому ширина учитывается ещё дважды.'));
+    requirements.push(hdBomRequirement('edge_59',[height+20,height+20,width+20,width+20],quantity,'59 мм: четыре детали торца, каждая +20 мм под 45° и торцевание.'));
   }
 
   if(/alu|алюм/.test(frameType)){
-    requirements.push(hdBomRequirement('carcass',[height,height,width],quantity,'Алюминиевый каркас: две стойки и верх. Нижняя деталь каркаса деревянная.'));
-    gaps.push('Нижний деревянный брус конструктивно обязателен для алюминиевого каркаса, но Production сейчас не выдаёт его отдельной строкой с длиной — это открытый норматив для унификации.');
+    requirements.push(hdBomRequirement('carcass',[height+20,height+20,width+20],quantity,'Алюминиевый каркас: две стойки H+20 и верх W+20. Нижняя деталь каркаса деревянная.'));
   }
 
-  if(construction==='42'||construction==='59'){
-    gaps.push('ПВХ-плёнка для полотен 42/59 пока не рассчитывается в Production inventory-planning; общий норматив нельзя считать согласованным до добавления правила в единый BOM.');
-  }
-
+  gaps.push('Финансовое списание профиля считается только после раскроя: торец/каркас — полезный остаток ≥600 мм, короб — ≥700 мм; остатки совместимы только по тому же профилю и цвету.');
+  gaps.push('МДФ 4 мм, сотопанель и внутренний деревянный каркас считаются в рабочей модели себестоимости v89.');
   return {construction,height,width,quantity,requirements,issues,gaps};
 }
-function hdBomRole(plan,role){
-  return (plan.requirements||[]).find(row=>row.role===role)||null;
-}
+function hdBomRole(plan,role){return (plan.requirements||[]).find(row=>row.role===role)||null}
 function hdBomMetres(plan,roles){
   const roleSet=new Set(Array.isArray(roles)?roles:[roles]);
   return (plan.requirements||[]).filter(row=>roleSet.has(row.role)).reduce((sum,row)=>sum+row.requiredLengthMm,0)/1000;
@@ -3533,6 +3568,50 @@ function renderCost59AluminumAdmin(){
     footerNote:'<b>Контроль источника:</b> исходная себестоимость — 17 290,12 ₽. Несовпадения арифметики строк (уголки) сохранены как исходные нормокомплекты с пояснениями; копеечные отличия по сотовой панели и упаковке показываются сравнением с исходной таблицей, а не скрытой балансирующей строкой.'
   });
 }
+
+// --- data/cost-production-v89.js ---
+// v89 — transparent engineering cost model for 42/59 aluminum doors.
+const HD89_W=[600,700,800,900,1000],HD89_K=3;
+const HD89_TIMBER={m3:30750,bar:3000,keep:500,source:'Сиблесстрой, счёт №811 от 11.08.2026: сосна 50×150×6000, 30 000 ₽/м³ + распиловка 750 ₽/м³'};
+function hd89n(v,d=0){v=Number(String(v??'').replace(',','.'));return Number.isFinite(v)?v:d}
+function hd89rub(v){return hd89n(v).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽'}
+function hd89mm(v){return Math.round(v).toLocaleString('ru-RU')+' мм'}
+function hd89m(v){return (v/1000).toLocaleString('ru-RU',{maximumFractionDigits:3})+' м'}
+function hd89m2(v){return v.toLocaleString('ru-RU',{minimumFractionDigits:3,maximumFractionDigits:3})+' м²'}
+function hd89e(v){return escapeHtml(String(v??''))}
+function hd89vals(id){const d=costModelDefaults(id);return $('cg_'+id+'_pp_0')?costGenericFormValues(id,d):costGenericState(id,d).values}
+function hd89res(v,re){return (v.resources||[]).find(x=>re.test(String(x.name||'')))||{purchasePrice:0,conversionQty:1,norm:0}}
+function hd89unit(r){return hd89n(r.purchasePrice)/Math.max(.000001,hd89n(r.conversionQty,1))}
+function hd89prices(id,v){const c=id==='alu59'?'59':'42';return{
+ mdf:hd89n(hd89res(v,/МДФ 4 мм/i).purchasePrice),honey:hd89unit(hd89res(v,/Сотовая панель/i)),
+ frame:hd89n(hd89res(v,/Алюминиевый каркас/i).purchasePrice),edge:hd89n(hd89res(v,/Алюминиевая кромка/i).purchasePrice),box:hd89n(hd89res(v,/Короб (42|59)/i).purchasePrice),
+ timber:(.05*.15*6*HD89_TIMBER.m3)/((c==='59'?3:4)*6)
+}}
+function hd89cut(parts,stock,keep,kerf=3,box=false){const bars=[];[...parts].sort((a,b)=>b-a).forEach(p=>{let need=p+(box?0:kerf),bi=-1,best=1e9;bars.forEach((b,i)=>{let x=b.r-need;if(x>=0&&x<best){best=x;bi=i}});if(bi<0){bars.push({r:stock,c:[]});bi=bars.length-1}bars[bi].r-=need;bars[bi].c.push(p)});let ret=0,waste=0,write=0;bars.forEach(b=>{if(b.r>=keep){ret+=b.r;write+=stock-b.r}else{waste+=b.r;write+=stock}});return{bars,ret,waste,write}}
+function hd89rem(c,keep){const a=c.bars.map(b=>Math.round(b.r)).filter(x=>x>=keep),w=c.bars.map(b=>Math.round(b.r)).filter(x=>x>0&&x<keep);return a.length?a.map(hd89mm).join(' + ')+' → склад':w.length?w.map(hd89mm).join(' + ')+' → отход':'—'}
+function hd89mdf(h,w,price){let H=h+20,W=w+20;if(H+3>2070)return{k:'mdf',name:'МДФ 4 мм',ok:false,phys:'2 × '+H+'×'+W+' мм',write:'—',rem:'—',cost:0,why:'Для этой высоты утверждённый раскрой листа 2800×2070 не подходит.'};let rw=2800-2*W-6,keep=rw>720,area=2800*2070-(keep?H*rw:0),f=area/(2800*2070);return{k:'mdf',name:'МДФ 4 мм',ok:true,phys:'2 × '+H+'×'+W+' мм',write:f.toLocaleString('ru-RU',{maximumFractionDigits:3})+' листа',rem:keep?rw+'×'+H+' мм → склад':rw+' мм → отход',cost:price*f,why:'Две одинаковые заготовки (H+20)×(W+20). Лист 2800×2070, пропил 3 мм. Остаток сохраняется только при ширине >720 мм.'}}
+function hd89honey(c,h,w,price){if(h!==2000)return{k:'honey',name:'Сотопанель',ok:false,phys:'H='+h+' мм',write:'—',rem:'—',cost:0,why:'Вертикальная схема сот подтверждена пока только для H=2000.'};let i=w-(c==='59'?85:87),hs=c==='59'?[702,623,500]:[700,612,500],clean=(hs[0]*i+hs[1]*i+500*(i-100))/1e6,n=clean*1.1;return{k:'honey',name:'Сотопанель',ok:true,phys:hs[0]+'×'+i+' + '+hs[1]+'×'+i+' + 500×'+(i-100),write:hd89m2(n),rem:'10% технологические отходы',cost:n*price,why:(c==='59'?'I=W−85':'I=W−87')+'. Три детали по чертежу; к чистой площади добавляется 10%. Отдельный склад обрезков сот не ведём.'}}
+function hd89timber(c,w,price){let x=w-(c==='59'?85:87),p=[x,x,500,500],used=p.reduce((s,n)=>s+n,0)+12,r=3000-used,keep=r>=500,write=keep?used:3000;return{k:'timber',name:'Деревянный каркас',ok:true,phys:x+'×2 + 500×2 мм',write:hd89m(write),rem:keep?hd89mm(r)+' → склад':hd89mm(r)+' → отход',cost:write/1000*price,why:(c==='59'?'Две детали W−85':'Две детали W−87')+' и две по 500 мм. Рабочий кусок 3000, 4 пропила по 3 мм. Остаток <500 мм списывается.'}}
+function hd89profile(k,name,p,price,stock=6000,keep=600,box=false){let c=hd89cut(p,stock,keep,3,box);return{k,name,ok:true,phys:p.map(hd89mm).join(' + '),write:hd89m(c.write),rem:hd89rem(c,keep),cost:c.write/stock*price,cut:c}}
+function hd89rows(id,h,w,opening,v){let c=id==='alu59'?'59':'42',p=hd89prices(id,v),frame=hd89profile('frame','Алюминиевый каркас',[h+20,h+20,w+20],p.frame),edge;
+ frame.why='H+20 + H+20 + W+20. Низ деревянный. Хлыст 6000, пропил 3 мм, остаток ≥600 мм — на склад.';
+ if(c==='42'&&opening==='revers'){let a=hd89profile('edge','Алюминиевый торец',[h+20,h+20,w+20],p.edge),b=hd89profile('edge','Алюминиевый торец',[w+20],p.edge);edge={k:'edge',name:'Алюминиевый торец',ok:true,phys:'Revers: '+a.phys+' · низ: '+b.phys,write:hd89m(a.cut.write+b.cut.write),rem:'Revers '+a.rem+' · низ '+b.rem,cost:a.cost+b.cost,why:'Все детали +20 мм. В Revers три детали и нижний прямой профиль считаются разными складскими профилями.'}}else{edge=hd89profile('edge','Алюминиевый торец',[h+20,h+20,w+20,w+20],p.edge);edge.why='H+20 + H+20 + W+20 + W+20. Хлыст 6000, пропил 3 мм, остаток ≥600 мм — на склад.'}
+ let box=hd89profile('box','Алюминиевый короб',[h+100,h+100,w+100],p.box,5100,700,true);box.why='H+100 + H+100 + W+100. Номинал 5100. Заводские +20–30 мм покрывают пропил и не являются складским остатком. Остаток ≥700 мм — на склад.';
+ return[hd89mdf(h,w,p.mdf),hd89honey(c,h,w,p.honey),hd89timber(c,w,p.timber),frame,edge,box]}
+function hd89legacy(calc){let ps=[/МДФ 4 мм/i,/Брус внутреннего каркаса|Закладной брус/i,/Алюминиевый каркас/i,/Сотовая панель/i,/Алюминиевая кромка/i,/Короб (42|59)/i];return calc.rows.filter(r=>ps.some(p=>p.test(r.name||''))).reduce((s,r)=>s+r.normativeCost,0)}
+function hd89calc(id,h,w,o,v){let base=costGenericCalc(v),rows=hd89rows(id,h,w,o,v),old=hd89legacy(base),good=rows.filter(x=>x.ok).reduce((s,x)=>s+x.cost,0),bad=rows.filter(x=>!x.ok),fallback=0;bad.forEach(x=>{let re=x.k==='mdf'?/МДФ 4 мм/i:/Сотовая панель/i,r=base.rows.find(y=>re.test(y.name||''));fallback+=hd89n(r?.normativeCost)});let adjusted=base.direct-old+good+fallback;return{base,rows,old,good,bad,fallback,adjusted,delta:adjusted-base.direct}}
+function hd89gkey(id){return'hd_v89_cost_geom_'+id}function hd89geom(id){let s=getStore(hd89gkey(id),null)||{};return{h:hd89n(s.h,2000),w:hd89n(s.w,800),o:id==='alu42'&&s.o==='revers'?'revers':'direct'}}
+function hd89read(id){let g=hd89geom(id);return{h:hd89n($('hd89h_'+id)?.value,g.h),w:hd89n($('hd89w_'+id)?.value,g.w),o:id==='alu42'?String($('hd89o_'+id)?.value||g.o):'direct'}}
+function hd89row(id,r){return'<tr class="'+(r.ok?'':'hd-cost-row-invalid')+'"><td><div class="hd-cost-name"><b>'+hd89e(r.name)+'</b><button class="hd-cost-info" type="button" onmouseenter="hd89tip(event,\''+id+'\',\''+r.k+'\')" onmouseleave="hd89hide()" onfocus="hd89tip(event,\''+id+'\',\''+r.k+'\')" onblur="hd89hide()">ⓘ</button></div></td><td>'+hd89e(r.phys)+'</td><td><b>'+hd89e(r.write)+'</b></td><td>'+hd89e(r.rem)+'</td><td class="hd-cost-money">'+(r.ok?hd89rub(r.cost):'<span class="pricing-status warn">нужна норма</span>')+'</td></tr>'}
+function hd89body(id,c){return'<div class="hd-cost-kpis"><div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Рабочая прямая себестоимость</div><div class="pricing-admin-big">'+hd89rub(c.adjusted)+'</div><div class="mini">Старая прямая '+hd89rub(c.base.direct)+' · изменение '+(c.delta>=0?'+':'')+hd89rub(c.delta)+'</div></div><div class="pricing-admin-card"><div class="pricing-admin-kicker">6 пересчитанных узлов</div><div class="pricing-admin-big">'+hd89rub(c.good+c.fallback)+'</div><div class="mini">раньше '+hd89rub(c.old)+'</div></div><div class="pricing-admin-card"><div class="pricing-admin-kicker">Статус</div><div class="pricing-admin-big hd-cost-status-text">'+(c.bad.length?'Частично':'Точно')+'</div><div class="mini">'+(c.bad.length?'Для выбранной геометрии есть неутверждённое правило.':'Все шесть узлов рассчитаны по рабочим нормам.')+'</div></div></div><div class="table-wrap hd-cost-table-wrap"><table class="hd-cost-table"><thead><tr><th>Узел</th><th>Что физически нужно</th><th>Списание в заказ</th><th>Остаток</th><th>Стоимость</th></tr></thead><tbody>'+c.rows.map(r=>hd89row(id,r)).join('')+'</tbody></table></div><div class="hd-cost-legend"><span><b>Физика</b> — детали изделия</span><span><b>Списание</b> — детали + пропил + непригодный отход</span><span><b>Остаток</b> — складской актив, в эту дверь не списывается</span></div>'+(c.bad.length?'<div class="cost36-source-warning">'+c.bad.map(x=>'<b>'+hd89e(x.name)+':</b> '+hd89e(x.why)).join('<br>')+'</div>':'')}
+function hd89panel(id){let g=hd89geom(id),v=hd89vals(id),c=hd89calc(id,g.h,g.w,g.o,v);return'<div class="section hd-cost-engineering"><div class="hd-cost-head"><div><div class="section-title">Рабочая себестоимость по раскрою</div><div class="mini">Норма → раскрой → остаток → списание. Наведи на ⓘ — увидишь формулу и таблицу 600–1000 мм.</div></div><span class="pricing-section-badge">v89 · рабочая норма</span></div><div class="hd-cost-controls"><label class="cost36-field"><span>Высота</span><div class="pricing-rule-input-wrap"><input id="hd89h_'+id+'" type="number" min="1700" max="2950" step="50" value="'+g.h+'" oninput="hd89refresh(\''+id+'\')"><em>мм</em></div></label><label class="cost36-field"><span>Ширина</span><select id="hd89w_'+id+'" onchange="hd89refresh(\''+id+'\')">'+HD89_W.map(x=>'<option '+(x===g.w?'selected':'')+'>'+x+'</option>').join('')+'</select></label>'+(id==='alu42'?'<label class="cost36-field"><span>Открывание</span><select id="hd89o_'+id+'" onchange="hd89refresh(\''+id+'\')"><option value="direct" '+(g.o==='direct'?'selected':'')+'>На себя / прямое</option><option value="revers" '+(g.o==='revers'?'selected':'')+'>Revers</option></select></label>':'')+'</div><div id="hd89b_'+id+'">'+hd89body(id,c)+'</div><div class="cost36-reference-note"><b>Рабочая модель:</b> верхняя сумма заменяет старые условные нормы МДФ 4 мм, сот, бруса, алюминиевого каркаса, торца и короба. Остальные материалы берутся из редактируемой таблицы ниже.</div><div id="hd89tip" class="hd-cost-tooltip"></div></div>'}
+function hd89refresh(id){let g=hd89read(id);setStore(hd89gkey(id),g);let b=$('hd89b_'+id);if(b)b.innerHTML=hd89body(id,hd89calc(id,g.h,g.w,g.o,hd89vals(id)))}
+function hd89table(id,k){let g=hd89read(id),v=hd89vals(id);return'<table class="hd-cost-tip-table"><thead><tr><th>W</th><th>Физика</th><th>Списание</th><th>Остаток</th><th>Стоимость</th></tr></thead><tbody>'+HD89_W.map(w=>{let r=hd89calc(id,2000,w,g.o,v).rows.find(x=>x.k===k);return'<tr><td><b>'+w+'</b></td><td>'+hd89e(r.phys)+'</td><td>'+hd89e(r.write)+'</td><td>'+hd89e(r.rem)+'</td><td>'+(r.ok?hd89rub(r.cost):'—')+'</td></tr>'}).join('')+'</tbody></table>'}
+function hd89tip(e,id,k){let g=hd89read(id),r=hd89calc(id,g.h,g.w,g.o,hd89vals(id)).rows.find(x=>x.k===k),t=$('hd89tip');if(!t)return;t.innerHTML='<div class="hd-cost-tip-title">Как рассчитано</div><div class="hd-cost-tip-rule">'+hd89e(r.why)+'</div><div class="hd-cost-tip-caption">Контрольная таблица при H=2000 мм</div>'+hd89table(id,k);t.classList.add('show');let a=e.currentTarget.getBoundingClientRect();requestAnimationFrame(()=>{let W=Math.min(720,innerWidth-24);t.style.width=W+'px';t.style.left=Math.max(12,Math.min(innerWidth-W-12,a.left-20))+'px';let y=a.bottom+8;if(y+t.offsetHeight>innerHeight-12)y=Math.max(12,a.top-t.offsetHeight-8);t.style.top=y+'px'})}
+function hd89hide(){let t=$('hd89tip');if(t)t.classList.remove('show')}
+const HD89_OLD_PREVIEW=renderGenericCostPreview;renderGenericCostPreview=function(id,d){HD89_OLD_PREVIEW(id,d);if(id==='alu42'||id==='alu59')hd89refresh(id)};
+renderCost42AluminumAdmin=function(){return renderGenericCostModel('alu42',COST42_ALU_DEFAULTS,{title:'Себестоимость · 42 мм · алюминиевый каркас',subtitle:'Рабочая модель v89: геометрия, раскрой, полезные остатки и финансовое списание.',badge:'42 мм · алюминий',extraTop:hd89panel('alu42'),footerNote:'<b>Важно:</b> верхний инженерный блок — рабочая норма; таблица ниже сохраняет цены и старые нормы для аудита.'})};
+renderCost59AluminumAdmin=function(){return renderGenericCostModel('alu59',COST59_ALU_DEFAULTS,{title:'Себестоимость · 59 мм · алюминиевый каркас',subtitle:'Рабочая модель v89: геометрия, раскрой, полезные остатки и финансовое списание.',badge:'59 мм · алюминий',extraTop:hd89panel('alu59'),footerNote:'<b>Важно:</b> верхний инженерный блок — рабочая норма; таблица ниже сохраняет цены и старые нормы для аудита.'})};
 
 // --- data/bitrix-catalog.js ---
 // Extracted unchanged from v32. Large imported catalog data only.
