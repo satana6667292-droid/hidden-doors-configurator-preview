@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v87 · 59 mm cost model</title>
+<title>Hidden Doors — Личный кабинет · Прототип v88 · Production BOM audit</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1055,6 +1055,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
+<!-- v88-production-bom-audit -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1069,7 +1070,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v87 · 59 mm cost model</div>
+        <div class="version-chip"><span>HD</span> v88 · Production BOM audit</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -3022,8 +3023,96 @@ function renderCost36Admin(){
   return cost36ProductNavHtml()+(cost36ActiveProduct()==='box'?renderCost36BoxAdmin():renderCost36LeafAdmin());
 }
 
+// --- data/production-bom.js ---
+// v88: Production-compatible construction BOM geometry.
+// Source of business rules: hidden-doors-production-app/lib/materials.ts.
+// This module intentionally contains geometry/norm logic only; prices remain in the cost/price books.
+const HD_PRODUCTION_BOM_SOURCE=Object.freeze({
+  repository:'satana6667292-droid/hidden-doors-production-app',
+  path:'lib/materials.ts',
+  checkedCommit:'b90adb5f8c0e55a5694d4d324b3baeb6c868b406'
+});
+
+const HD_PRODUCTION_PROFILE_STOCK=Object.freeze({
+  box:Object.freeze({stockLengthMm:5100,discardBelowMm:800}),
+  direct_edge:Object.freeze({stockLengthMm:6000,discardBelowMm:600}),
+  revers_edge:Object.freeze({stockLengthMm:6000,discardBelowMm:600}),
+  edge_59:Object.freeze({stockLengthMm:6000,discardBelowMm:600}),
+  carcass:Object.freeze({stockLengthMm:6000,discardBelowMm:600})
+});
+
+function hdBomNumber(value){
+  const n=Number(String(value??'').replace(',','.'));
+  return Number.isFinite(n)?Math.max(0,Math.round(n)):0;
+}
+function hdBomRepeatCuts(cuts,quantity){
+  const q=Math.max(0,Math.round(Number(quantity)||0));
+  return Array.from({length:q},()=>cuts).flat();
+}
+function hdBomRequirement(role,cuts,quantity,note=''){
+  const repeated=hdBomRepeatCuts(cuts,quantity);
+  return {
+    role,
+    cutsMm:repeated,
+    requiredLengthMm:repeated.reduce((sum,cut)=>sum+cut,0),
+    stockLengthMm:HD_PRODUCTION_PROFILE_STOCK[role]?.stockLengthMm||0,
+    discardBelowMm:HD_PRODUCTION_PROFILE_STOCK[role]?.discardBelowMm||0,
+    note
+  };
+}
+function hdBuildProductionCompatibleBom(input={}){
+  const construction=String(input.construction)==='59'?'59':'42';
+  const height=hdBomNumber(input.height);
+  const width=hdBomNumber(input.width);
+  const quantity=Math.max(0,Math.round(Number(input.quantity)||1));
+  const frameType=String(input.frameType||'aluminum').toLowerCase();
+  const opening=String(input.opening||'direct').toLowerCase();
+  const requirements=[];
+  const issues=[];
+  const gaps=[];
+
+  if(!height||!width||!quantity){
+    return {construction,height,width,quantity,requirements,issues:['Для расчёта нужны высота, ширина и количество.'],gaps};
+  }
+
+  requirements.push(hdBomRequirement('box',[height+100,height+100,width+100],quantity,'Две стойки H+100 и верх W+100.'));
+
+  if(construction==='42'){
+    if(/revers|реверс|обрат/.test(opening)){
+      requirements.push(hdBomRequirement('revers_edge',[height,height,width],quantity,'Revers: две стойки и верх профилем с четвертью.'));
+      requirements.push(hdBomRequirement('direct_edge',[width],quantity,'Revers: нижняя деталь — прямой профиль.'));
+    }else{
+      requirements.push(hdBomRequirement('direct_edge',[height,height,width,width],quantity,'Прямое открывание: две стойки, верх и низ прямым профилем.'));
+    }
+  }else{
+    requirements.push(hdBomRequirement('edge_59',[height,height,width,width,width],quantity,'59 мм: две стойки и верх целыми; низ набирается из двух отдельных половин профиля, поэтому ширина учитывается ещё дважды.'));
+  }
+
+  if(/alu|алюм/.test(frameType)){
+    requirements.push(hdBomRequirement('carcass',[height,height,width],quantity,'Алюминиевый каркас: две стойки и верх. Нижняя деталь каркаса деревянная.'));
+    gaps.push('Нижний деревянный брус конструктивно обязателен для алюминиевого каркаса, но Production сейчас не выдаёт его отдельной строкой с длиной — это открытый норматив для унификации.');
+  }
+
+  if(construction==='42'||construction==='59'){
+    gaps.push('ПВХ-плёнка для полотен 42/59 пока не рассчитывается в Production inventory-planning; общий норматив нельзя считать согласованным до добавления правила в единый BOM.');
+  }
+
+  return {construction,height,width,quantity,requirements,issues,gaps};
+}
+function hdBomRole(plan,role){
+  return (plan.requirements||[]).find(row=>row.role===role)||null;
+}
+function hdBomMetres(plan,roles){
+  const roleSet=new Set(Array.isArray(roles)?roles:[roles]);
+  return (plan.requirements||[]).filter(row=>roleSet.has(row.role)).reduce((sum,row)=>sum+row.requiredLengthMm,0)/1000;
+}
+function hdBomCutsText(requirement){
+  if(!requirement||!requirement.cutsMm?.length)return '—';
+  return requirement.cutsMm.map(x=>x+' мм').join(' + ');
+}
+
 // --- data/cost-additional.js ---
-// v87: reference cost models: 36 box/dobors, 42 mm plywood/aluminum and 59 mm aluminum.
+// v88: reference cost models + Production-compatible BOM audit for 42/59 mm.
 const COST_ADMIN_MODEL_STORE='hd_v86_cost_admin_model';
 const COST_DOBOR_WIDTH_STORE='hd_v86_cost_dobor_width';
 const COST_DOBOR_FILM_STORE='hd_v86_cost_dobor_film';
@@ -3327,18 +3416,111 @@ function renderCost36DoborAdmin(){
   const extra=top+'<div class="cost-dobor-kit"><span>Себестоимость 1 шт.</span><b>'+cost36Money(one)+'</b><span>Комплект 2,5 шт.</span><b>'+cost36Money(one*2.5)+'</b></div>';
   return renderGenericCostModel(id,defs,{title:'Себестоимость · доборы 36 мм',subtitle:'100 / 150 / 200 мм. МДФ + клей + ПВХ-плёнка; оба ценовых блока плёнки из исходной таблицы сохранены.',badge:'36 мм · доборы',extraTop:extra});
 }
+function costBomFmtM(value){
+  const n=Number(value);
+  return Number.isFinite(n)?n.toLocaleString('ru-RU',{minimumFractionDigits:0,maximumFractionDigits:3})+' м':'—';
+}
+function costBomCurrentResource(modelId,pattern){
+  const defs=costModelDefaults(modelId);
+  const values=costGenericState(modelId,defs).values;
+  return (values.resources||[]).find(r=>pattern.test(String(r.name||'')))||null;
+}
+function costBomMeterNorm(row,{kitMetres=0}={}){
+  if(!row)return null;
+  const norm=Math.max(0,Number(row.norm||0))*(1+Math.max(0,Number(row.wastePct||0))/100);
+  if(String(row.writeoffUnit||'').toLowerCase().includes('м'))return norm;
+  return kitMetres>0?norm*kitMetres:null;
+}
+function costBomCompare(prod,current){
+  if(current===null||current===undefined)return '<b>⚠ Нужна нормализация</b>';
+  const delta=Number(current)-Number(prod);
+  if(Math.abs(delta)<0.001)return '<b>✓ Совпадает</b>';
+  return '<b>⚠ '+(delta>0?'текущая норма выше на ':'текущая норма ниже на ')+costBomFmtM(Math.abs(delta))+'</b>';
+}
+function costBomAuditBody(modelId,height=2000,width=800,opening='direct'){
+  const construction=modelId==='alu59'?'59':'42';
+  const frameType=modelId==='ply42'?'wood':'aluminum';
+  const plan=hdBuildProductionCompatibleBom({construction,height,width,quantity:1,frameType,opening});
+  if(plan.issues?.length)return '<div class="cost36-reference-note"><b>Не удалось рассчитать:</b> '+plan.issues.map(escapeHtml).join('; ')+'</div>';
+
+  const box=hdBomRole(plan,'box');
+  const direct=hdBomRole(plan,'direct_edge');
+  const revers=hdBomRole(plan,'revers_edge');
+  const edge59=hdBomRole(plan,'edge_59');
+  const carcass=hdBomRole(plan,'carcass');
+  const boxProd=hdBomMetres(plan,'box');
+  const edgeProd=construction==='42'?hdBomMetres(plan,['direct_edge','revers_edge']):hdBomMetres(plan,'edge_59');
+  const carcassProd=hdBomMetres(plan,'carcass');
+
+  const boxRow=costBomCurrentResource(modelId,/Короб (42|59)/i);
+  const edgeRow=costBomCurrentResource(modelId,/Алюминиевая кромка/i);
+  const carcassRow=costBomCurrentResource(modelId,/Алюминиевый каркас/i);
+  const timberRow=costBomCurrentResource(modelId,/Брус внутреннего каркаса|Закладной брус/i);
+  const boxCurrent=costBomMeterNorm(boxRow,{kitMetres:5.1});
+  const edgeCurrent=costBomMeterNorm(edgeRow);
+  const carcassCurrent=costBomMeterNorm(carcassRow);
+
+  const edgeDetail=construction==='42'
+    ? (revers
+      ? 'Revers: '+costBomFmtM((revers.requiredLengthMm||0)/1000)+' ['+escapeHtml(hdBomCutsText(revers))+']; прямой низ: '+costBomFmtM((direct?.requiredLengthMm||0)/1000)+' ['+escapeHtml(hdBomCutsText(direct))+']'
+      : 'Прямой профиль: '+costBomFmtM((direct?.requiredLengthMm||0)/1000)+' ['+escapeHtml(hdBomCutsText(direct))+']')
+    : '59 мм: '+costBomFmtM((edge59?.requiredLengthMm||0)/1000)+' ['+escapeHtml(hdBomCutsText(edge59))+']';
+
+  const carcassCurrentText=carcassRow
+    ? (carcassCurrent===null
+      ? escapeHtml(String(carcassRow.norm||0))+' '+escapeHtml(carcassRow.writeoffUnit||'')+'; метраж в себестоимости не задан'
+      : costBomFmtM(carcassCurrent))
+    : 'Не применяется';
+
+  const rows=[
+    '<tr><td><b>Короб</b><div class="mini">'+escapeHtml(hdBomCutsText(box))+'</div></td><td>'+costBomFmtM(boxProd)+'</td><td>'+costBomFmtM(boxCurrent)+'</td><td>'+costBomCompare(boxProd,boxCurrent)+'</td></tr>',
+    '<tr><td><b>Алюминиевый торец</b><div class="mini">'+edgeDetail+'</div></td><td>'+costBomFmtM(edgeProd)+'</td><td>'+costBomFmtM(edgeCurrent)+'</td><td>'+costBomCompare(edgeProd,edgeCurrent)+(construction==='42'&&revers?'<div class="mini">Текущая себестоимость хранит одну общую «кромку» и не разделяет Revers/прямой профиль.</div>':'')+'</td></tr>'
+  ];
+  if(frameType==='aluminum'){
+    rows.push('<tr><td><b>Алюминиевый каркас</b><div class="mini">'+escapeHtml(hdBomCutsText(carcass))+'; низ каркаса деревянный</div></td><td>'+costBomFmtM(carcassProd)+'</td><td>'+carcassCurrentText+'</td><td>'+costBomCompare(carcassProd,carcassCurrent)+'</td></tr>');
+    rows.push('<tr><td><b>Нижний деревянный брус</b><div class="mini">Production исключает алюминиевый низ, но пока не выдаёт отдельную длину бруса.</div></td><td>Конструктивно есть</td><td>'+(timberRow?escapeHtml(String(timberRow.norm||0))+' '+escapeHtml(timberRow.writeoffUnit||''):'Нет отдельной строки')+'</td><td><b>⚠ Открытый норматив длины</b></td></tr>');
+  }
+  rows.push('<tr><td><b>ПВХ-плёнка полотна</b><div class="mini">В Production общий расчёт плёнки сейчас реализован для 36 мм и погонажа; ветки door_42 / door_59 отсутствуют.</div></td><td>Не определено</td><td>Не связываем автоматически</td><td><b>⚠ Сначала утвердить единое правило</b></td></tr>');
+
+  return '<div class="table-wrap"><table class="cost36-reference-table"><thead><tr><th>Узел</th><th>Production-норма</th><th>Текущая себестоимость</th><th>Сверка</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>'+
+    '<div class="cost36-reference-note"><b>Режим сверки:</b> этот блок пока не меняет денежный расчёт ниже. Он показывает, где исходная таблица себестоимости уже совпадает с Production, а где нормы нужно перевести на единый BOM. Источник правил: <code>'+escapeHtml(HD_PRODUCTION_BOM_SOURCE.path)+'</code>, commit <code>'+escapeHtml(HD_PRODUCTION_BOM_SOURCE.checkedCommit.slice(0,7))+'</code>.</div>'+
+    (plan.gaps?.length?'<div class="cost36-reference-note"><b>Открытые стыки:</b> '+plan.gaps.map(escapeHtml).join(' ')+'</div>':'');
+}
+function updateCostBomAudit(modelId){
+  const h=Number($('cost_bom_h_'+modelId)?.value||2000);
+  const w=Number($('cost_bom_w_'+modelId)?.value||800);
+  const opening=String($('cost_bom_open_'+modelId)?.value||'direct');
+  const target=$('cost_bom_body_'+modelId);
+  if(target)target.innerHTML=costBomAuditBody(modelId,h,w,opening);
+}
+function renderCostBomAudit(modelId){
+  const is42=modelId!=='alu59';
+  return '<div class="section pricing-rule-editor">'+
+    '<div class="section-title">Сверка с нормами Production</div>'+
+    '<div class="cost36-reference-note"><b>Цель:</b> одна геометрия конструкции для Production и себестоимости. На этом этапе только сравниваем нормы — существующие цены и итоговая себестоимость не переписываются автоматически.</div>'+
+    '<div class="cost36-material-grid"><div class="pricing-rule-block"><div class="cost36-fields '+(is42?'three':'two')+'">'+
+      '<label class="cost36-field"><span>Высота полотна</span><div class="pricing-rule-input-wrap"><input id="cost_bom_h_'+modelId+'" type="number" min="1700" max="2950" step="50" value="2000" oninput="updateCostBomAudit(\''+modelId+'\')"><em>мм</em></div></label>'+
+      '<label class="cost36-field"><span>Ширина полотна</span><div class="pricing-rule-input-wrap"><input id="cost_bom_w_'+modelId+'" type="number" min="400" max="1200" step="50" value="800" oninput="updateCostBomAudit(\''+modelId+'\')"><em>мм</em></div></label>'+
+      (is42?'<label class="cost36-field"><span>Открывание 42 мм</span><select id="cost_bom_open_'+modelId+'" onchange="updateCostBomAudit(\''+modelId+'\')"><option value="direct">На себя / прямое</option><option value="revers">Revers</option></select></label>':'')+
+    '</div></div></div>'+
+    '<div id="cost_bom_body_'+modelId+'">'+costBomAuditBody(modelId,2000,800,'direct')+'</div>'+
+  '</div>';
+}
+
 function renderCost42PlywoodAdmin(){
   return renderGenericCostModel('ply42',COST42_PLY_DEFAULTS,{
     title:'Себестоимость · 42 мм · фанерный каркас',
     subtitle:'Стандарт 2000×800 из листа «42 мм полотно стандарт фанера». Вся строка материалов, короб, упаковка и фурнитура перенесены в единый нормативно-фактический расчёт.',
-    badge:'42 мм · фанера'
+    badge:'42 мм · фанера',
+    extraTop:renderCostBomAudit('ply42')
   });
 }
 function renderCost42AluminumAdmin(){
   return renderGenericCostModel('alu42',COST42_ALU_DEFAULTS,{
     title:'Себестоимость · 42 мм · алюминиевый каркас',
     subtitle:'Стандарт 2000×800 из листа «42 мм полотно стандарт на алюминие». Противоречивые места источника не исправлены молча — они помечены прямо в ресурсе.',
-    badge:'42 мм · алюминий'
+    badge:'42 мм · алюминий',
+    extraTop:renderCostBomAudit('alu42')
   });
 }
 
@@ -3347,6 +3529,7 @@ function renderCost59AluminumAdmin(){
     title:'Себестоимость · 59 мм · алюминиевый каркас',
     subtitle:'Стандарт 2000×800 из листа «59 мм полотно стандарт». Материалы, короб, упаковка, K6360/38, замок и крепёж перенесены в единый нормативно-фактический расчёт.',
     badge:'59 мм · алюминий',
+    extraTop:renderCostBomAudit('alu59'),
     footerNote:'<b>Контроль источника:</b> исходная себестоимость — 17 290,12 ₽. Несовпадения арифметики строк (уголки) сохранены как исходные нормокомплекты с пояснениями; копеечные отличия по сотовой панели и упаковке показываются сравнением с исходной таблицей, а не скрытой балансирующей строкой.'
   });
 }
