@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v98 · Комплект 36</title>
+<title>Hidden Doors — Личный кабинет · Прототип v99 · 36 мм единый дашборд</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1427,10 +1427,55 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 #pricingAdminRoot .cost36-kit-summary{
   margin-bottom:10px;
 }
+
+
+/* v99: 36 mm dashboard order — leaf, box, combined leaf+box total */
+.cost36-dashboard-stack{
+  display:grid;
+  gap:16px;
+  margin-bottom:18px;
+}
+.cost36-dashboard-section{
+  min-width:0;
+}
+.cost36-dashboard-section .cost36-combined-subhead{
+  margin-top:0;
+}
+.cost36-leaf-box-total{
+  margin-top:2px;
+}
+.cost36-leaf-box-total .pricing-admin-card{
+  padding:18px 20px;
+}
+.cost36-leaf-box-total-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:22px;
+}
+.cost36-leaf-box-total-row .pricing-admin-big{
+  margin:0;
+  font-size:34px;
+  white-space:nowrap;
+}
+.cost36-leaf-details,
+.cost36-box-details,
+.cost36-casing-details{
+  margin-top:18px;
+}
+@media(max-width:700px){
+  .cost36-leaf-box-total-row{
+    display:grid;
+    gap:8px;
+  }
+  .cost36-leaf-box-total-row .pricing-admin-big{
+    font-size:30px;
+  }
+}
 </style>
 </head>
 <body>
-<!-- v98-36-leaf-box-casing-combined -->
+<!-- v99-36-combined-dashboard -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1445,7 +1490,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v98 · 36 полотно + короб</div>
+        <div class="version-chip"><span>HD</span> v99 · 36 мм единый дашборд</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -3788,31 +3833,51 @@ function cost36CombinedCurrent(){
   const leaf=calculateCost36(leafValues);
   const box=calculateCost36Box(boxValues);
   const casing=calculateCost36Casing(casingValues);
-  return {leaf,box,casing,direct:leaf.direct+box.direct+casing.normativeCost,incomplete:!box.filmConfigured};
+  const leafBoxDirect=leaf.direct+box.direct;
+  const fullKitDirect=leafBoxDirect+casing.normativeCost;
+  return {leaf,box,casing,leafBoxDirect,fullKitDirect,direct:fullKitDirect,incomplete:!box.filmConfigured};
 }
 function renderCost36CombinedSummary(){
   const c=cost36CombinedCurrent();
   const set=(id,val)=>{const el=$(id);if(el)el.innerHTML=val};
-  set('cost36KitLeaf',cost36Money(c.leaf.direct));
-  set('cost36KitBox',cost36Money(c.box.direct)+(c.box.filmConfigured?'':'*'));
-  set('cost36KitCasing',cost36Money(c.casing.normativeCost));
-  set('cost36KitTotal',cost36Money(c.direct)+(c.incomplete?'*':''));
-  const note=$('cost36KitNote');
-  if(note)note.innerHTML=c.incomplete?'<b>* Короб пока считается без декоративной ПВХ-плёнки:</b> ширина развёртки ещё не задана. Остальные текущие нормы и цены сохранены без изменений.':'Полотно + короб + 5 наличников рассчитаны по текущим нормативам.';
+  set('cost36LeafBoxTotal',cost36Money(c.leafBoxDirect)+(c.incomplete?'*':''));
+  const note=$('cost36LeafBoxNote');
+  if(note)note.innerHTML=c.incomplete
+    ?'<b>* Итог «Полотно + короб» пока без декоративной ПВХ-плёнки короба:</b> ширина развёртки ещё не задана.'
+    :'Полотно и короб рассчитаны вместе по текущим нормативам.';
+}
+function cost36SplitEmbeddedBlock(html){
+  const marker='<div class="section pricing-rule-editor">';
+  const index=String(html||'').indexOf(marker);
+  if(index<0)return {dashboard:String(html||''),details:''};
+  return {dashboard:html.slice(0,index),details:html.slice(index)};
+}
+function renderCost36LeafBoxTotal(c){
+  return '<div class="cost36-leaf-box-total">'+
+    '<div class="pricing-admin-card primary">'+
+      '<div class="pricing-admin-kicker">Итоговая себестоимость 36 мм</div>'+
+      '<div class="cost36-leaf-box-total-row">'+
+        '<div><div class="pricing-admin-title">Полотно + короб</div><div id="cost36LeafBoxNote" class="mini">'+
+          (c.incomplete?'<b>* Пока без декоративной ПВХ-плёнки короба:</b> ширина развёртки ещё не задана.':'Полотно и короб рассчитаны вместе по текущим нормативам.')+
+        '</div></div>'+
+        '<div id="cost36LeafBoxTotal" class="pricing-admin-big">'+cost36Money(c.leafBoxDirect)+(c.incomplete?'*':'')+'</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
 }
 function renderCost36CombinedAdmin(){
   const c=cost36CombinedCurrent();
-  return pricingAdminSectionHeader('Себестоимость · дверь 36 мм','В одной вкладке: полотно, короб и наличник. Все исходные нормы и редактируемые данные сохранены в своих блоках.','v98 · единый продукт')+
-    '<div class="cost36-kpi-grid cost36-kit-summary">'+
-      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Полотно · прямая</div><div id="cost36KitLeaf" class="pricing-admin-big">'+cost36Money(c.leaf.direct)+'</div></div>'+
-      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Короб · прямая</div><div id="cost36KitBox" class="pricing-admin-big">'+cost36Money(c.box.direct)+(c.box.filmConfigured?'':'*')+'</div></div>'+
-      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Наличник · 5 шт.</div><div id="cost36KitCasing" class="pricing-admin-big">'+cost36Money(c.casing.normativeCost)+'</div></div>'+
-      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Комплект · прямая нормативная</div><div id="cost36KitTotal" class="pricing-admin-big">'+cost36Money(c.direct)+(c.incomplete?'*':'')+'</div></div>'+
+  const leaf=cost36SplitEmbeddedBlock(renderCost36LeafAdmin({embedded:true}));
+  const box=cost36SplitEmbeddedBlock(renderCost36BoxAdmin({embedded:true}));
+  return pricingAdminSectionHeader('Себестоимость · дверь 36 мм','Полотно, короб и наличник собраны в одной вкладке. Сначала видны ключевые показатели продукта, ниже — подробные расчёты и настройки.','v99 · единый продукт')+
+    '<div class="cost36-dashboard-stack">'+
+      '<div class="cost36-dashboard-section cost36-dashboard-leaf">'+leaf.dashboard+'</div>'+
+      '<div class="cost36-dashboard-section cost36-dashboard-box">'+box.dashboard+'</div>'+
+      renderCost36LeafBoxTotal(c)+
     '</div>'+
-    '<div id="cost36KitNote" class="cost36-reference-note">'+(c.incomplete?'<b>* Короб пока считается без декоративной ПВХ-плёнки:</b> ширина развёртки ещё не задана. Остальные текущие нормы и цены сохранены без изменений.':'Полотно + короб + 5 наличников рассчитаны по текущим нормативам.')+'</div>'+
-    '<div class="cost36-combined-block">'+renderCost36LeafAdmin({embedded:true})+'</div>'+
-    '<div class="cost36-combined-block">'+renderCost36BoxAdmin({embedded:true})+'</div>'+
-    '<div class="cost36-combined-block">'+renderCost36CasingAdmin()+'</div>';
+    '<div class="cost36-combined-block cost36-leaf-details">'+leaf.details+'</div>'+
+    '<div class="cost36-combined-block cost36-box-details">'+box.details+'</div>'+
+    '<div class="cost36-combined-block cost36-casing-details">'+renderCost36CasingAdmin()+'</div>';
 }
 function renderCost36Admin(){
   return renderCost36CombinedAdmin();
