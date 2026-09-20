@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v86 · 36 box cost</title>
+<title>Hidden Doors — Личный кабинет · Прототип v86 · multi cost models</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1031,6 +1031,27 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 .cost36-product-nav button span{font-size:10px;line-height:1.4;opacity:.72}
 .cost36-source-warning{margin:12px 0 2px;padding:11px 12px;border:1px solid #e3c58e;border-radius:12px;background:#fff4de;color:#735528;font-size:11px;line-height:1.5}
 @media(max-width:650px){.cost36-product-nav{grid-template-columns:1fr}}
+
+
+/* v86: cost model navigation and multi-product cost views */
+.cost-model-nav{display:flex;gap:7px;overflow-x:auto;padding:8px;margin:0 0 14px;background:#f7f3ee;border:1px solid #e5ddd4;border-radius:13px}
+.cost-model-nav button{flex:0 0 auto;background:#fff;color:#5f554a;border:1px solid #ded4c9;padding:8px 10px}
+.cost-model-nav button.active{background:#1f1b17;color:#fff;border-color:#1f1b17}
+.cost-generic-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.cost-source-compare{margin:0 0 10px;padding:9px 11px;border-radius:10px;background:#f6f1eb;border:1px solid #e2d8cd;font-size:10px;color:#6b5f53}
+.cost-source-note{margin-top:4px;max-width:300px}
+.cost-shared-overhead{margin:-3px 0 12px;padding:9px 11px;border-left:3px solid #cdb893;background:#fbf7f0}
+.cost-variant-bar{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 10px;padding:11px;border:1px solid #e3d9ce;border-radius:12px;background:#fbf8f4}
+.cost-variant-bar>div{display:grid;gap:5px;min-width:180px}
+.cost-variant-bar span{font-size:10px;font-weight:850;color:#6c6054}
+.cost-variant-bar select{width:100%}
+.cost-dobor-kit{display:grid;grid-template-columns:auto auto auto auto;gap:8px 14px;align-items:center;margin-bottom:12px;padding:12px;border-radius:12px;background:#fff8ec;border:1px solid #dec69d}
+.cost-dobor-kit span{font-size:10px;color:#6d604f}
+.cost-dobor-kit b{font-size:18px}
+.cost36-group.box{background:#edf3ec;color:#4e654f}
+.cost36-group.hardware{background:#eeeaf4;color:#625875}
+@media(max-width:1050px){.cost-generic-kpis{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.cost-generic-kpis{grid-template-columns:1fr}.cost-dobor-kit{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -1048,7 +1069,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v86 · 36 box cost</div>
+        <div class="version-chip"><span>HD</span> v86 · multi cost models</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1865,6 +1886,7 @@ function renderPricingAdminBody(section){
   if(section==='overview')return renderPricingOverview();
   if(section==='door36')return renderPricing36Admin();
   if(section==='door42')return renderPricing42Admin();
+  if(section==='cost'&&typeof renderCostAdmin==='function')return renderCostAdmin();
   if(section==='cost'&&typeof renderCost36Admin==='function')return renderCost36Admin();
   return renderPricingSimpleSection(section);
 }
@@ -2011,7 +2033,7 @@ function renderPricingAdmin(){
   const section=activePricingAdminSection();
   root.innerHTML=pricingAdminNavHtml(section)+'<div class="pricing-admin-content">'+renderPricingAdminBody(section)+'</div>';
   if(section==='door42'&&typeof renderPricing42RulePreview==='function')renderPricing42RulePreview();
-  if(section==='cost'&&typeof renderCost36Preview==='function')renderCost36Preview();
+  if(section==='cost'&&activeCostAdminModel?.()==='leaf36'&&typeof renderCost36Preview==='function')renderCost36Preview();
 }
 
 // --- data/prices36.js ---
@@ -2998,6 +3020,294 @@ function renderCost36BoxAdmin(){
 }
 function renderCost36Admin(){
   return cost36ProductNavHtml()+(cost36ActiveProduct()==='box'?renderCost36BoxAdmin():renderCost36LeafAdmin());
+}
+
+// --- data/cost-additional.js ---
+// v86: additional reference cost models: 36 box/dobors and 42 mm standard plywood/aluminum.
+const COST_ADMIN_MODEL_STORE='hd_v86_cost_admin_model';
+const COST_DOBOR_WIDTH_STORE='hd_v86_cost_dobor_width';
+const COST_DOBOR_FILM_STORE='hd_v86_cost_dobor_film';
+
+const COST_ADMIN_MODELS=Object.freeze([
+  Object.freeze({id:'leaf36',label:'36 · Полотно'}),
+  Object.freeze({id:'box36',label:'36 · Короб'}),
+  Object.freeze({id:'dobor36',label:'36 · Доборы'}),
+  Object.freeze({id:'ply42',label:'42 · Фанера'}),
+  Object.freeze({id:'alu42',label:'42 · Алюминий'})
+]);
+
+const COST_GENERIC_GROUPS=Object.freeze({
+  materials:'Материалы',
+  consumables:'Расходники',
+  packaging:'Упаковка',
+  box:'Короб',
+  hardware:'Фурнитура',
+  works:'Работы'
+});
+
+function activeCostAdminModel(){
+  const raw=typeof getStore==='function'?getStore(COST_ADMIN_MODEL_STORE,'leaf36'):'leaf36';
+  return COST_ADMIN_MODELS.some(x=>x.id===raw)?raw:'leaf36';
+}
+function setCostAdminModel(id){
+  const next=COST_ADMIN_MODELS.some(x=>x.id===id)?id:'leaf36';
+  if(typeof setStore==='function')setStore(COST_ADMIN_MODEL_STORE,next);
+  renderPricingAdmin();
+}
+function costAdminModelNav(){
+  const active=activeCostAdminModel();
+  return '<div class="cost-model-nav">'+COST_ADMIN_MODELS.map(x=>
+    '<button class="'+(x.id===active?'active':'')+'" onclick="setCostAdminModel(\''+x.id+'\')">'+escapeHtml(x.label)+'</button>'
+  ).join('')+'</div>';
+}
+function renderCostAdmin(){
+  const id=activeCostAdminModel();
+  let body='';
+  if(id==='leaf36')body=typeof renderCost36LeafAdmin==='function'?renderCost36LeafAdmin():renderCost36Admin();
+  if(id==='box36')body=renderCost36BoxAdmin();
+  if(id==='dobor36')body=renderCost36DoborAdmin();
+  if(id==='ply42')body=renderCost42PlywoodAdmin();
+  if(id==='alu42')body=renderCost42AluminumAdmin();
+  return costAdminModelNav()+body;
+}
+
+function costGenericClone(v){return JSON.parse(JSON.stringify(v))}
+function costGenericStoreKey(id){return 'hd_v86_cost_model_'+id}
+function costGenericState(id,defaults){
+  const saved=typeof getStore==='function'?getStore(costGenericStoreKey(id),null):null;
+  return {values:saved?.values||costGenericClone(defaults),manualOverride:!!saved,updatedAt:saved?.updatedAt||''};
+}
+function costGenericActualValue(v){
+  return v===''||v===null||v===undefined?null:(Number.isFinite(Number(v))?Math.max(0,Number(v)):null);
+}
+function costGenericCalc(values){
+  const rows=(values.resources||[]).map(r=>{
+    const purchasePrice=Math.max(0,Number(r.purchasePrice||0));
+    const conversionQty=Math.max(0,Number(r.conversionQty||0));
+    const unitPrice=conversionQty>0?purchasePrice/conversionQty:0;
+    const norm=Math.max(0,Number(r.norm||0));
+    const wastePct=Math.max(0,Number(r.wastePct||0));
+    const writeoffNorm=norm*(1+wastePct/100);
+    const normativeCost=writeoffNorm*unitPrice;
+    const actualQty=costGenericActualValue(r.actualQty);
+    const actualCost=actualQty===null?null:actualQty*unitPrice;
+    return {...r,purchasePrice,conversionQty,unitPrice,norm,wastePct,writeoffNorm,normativeCost,actualQty,actualCost,deviation:actualCost===null?null:actualCost-normativeCost};
+  });
+  const byGroup={};
+  rows.forEach(r=>byGroup[r.group]=(byGroup[r.group]||0)+r.normativeCost);
+  const works=Number(values.works?.piecework||0)+Number(values.works?.external||0);
+  if(works)byGroup.works=works;
+  const direct=rows.reduce((s,r)=>s+r.normativeCost,0)+works;
+  const actualRows=rows.filter(r=>r.actualQty!==null);
+  const allActual=rows.length>0&&actualRows.length===rows.length;
+  const actualDirect=allActual?rows.reduce((s,r)=>s+Number(r.actualCost||0),0)+works:null;
+  let normativeOverhead=null,actualOverhead=null;
+  if(values.includeSharedOverhead&&typeof cost36State==='function'){
+    const ov=cost36State().values.overhead||{};
+    const month=['rent','electricity','driver','productionManager','shopEmployees'].reduce((s,k)=>s+Number(ov[k]||0),0);
+    if(Number(ov.normalMonthlyDoors)>0)normativeOverhead=month/Number(ov.normalMonthlyDoors);
+    if(Number(ov.actualMonthlyDoors)>0)actualOverhead=month/Number(ov.actualMonthlyDoors);
+  }
+  const fullNormative=normativeOverhead===null?direct:direct+normativeOverhead;
+  const fullActual=actualDirect===null?null:(actualOverhead===null?actualDirect:actualDirect+actualOverhead);
+  return {rows,byGroup,works,direct,actualRowsCount:actualRows.length,allActual,actualDirect,normativeOverhead,actualOverhead,fullNormative,fullActual,deviation:fullActual===null?null:fullActual-fullNormative};
+}
+function costGenericId(modelId,field,index){return 'cg_'+modelId+'_'+field+'_'+index}
+function costGenericFormValues(modelId,defaults){
+  const state=costGenericState(modelId,defaults),values=costGenericClone(state.values);
+  values.resources=(values.resources||[]).map((r,i)=>({
+    ...r,
+    purchaseUnit:String($(costGenericId(modelId,'pu',i))?.value??r.purchaseUnit),
+    purchasePrice:Number($(costGenericId(modelId,'pp',i))?.value??r.purchasePrice)||0,
+    writeoffUnit:String($(costGenericId(modelId,'wu',i))?.value??r.writeoffUnit),
+    conversionQty:Number($(costGenericId(modelId,'conv',i))?.value??r.conversionQty)||0,
+    norm:Number($(costGenericId(modelId,'norm',i))?.value??r.norm)||0,
+    wastePct:Number($(costGenericId(modelId,'waste',i))?.value??r.wastePct)||0,
+    actualQty:(()=>{const el=$(costGenericId(modelId,'actual',i));return !el||String(el.value).trim()===''?'':Number(el.value)})()
+  }));
+  values.works={
+    piecework:Number($('cg_'+modelId+'_piecework')?.value??values.works?.piecework??0)||0,
+    external:Number($('cg_'+modelId+'_external')?.value??values.works?.external??0)||0
+  };
+  return values;
+}
+function saveGenericCostModel(modelId,defaults){
+  const values=costGenericFormValues(modelId,defaults);
+  setStore(costGenericStoreKey(modelId),{values,updatedAt:new Date().toISOString()});
+  renderPricingAdmin();
+}
+function resetGenericCostModel(modelId){
+  if(!confirm('Вернуть исходные значения этого расчёта из таблицы себестоимости?'))return;
+  localStorage.removeItem(costGenericStoreKey(modelId));renderPricingAdmin();
+}
+function renderGenericCostPreview(modelId,defaults){
+  const c=costGenericCalc(costGenericFormValues(modelId,defaults));
+  const set=(id,v)=>{const el=$(id);if(el)el.textContent=v};
+  set('cg_'+modelId+'_direct',cost36Money(c.direct));
+  set('cg_'+modelId+'_fullNorm',cost36Money(c.fullNormative));
+  set('cg_'+modelId+'_actual',c.fullActual===null?'Не заполнен':cost36Money(c.fullActual));
+  set('cg_'+modelId+'_deviation',c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation));
+  set('cg_'+modelId+'_progress',c.actualRowsCount+' / '+c.rows.length+' ресурсов');
+  Object.entries(c.byGroup).forEach(([g,v])=>set('cg_'+modelId+'_group_'+g,cost36Money(v)));
+  c.rows.forEach((r,i)=>{
+    set(costGenericId(modelId,'liveUnit',i),cost36Money(r.unitPrice));
+    set(costGenericId(modelId,'liveWriteoff',i),cost36Plain(r.writeoffNorm));
+    set(costGenericId(modelId,'liveCost',i),cost36Money(r.normativeCost));
+    set(costGenericId(modelId,'liveDev',i),r.deviation===null?'—':(r.deviation>=0?'+':'')+cost36Money(r.deviation));
+  });
+  const source=$('cg_'+modelId+'_sourceDelta');
+  if(source&&Number.isFinite(Number(defaults.sourceTotal))){
+    const delta=c.direct-Number(defaults.sourceTotal);
+    source.textContent='Текущий расчёт '+cost36Money(c.direct)+' · исходная таблица '+cost36Money(defaults.sourceTotal)+' · разница '+(delta>=0?'+':'')+cost36Money(delta);
+  }
+}
+function genericCostResourceRow(modelId,r,i,c){
+  const note=r.note?'<div class="mini cost-source-note">'+escapeHtml(r.note)+'</div>':'';
+  return '<tr>'+
+    '<td><span class="cost36-group '+escapeHtml(r.group)+'">'+escapeHtml(COST_GENERIC_GROUPS[r.group]||r.group)+'</span></td>'+
+    '<td><b>'+escapeHtml(r.name)+'</b>'+note+'</td>'+
+    '<td><div class="cost36-inline-edit"><input id="'+costGenericId(modelId,'pu',i)+'" value="'+escapeHtml(r.purchaseUnit)+'"><input id="'+costGenericId(modelId,'pp',i)+'" type="number" min="0" step="0.01" value="'+escapeHtml(String(r.purchasePrice))+'" oninput="renderGenericCostPreview(\''+modelId+'\',costModelDefaults(\''+modelId+'\'))"><span>₽</span></div></td>'+
+    '<td><div class="cost36-inline-edit"><input id="'+costGenericId(modelId,'wu',i)+'" value="'+escapeHtml(r.writeoffUnit)+'"><input id="'+costGenericId(modelId,'conv',i)+'" type="number" min="0.0001" step="0.0001" value="'+escapeHtml(String(r.conversionQty))+'" oninput="renderGenericCostPreview(\''+modelId+'\',costModelDefaults(\''+modelId+'\'))"></div></td>'+
+    '<td><b id="'+costGenericId(modelId,'liveUnit',i)+'">'+cost36Money(c.unitPrice)+'</b></td>'+
+    '<td><div class="cost36-inline-number"><input id="'+costGenericId(modelId,'norm',i)+'" type="number" min="0" step="0.001" value="'+escapeHtml(String(r.norm))+'" oninput="renderGenericCostPreview(\''+modelId+'\',costModelDefaults(\''+modelId+'\'))"><span>'+escapeHtml(r.writeoffUnit)+'</span></div></td>'+
+    '<td><div class="cost36-inline-number"><input id="'+costGenericId(modelId,'waste',i)+'" type="number" min="0" step="0.1" value="'+escapeHtml(String(r.wastePct||0))+'" oninput="renderGenericCostPreview(\''+modelId+'\',costModelDefaults(\''+modelId+'\'))"><span>%</span></div></td>'+
+    '<td><b id="'+costGenericId(modelId,'liveWriteoff',i)+'">'+cost36Plain(c.writeoffNorm)+'</b> '+escapeHtml(r.writeoffUnit)+'</td>'+
+    '<td><b id="'+costGenericId(modelId,'liveCost',i)+'">'+cost36Money(c.normativeCost)+'</b></td>'+
+    '<td><div class="cost36-inline-number"><input id="'+costGenericId(modelId,'actual',i)+'" type="number" min="0" step="0.001" value="'+(r.actualQty===''?'':escapeHtml(String(r.actualQty)))+'" placeholder="—" oninput="renderGenericCostPreview(\''+modelId+'\',costModelDefaults(\''+modelId+'\'))"><span>'+escapeHtml(r.writeoffUnit)+'</span></div></td>'+
+    '<td id="'+costGenericId(modelId,'liveDev',i)+'">'+(c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation))+'</td>'+
+  '</tr>';
+}
+function renderGenericCostModel(modelId,defaults,{title,subtitle,badge='Эталонная модель',extraTop='',footerNote=''}={}){
+  const state=costGenericState(modelId,defaults),v=state.values,c=costGenericCalc(v);
+  const groups=[...new Set((v.resources||[]).map(r=>r.group))];
+  const cards=groups.map(g=>'<div class="pricing-admin-card"><div class="pricing-admin-kicker">'+escapeHtml(COST_GENERIC_GROUPS[g]||g)+'</div><div id="cg_'+modelId+'_group_'+g+'" class="pricing-admin-big">'+cost36Money(c.byGroup[g]||0)+'</div></div>').join('');
+  const rows=c.rows.map((r,i)=>genericCostResourceRow(modelId,v.resources[i],i,r)).join('');
+  const source=Number.isFinite(Number(defaults.sourceTotal))?'<div id="cg_'+modelId+'_sourceDelta" class="cost-source-compare">Исходная таблица: '+cost36Money(defaults.sourceTotal)+'</div>':'';
+  const overheadNote=defaults.includeSharedOverhead?'<div class="mini cost-shared-overhead">Полная нормативная использует общие производственные накладные из модели 36 мм, если там задан «Нормальный выпуск / месяц». Это единый производственный параметр, а не отдельная копия расходов для 42 мм.</div>':'';
+  return pricingAdminSectionHeader(title,subtitle,badge)+extraTop+
+    '<div class="cost-generic-kpis">'+cards+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Прямая нормативная</div><div id="cg_'+modelId+'_direct" class="pricing-admin-big">'+cost36Money(c.direct)+'</div></div>'+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Полная нормативная</div><div id="cg_'+modelId+'_fullNorm" class="pricing-admin-big">'+cost36Money(c.fullNormative)+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Фактическая</div><div id="cg_'+modelId+'_actual" class="pricing-admin-big">'+(c.fullActual===null?'Не заполнен':cost36Money(c.fullActual))+'</div><div id="cg_'+modelId+'_progress" class="mini">'+c.actualRowsCount+' / '+c.rows.length+' ресурсов</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Отклонение факт − норма</div><div id="cg_'+modelId+'_deviation" class="pricing-admin-big">'+(c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation))+'</div></div>'+
+    '</div>'+
+    source+overheadNote+
+    '<div class="section pricing-rule-editor"><div class="section-title">Ресурсы и правила списания</div>'+
+      '<div class="cost36-reference-note"><b>Единая логика:</b> закупочная единица → единица списания → цена единицы → норматив → технологический отход → нормативная стоимость → фактическое списание → отклонение.</div>'+
+      '<div class="table-wrap"><table class="cost36-reference-table"><thead><tr><th>Группа</th><th>Ресурс</th><th>Закупка</th><th>Списание / конверсия</th><th>Цена ед.</th><th>Норма</th><th>Тех. отход</th><th>К списанию</th><th>Норм. стоимость</th><th>Факт</th><th>Отклонение</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="section-title cost36-subtitle">Работы</div><div class="cost36-material-grid"><div class="pricing-rule-block"><div class="cost36-fields two">'+
+        '<label class="cost36-field"><span>Сдельные операции / изделие</span><div class="pricing-rule-input-wrap"><input id="cg_'+modelId+'_piecework" type="number" min="0" step="1" value="'+escapeHtml(String(v.works?.piecework||0))+'" oninput="renderGenericCostPreview(\''+modelId+'\',costModelDefaults(\''+modelId+'\'))"><em>₽</em></div></label>'+
+        '<label class="cost36-field"><span>Внешние работы / изделие</span><div class="pricing-rule-input-wrap"><input id="cg_'+modelId+'_external" type="number" min="0" step="1" value="'+escapeHtml(String(v.works?.external||0))+'" oninput="renderGenericCostPreview(\''+modelId+'\',costModelDefaults(\''+modelId+'\'))"><em>₽</em></div></label>'+
+      '</div></div></div>'+
+      (footerNote?'<div class="cost36-reference-note">'+footerNote+'</div>':'')+
+      '<div class="pricing-rule-actions"><button class="primary" onclick="saveGenericCostModel(\''+modelId+'\',costModelDefaults(\''+modelId+'\'))">Сохранить и применить</button><button class="secondary" onclick="resetGenericCostModel(\''+modelId+'\')">Вернуть исходные значения</button></div>'+
+    '</div>';
+}
+
+const DOBOR36_SOURCE=Object.freeze({
+  100:Object.freeze({mdf:56,glueNorm:0.2,filmNorm:0.385,source138:139.13,source280:193.8}),
+  150:Object.freeze({mdf:84,glueNorm:0.3,filmNorm:0.52,source138:200.76,source280:274.6}),
+  200:Object.freeze({mdf:115,glueNorm:0.4,filmNorm:0.77,source138:281.26,source280:390.6})
+});
+function activeDobor36Width(){
+  const raw=Number(getStore(COST_DOBOR_WIDTH_STORE,100));return DOBOR36_SOURCE[raw]?raw:100;
+}
+function activeDobor36Film(){
+  const raw=Number(getStore(COST_DOBOR_FILM_STORE,138));return raw===280?280:138;
+}
+function setDobor36Width(v){setStore(COST_DOBOR_WIDTH_STORE,Number(v));renderPricingAdmin()}
+function setDobor36Film(v){setStore(COST_DOBOR_FILM_STORE,Number(v));renderPricingAdmin()}
+function dobor36Defaults(width=activeDobor36Width(),film=activeDobor36Film()){
+  const x=DOBOR36_SOURCE[width]||DOBOR36_SOURCE[100];
+  return {
+    sourceTotal:film===280?x.source280:x.source138,includeSharedOverhead:false,works:{piecework:0,external:0},
+    resources:[
+      {group:'materials',name:'МДФ · добор '+width+' мм',purchaseUnit:'заготовка',purchasePrice:x.mdf,writeoffUnit:'шт.',conversionQty:1,norm:1,wastePct:0,actualQty:'',note:'Стоимость МДФ на 1 добор из исходной таблицы.'},
+      {group:'consumables',name:'Клей ламинации',purchaseUnit:'м² нанесения',purchasePrice:150,writeoffUnit:'м²',conversionQty:1,norm:x.glueNorm,wastePct:0,actualQty:'',note:'Цена 150 ₽/м² восстановлена из строк таблицы: 30/0,2 = 45/0,3 = 60/0,4.'},
+      {group:'materials',name:'ПВХ-плёнка',purchaseUnit:'м²',purchasePrice:film,writeoffUnit:'м²',conversionQty:1,norm:x.filmNorm,wastePct:0,actualQty:'',note:'В таблице присутствуют два расчётных блока плёнки: 138 и 280 ₽/м².'}
+    ]
+  };
+}
+function activeDobor36ModelId(){return 'dobor36_'+activeDobor36Width()+'_'+activeDobor36Film()}
+
+const COST42_PLY_DEFAULTS=Object.freeze({
+  sourceTotal:10823.764013,includeSharedOverhead:true,works:Object.freeze({piecework:0,external:0}),
+  resources:Object.freeze([
+    Object.freeze({group:'materials',name:'МДФ 6 мм · щиты',purchaseUnit:'лист',purchasePrice:1354,writeoffUnit:'лист',conversionQty:1,norm:2/3,wastePct:0,actualQty:'',note:'Исходная логика: лист даёт примерно 1,5 двери.'}),
+    Object.freeze({group:'materials',name:'Фанера · каркас',purchaseUnit:'комплект листов',purchasePrice:6260,writeoffUnit:'дет.',conversionQty:36,norm:3,wastePct:0,actualQty:'',note:'Таблица считает 6 260 / 36 × 3.'}),
+    Object.freeze({group:'materials',name:'Рёбра жёсткости',purchaseUnit:'лист МДФ 6',purchasePrice:1354,writeoffUnit:'ребро',conversionQty:103,norm:9,wastePct:0,actualQty:'',note:'Пока сохранена исходная норма 9 шт. Геометрию 42 мм отдельно не утверждали.'}),
+    Object.freeze({group:'consumables',name:'Клей ПВА',purchaseUnit:'ведро 30 кг',purchasePrice:9100,writeoffUnit:'кг',conversionQty:30,norm:0.3,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Грунт',purchaseUnit:'тара 25 кг',purchasePrice:9840,writeoffUnit:'кг',conversionQty:25,norm:0.4138,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Растворитель',purchaseUnit:'канистра 30 л',purchasePrice:3947,writeoffUnit:'л',conversionQty:30,norm:0.0621,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Отвердитель',purchaseUnit:'тара 12,5 л',purchasePrice:6980,writeoffUnit:'л',conversionQty:12.5,norm:0.1241,wastePct:0,actualQty:''}),
+    Object.freeze({group:'materials',name:'Алюминиевая кромка',purchaseUnit:'хлыст 6 м',purchasePrice:1816,writeoffUnit:'м',conversionQty:6,norm:6,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Клей ПУР',purchaseUnit:'кг',purchasePrice:1000,writeoffUnit:'кг',conversionQty:1,norm:0.1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'box',name:'Короб 42 · комплект профиля 5,1 м',purchaseUnit:'комплект',purchasePrice:4038,writeoffUnit:'комплект',conversionQty:1,norm:1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'box',name:'Уплотнительная резинка',purchaseUnit:'бухта 700 м',purchasePrice:8820,writeoffUnit:'м',conversionQty:700,norm:5.1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Скотч',purchaseUnit:'рулон',purchasePrice:100,writeoffUnit:'рулон',conversionQty:1,norm:0.3,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Плёнка упаковки полотна',purchaseUnit:'рулон 1051,2 м',purchasePrice:13375,writeoffUnit:'м',conversionQty:1051.2,norm:2.5,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Картон упаковки полотна',purchaseUnit:'лист',purchasePrice:94,writeoffUnit:'дет.',conversionQty:12,norm:6,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Картон упаковки короба',purchaseUnit:'лист',purchasePrice:94,writeoffUnit:'дет.',conversionQty:12,norm:3,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Стрейч короба',purchaseUnit:'рулон 2 кг',purchasePrice:550,writeoffUnit:'доля рулона',conversionQty:10,norm:1,wastePct:0,actualQty:'',note:'Исходная таблица фиксирует 55 ₽/комплект.'}),
+    Object.freeze({group:'hardware',name:'Петля K8060',purchaseUnit:'шт.',purchasePrice:1171,writeoffUnit:'шт.',conversionQty:1,norm:2,wastePct:0,actualQty:''}),
+    Object.freeze({group:'hardware',name:'Замок',purchaseUnit:'шт.',purchasePrice:402,writeoffUnit:'шт.',conversionQty:1,norm:1,wastePct:0,actualQty:''})
+  ])
+});
+
+const COST42_ALU_DEFAULTS=Object.freeze({
+  sourceTotal:14420.96,includeSharedOverhead:true,works:Object.freeze({piecework:0,external:0}),
+  resources:Object.freeze([
+    Object.freeze({group:'materials',name:'МДФ 4 мм · щиты',purchaseUnit:'лист',purchasePrice:1200,writeoffUnit:'лист',conversionQty:1,norm:2/3,wastePct:0,actualQty:''}),
+    Object.freeze({group:'materials',name:'Брус внутреннего каркаса',purchaseUnit:'нормокомплект',purchasePrice:231,writeoffUnit:'комплект',conversionQty:1,norm:1,wastePct:0,actualQty:'',note:'В источнике количество = 3 и комментарий про брус 692 ₽, но итог строки = 231 ₽. Сохраняем именно подтверждённый итог, не исправляя противоречие молча.'}),
+    Object.freeze({group:'materials',name:'Алюминиевый каркас',purchaseUnit:'комплект',purchasePrice:3586,writeoffUnit:'комплект',conversionQty:1,norm:1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'materials',name:'Сотовая панель',purchaseUnit:'м²',purchasePrice:311,writeoffUnit:'м²',conversionQty:1,norm:1.6,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Клей ПУР · сборка',purchaseUnit:'кг',purchasePrice:1000,writeoffUnit:'кг',conversionQty:1,norm:0.1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Грунт',purchaseUnit:'тара 25 кг',purchasePrice:9840,writeoffUnit:'кг',conversionQty:25,norm:0.4138,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Растворитель',purchaseUnit:'канистра 30 л',purchasePrice:3947,writeoffUnit:'л',conversionQty:30,norm:0.0621,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Отвердитель',purchaseUnit:'тара 12,5 л',purchasePrice:6980,writeoffUnit:'л',conversionQty:12.5,norm:0.1241,wastePct:0,actualQty:''}),
+    Object.freeze({group:'materials',name:'Алюминиевая кромка',purchaseUnit:'хлыст 6 м',purchasePrice:1816,writeoffUnit:'м',conversionQty:6,norm:6,wastePct:0,actualQty:''}),
+    Object.freeze({group:'consumables',name:'Клей ПУР · кромка',purchaseUnit:'кг',purchasePrice:1000,writeoffUnit:'кг',conversionQty:1,norm:0.1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'box',name:'Короб 42 · комплект профиля 5,1 м',purchaseUnit:'комплект',purchasePrice:4038,writeoffUnit:'комплект',conversionQty:1,norm:1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'box',name:'Уплотнительная резинка',purchaseUnit:'бухта 700 м',purchasePrice:8820,writeoffUnit:'м',conversionQty:700,norm:5.1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Скотч',purchaseUnit:'рулон',purchasePrice:100,writeoffUnit:'рулон',conversionQty:1,norm:0.3,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Плёнка упаковки полотна',purchaseUnit:'рулон 1051,2 м',purchasePrice:13375,writeoffUnit:'м',conversionQty:1051.2,norm:2.5,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Картон упаковки полотна',purchaseUnit:'лист',purchasePrice:94,writeoffUnit:'дет.',conversionQty:12,norm:6,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Картон упаковки короба',purchaseUnit:'лист',purchasePrice:94,writeoffUnit:'дет.',conversionQty:12,norm:3,wastePct:0,actualQty:''}),
+    Object.freeze({group:'packaging',name:'Стрейч короба',purchaseUnit:'рулон 2 кг',purchasePrice:550,writeoffUnit:'доля рулона',conversionQty:10,norm:1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'hardware',name:'Петля K8060',purchaseUnit:'шт.',purchasePrice:1171,writeoffUnit:'шт.',conversionQty:1,norm:2,wastePct:0,actualQty:''}),
+    Object.freeze({group:'hardware',name:'Замок',purchaseUnit:'шт.',purchasePrice:402,writeoffUnit:'шт.',conversionQty:1,norm:1,wastePct:0,actualQty:''}),
+    Object.freeze({group:'hardware',name:'Саморезы',purchaseUnit:'кг',purchasePrice:444,writeoffUnit:'кг',conversionQty:1,norm:10/444,wastePct:0,actualQty:'',note:'Норма восстановлена из зафиксированной в таблице стоимости 10 ₽ при цене 444 ₽/кг.'}),
+    Object.freeze({group:'hardware',name:'Уголки',purchaseUnit:'шт.',purchasePrice:6.24,writeoffUnit:'шт.',conversionQty:1,norm:1,wastePct:0,actualQty:''})
+  ])
+});
+
+function costModelDefaults(modelId){
+  if(modelId.startsWith('dobor36_'))return dobor36Defaults();
+  if(modelId==='ply42')return COST42_PLY_DEFAULTS;
+  if(modelId==='alu42')return COST42_ALU_DEFAULTS;
+  return COST36_BOX_DEFAULTS;
+}
+function renderCost36DoborAdmin(){
+  const width=activeDobor36Width(),film=activeDobor36Film(),id=activeDobor36ModelId(),defs=dobor36Defaults(width,film);
+  const top='<div class="cost-variant-bar"><div><span>Ширина добора</span><select onchange="setDobor36Width(this.value)">'+[100,150,200].map(x=>'<option value="'+x+'" '+(x===width?'selected':'')+'>'+x+' мм</option>').join('')+'</select></div>'+
+    '<div><span>Плёнка из таблицы</span><select onchange="setDobor36Film(this.value)"><option value="138" '+(film===138?'selected':'')+'>138 ₽/м²</option><option value="280" '+(film===280?'selected':'')+'>280 ₽/м²</option></select></div></div>';
+  const one=costGenericCalc(costGenericState(id,defs).values).direct;
+  const extra=top+'<div class="cost-dobor-kit"><span>Себестоимость 1 шт.</span><b>'+cost36Money(one)+'</b><span>Комплект 2,5 шт.</span><b>'+cost36Money(one*2.5)+'</b></div>';
+  return renderGenericCostModel(id,defs,{title:'Себестоимость · доборы 36 мм',subtitle:'100 / 150 / 200 мм. МДФ + клей + ПВХ-плёнка; оба ценовых блока плёнки из исходной таблицы сохранены.',badge:'36 мм · доборы',extraTop:extra});
+}
+function renderCost42PlywoodAdmin(){
+  return renderGenericCostModel('ply42',COST42_PLY_DEFAULTS,{
+    title:'Себестоимость · 42 мм · фанерный каркас',
+    subtitle:'Стандарт 2000×800 из листа «42 мм полотно стандарт фанера». Вся строка материалов, короб, упаковка и фурнитура перенесены в единый нормативно-фактический расчёт.',
+    badge:'42 мм · фанера'
+  });
+}
+function renderCost42AluminumAdmin(){
+  return renderGenericCostModel('alu42',COST42_ALU_DEFAULTS,{
+    title:'Себестоимость · 42 мм · алюминиевый каркас',
+    subtitle:'Стандарт 2000×800 из листа «42 мм полотно стандарт на алюминие». Противоречивые места источника не исправлены молча — они помечены прямо в ресурсе.',
+    badge:'42 мм · алюминий'
+  });
 }
 
 // --- data/bitrix-catalog.js ---
