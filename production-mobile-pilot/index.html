@@ -10,7 +10,7 @@
 button,textarea{font:inherit}.page{width:100%;max-width:480px;min-height:100vh;margin:0 auto;background:#f8fafc;padding:14px 14px 92px;box-shadow:0 0 50px rgba(15,23,42,.12)}
 .topnote{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;color:#64748b}.demo{background:#fff7ed;color:#9a3412;padding:6px 9px;border-radius:999px;font-weight:800}.reset{border:0;background:transparent;color:#64748b;font-weight:700;padding:6px}
 .hero{background:#0f172a;color:#fff;border-radius:28px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.12)}
-.hero-main{padding:20px}.person{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#4ade80;font-weight:900}.hero h1{margin:7px 0 3px;font-size:27px;line-height:1.08}.sub{font-size:13px;color:rgba(255,255,255,.55)}.metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}.metric{text-align:center;padding:14px 8px}.metric b{display:block;font-size:24px}.metric span{display:block;font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;font-weight:800;margin-top:3px}.metric.problem b{color:#fbbf24}
+.hero-main{padding:20px}.person{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#4ade80;font-weight:900}.hero h1{margin:7px 0 3px;font-size:27px;line-height:1.08}.sub{font-size:13px;color:rgba(255,255,255,.55)}.areas-label{display:flex;justify-content:space-between;margin-top:17px;margin-bottom:7px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:900;color:rgba(255,255,255,.42)}.areas{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px}.area-btn{flex:0 0 auto;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:rgba(255,255,255,.75);border-radius:14px;padding:9px 11px;font-size:11px;font-weight:900}.area-btn.active{background:#fff;color:#0f172a;border-color:#fff}.metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}.metric{text-align:center;padding:14px 8px}.metric b{display:block;font-size:24px}.metric span{display:block;font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;font-weight:800;margin-top:3px}.metric.problem b{color:#fbbf24}
 .section{margin-top:18px}.eyebrow{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8;margin:0 4px 4px}.sectiontitle{font-size:21px;font-weight:900;margin:0 4px 10px}.card{background:#fff;border:1px solid #e2e8f0;border-radius:26px;overflow:hidden;box-shadow:0 4px 14px rgba(15,23,42,.04)}.cardhead{padding:18px;border-bottom:1px solid #f1f5f9}.orderline{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.order{font-size:25px;font-weight:900}.client{font-size:13px;color:#64748b;margin-top:3px}.qty{background:#0f172a;color:#fff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;white-space:nowrap}.itemname{font-size:18px;font-weight:900;line-height:1.3;margin-top:14px}.more{font-size:11px;color:#94a3b8;margin-top:4px}
 .details{display:grid;grid-template-columns:1fr 1fr;background:#f1f5f9;gap:1px}.detail{background:#fff;padding:12px;min-width:0}.detail span{display:block;font-size:9px;color:#94a3b8;font-weight:900;text-transform:uppercase;letter-spacing:.07em}.detail b{display:block;font-size:13px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}.btn{height:50px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;font-weight:900;font-size:15px}.btn.done{background:#16a34a;border-color:#16a34a;color:#fff}.foot{border-top:1px solid #f1f5f9;padding:10px 14px;text-align:center;font-size:11px;color:#94a3b8}
@@ -28,9 +28,11 @@ button,textarea{font:inherit}.page{width:100%;max-width:480px;min-height:100vh;m
   <div class="topnote"><span class="demo">ДЕМО · без production-данных</span><button class="reset" onclick="resetDemo()">Сбросить</button></div>
   <section class="hero">
     <div class="hero-main">
-      <div class="person">● Денис · сотрудник участка</div>
-      <h1>Ламинация</h1>
-      <div class="sub">Сегодня · 20 сентября · только нужные задания</div>
+      <div class="person">● Тестовый сотрудник · сотрудник участка</div>
+      <h1 id="areaTitle">Ламинация</h1>
+      <div class="sub">Сегодня · 20 сентября · только закреплённые участки</div>
+      <div class="areas-label"><span>Мои участки</span><span>3 закреплено</span></div>
+      <div class="areas" id="areaButtons"></div>
     </div>
     <div class="metrics">
       <div class="metric"><b id="leftCount">40</b><span>Осталось</span></div>
@@ -88,17 +90,35 @@ button,textarea{font:inherit}.page{width:100%;max-width:480px;min-height:100vh;m
 </div>
 
 <script>
-const initialTasks=[
- {id:"1847",client:"ЖК Европейский",qty:6,unit:"двер.",item:"Скрытая дверь 59 мм · алюминиевый каркас",shipment:"29.09.2026",details:[["Размер","2400 × 800"],["Сторона 1","ПВХ Stone Grey"],["Сторона 2","ПВХ Stone Grey"],["Торец","Чёрный анод"]]},
- {id:"1855",client:"Архитектор Петрова",qty:8,unit:"двер.",item:"Скрытая дверь 59 мм · алюминиевый каркас",shipment:"30.09.2026",details:[["Размер","2700 × 850"],["Сторона 1","ПВХ Oak Natural"],["Сторона 2","Эмаль RAL 9016"],["Торец","Чёрный анод"]]},
- {id:"1861",client:"Салон Екатеринбург",qty:22,unit:"двер.",item:"Скрытая дверь 42 мм · алюминиевый каркас",shipment:"01.10.2026",details:[["Размер","2500 × 800"],["Сторона 1","ПВХ White"],["Сторона 2","ПВХ White"],["Торец","Серый анод"]]},
- {id:"1870",client:"Частный интерьер",qty:4,unit:"двер.",item:"Полотно 36 мм · ПВХ",shipment:"02.10.2026",details:[["Размер","2000 × 700"],["Покрытие","ПВХ Mocha"],["Модель","Гладкая"],["Комментарий","Проверить оттенок перед запуском"]]}
-];
+const sections={
+ lamination:{name:"Ламинация",tasks:[
+  {id:"1847",client:"ЖК Европейский",qty:6,unit:"двер.",item:"Скрытая дверь 59 мм · алюминиевый каркас",shipment:"29.09.2026",details:[["Размер","2400 × 800"],["Сторона 1","ПВХ Stone Grey"],["Сторона 2","ПВХ Stone Grey"],["Торец","Чёрный анод"]]},
+  {id:"1855",client:"Архитектор Петрова",qty:8,unit:"двер.",item:"Скрытая дверь 59 мм · алюминиевый каркас",shipment:"30.09.2026",details:[["Размер","2700 × 850"],["Сторона 1","ПВХ Oak Natural"],["Сторона 2","Эмаль RAL 9016"],["Торец","Чёрный анод"]]},
+  {id:"1861",client:"Салон Екатеринбург",qty:22,unit:"двер.",item:"Скрытая дверь 42 мм · алюминиевый каркас",shipment:"01.10.2026",details:[["Размер","2500 × 800"],["Сторона 1","ПВХ White"],["Сторона 2","ПВХ White"],["Торец","Серый анод"]]}
+ ]},
+ packing:{name:"Упаковка",tasks:[
+  {id:"1839",client:"Дилер Тюмень",qty:5,unit:"компл.",item:"Упаковать полотна и короба 42 мм",shipment:"26.09.2026",details:[["Комплект","5 полотен + 5 коробов"],["ОТК","Пройден"],["Упаковка","Картон + плёнка"],["Комментарий","Проверить маркировку"]]},
+  {id:"1844",client:"Частный заказ",qty:3,unit:"компл.",item:"Упаковать двери 59 мм",shipment:"27.09.2026",details:[["Комплект","3 двери"],["ОТК","Пройден"],["Короб","Алюминий"],["Отгрузка","Самовывоз"]]},
+  {id:"1850",client:"Салон Екатеринбург",qty:8,unit:"компл.",item:"Упаковка партии 42 мм",shipment:"29.09.2026",details:[["Комплект","8 дверей"],["ОТК","Ожидает финал"],["Упаковка","Стандарт"],["Комментарий","Партия 1/3"]]}
+ ]},
+ aluminum:{name:"Алюминиевые торцы",tasks:[
+  {id:"1841",client:"ЖК Европейский",qty:6,unit:"двер.",item:"Сборка алюминиевых торцов 59 мм",shipment:"29.09.2026",details:[["Размер","2400 × 800"],["Профиль","59 мм"],["Торец","Чёрный анод"],["Конструктив","Алюминиевый каркас"]]},
+  {id:"1855",client:"Архитектор Петрова",qty:8,unit:"двер.",item:"Сборка алюминиевых торцов 59 мм",shipment:"30.09.2026",details:[["Размер","2700 × 850"],["Профиль","59 мм"],["Торец","Чёрный анод"],["Комментарий","Высота 2700"]]},
+  {id:"1861",client:"Салон Екатеринбург",qty:8,unit:"двер.",item:"Сборка алюминиевых торцов 42 мм",shipment:"01.10.2026",details:[["Размер","2500 × 800"],["Профиль","42 мм"],["Торец","Серый анод"],["Конструктив","Алюминий"]]}
+ ]}
+};
+let activeSection="lamination";
+let states={};
 let tasks=[],done=[],problems=[],queueOpen=false,doneOpen=false,currentIssueId=null,selectedReason="Нет материала",blocking=true;
 const reasons=["Нет материала","Поломка","Брак","Ошибка спецификации","Вопрос","Другое"];
-function cloneInitial(){return initialTasks.map(x=>JSON.parse(JSON.stringify(x)))}
-function resetDemo(){tasks=cloneInitial();done=[];problems=[];queueOpen=false;doneOpen=false;closeSheet();render();toast("Демо возвращено в исходное состояние.")}
+function cloneTasks(items){return items.map(x=>JSON.parse(JSON.stringify(x)))}
+function resetStates(){states=Object.fromEntries(Object.entries(sections).map(([id,s])=>[id,{tasks:cloneTasks(s.tasks),done:[],problems:[]}]))}
+function syncState(){const s=states[activeSection];tasks=s.tasks;done=s.done;problems=s.problems}
+function switchArea(id){if(!sections[id])return;activeSection=id;syncState();queueOpen=false;doneOpen=false;closeSheet();render();document.querySelector(".page").scrollTo({top:0,behavior:"smooth"})}
+function renderAreas(){document.getElementById("areaTitle").textContent=sections[activeSection].name;document.getElementById("areaButtons").innerHTML=Object.entries(sections).map(([id,s])=>`<button class="area-btn ${id===activeSection?"active":""}" onclick="switchArea('${id}')">${s.name}</button>`).join("")}
+function resetDemo(){resetStates();activeSection="lamination";syncState();queueOpen=false;doneOpen=false;closeSheet();render();toast("Демо возвращено в исходное состояние.")}
 function render(){
+ renderAreas();
  const left=tasks.reduce((s,t)=>s+t.qty,0), ready=done.reduce((s,t)=>s+t.qty,0);
  document.getElementById("leftCount").textContent=left;
  document.getElementById("doneCount").textContent=ready;
@@ -127,7 +147,7 @@ function renderDone(){
  document.getElementById("doneList").classList.toggle("open",doneOpen);document.getElementById("doneArrow").textContent=doneOpen?"⌃":"⌄";
  document.getElementById("doneList").innerHTML=done.length?done.map(t=>`<div class="qrow"><div class="num">✓</div><div><div class="qtop"><span>№ ${t.id}</span><span style="color:#15803d">Готово</span></div><div class="qdesc">${t.qty} ${t.unit} · ${t.item}</div></div></div>`).join(""):'<div style="padding:14px;text-align:center;color:#94a3b8;font-size:12px">Завершённых заказов пока нет.</div>';
 }
-function completeCurrent(){if(!tasks.length)return;const t=tasks.shift();done.unshift(t);render();toast(`Заказ № ${t.id}: этап ламинации готов.`)}
+function completeCurrent(){if(!tasks.length)return;const t=tasks.shift();done.unshift(t);render();toast(`Заказ № ${t.id}: этап «${sections[activeSection].name}» готов.`)}
 function toggleQueue(){queueOpen=!queueOpen;renderQueue()} function toggleDone(){doneOpen=!doneOpen;renderDone()}
 function openDone(){doneOpen=true;renderDone();document.getElementById("done").scrollIntoView()}
 function scrollProblems(){if(problems.length)document.getElementById("problemsSection").scrollIntoView();else toast("Активных проблем сейчас нет.")}
