@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v84 · 36 cost engine</title>
+<title>Hidden Doors — Личный кабинет · Прототип v85 · reference cost model</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -997,6 +997,30 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 @media(max-width:1050px){.cost36-summary{grid-template-columns:1fr 1fr}.cost36-geometry,.cost36-overhead-wrap{grid-template-columns:1fr}}
 @media(max-width:720px){.cost36-material-grid{grid-template-columns:1fr}.cost36-fields,.cost36-fields.two{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.cost36-summary{grid-template-columns:1fr}.cost36-fields,.cost36-fields.two{grid-template-columns:1fr}}
+
+
+/* v85: reference cost accounting UI */
+.cost36-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px}
+.cost36-kpi-grid.second{margin-bottom:14px}
+.cost36-reference-note{margin:10px 0;padding:11px 12px;border:1px solid #d9cbb9;border-radius:12px;background:#fff8ec;font-size:11px;line-height:1.5;color:#5d5145}
+.cost36-reference-table{min-width:1550px}
+.cost36-reference-table th{white-space:nowrap}
+.cost36-reference-table td{vertical-align:top}
+.cost36-inline-edit{display:grid;grid-template-columns:minmax(74px,1fr) 92px auto;gap:5px;align-items:center;min-width:205px}
+.cost36-inline-edit input{width:100%;min-width:0;padding:7px 8px!important}
+.cost36-inline-edit span{font-size:10px;color:#786b5e}
+.cost36-inline-number{display:flex;align-items:center;gap:5px;min-width:105px}
+.cost36-inline-number input{width:78px;padding:7px 8px!important}
+.cost36-inline-number span{font-size:10px;color:#786b5e;white-space:nowrap}
+.cost36-reference-table input:disabled{background:#f0ece7!important;color:#62584d!important;font-weight:800}
+.cost36-group.materials{background:#eee7de;color:#5f5143}
+.cost36-group.components{background:#eef1e7;color:#5e664d}
+.cost36-group.consumables{background:#fff2df;color:#765b32}
+.cost36-group.packaging{background:#edf1f4;color:#52616c}
+.cost36-group.operations{background:#eeeaf4;color:#615771}
+.cost36-deviation{font-weight:850}
+@media(max-width:1050px){.cost36-kpi-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.cost36-kpi-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1014,7 +1038,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v84 · 36 cost engine</div>
+        <div class="version-chip"><span>HD</span> v85 · reference cost model</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1691,7 +1715,7 @@ const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Прайс проанализирован, расчёт ещё не подключён'}),
   Object.freeze({block:'Фурнитура',area:'Петли / замки / ручки / прочее',status:'external',note:'Сейчас BASE Bitrix24, sales-tier ещё не связан'}),
   Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL / ПВХ',status:'pending',note:'Цены источника зафиксированы, автоматические правила ещё не подключены'}),
-  Object.freeze({block:'Себестоимость',area:'36 мм ПВХ · нормативная',status:'pending',note:'36 мм подключён первым рабочим блоком; 42/59 и фактическая себестоимость будут добавляться последовательно'})
+  Object.freeze({block:'Себестоимость',area:'36 мм ПВХ · нормативная / фактическая',status:'connected',note:'Эталонная схема: закупка → списание → норма → тех. отход → факт → отклонение; 42/59 подключаются следующим этапом'})
 ]);
 
 function salesPriceCoverageStatusMeta(status){
@@ -1767,7 +1791,7 @@ function renderPricingOverview(){
         ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
         ['hardware','Фурнитура','Пока BASE Bitrix24; sales-tier ещё не подключён','info'],
         ['extras','Доп. работы','Цены источника собраны, автоматизация впереди','warn'],
-        ['cost','Себестоимость','36 мм ПВХ уже считается по редактируемым нормам; остальные линии добавляем последовательно','warn']
+        ['cost','Себестоимость','36 мм ПВХ переведён на эталонную нормативно-фактическую модель','ok']
       ].map(([id,title,desc,status])=>'<button class="pricing-category-card" onclick="setPricingAdminSection(\''+id+'\')">'+
         '<span class="pricing-category-card-top"><b>'+escapeHtml(title)+'</b><span class="pricing-status '+status+'">'+escapeHtml(status==='ok'?'Подключено':status==='warn'?'В работе':'Отдельный слой')+'</span></span>'+
         '<span>'+escapeHtml(desc)+'</span>'+
@@ -2479,50 +2503,72 @@ function cart42StandardFallbackUnitPrice(item,priceType=item?.priceType||activeS
 }
 
 // --- data/cost36.js ---
-// v84: editable normative cost engine for 36 mm PVC door leaf.
-// Source baseline: Google Sheet "Hidden Doors — Себестоимость комплектов дверей" / "36 мм в ПВХ пленке".
-const COST36_STORE='hd_v84_cost36_rules';
+// v85: reference normative/factual cost model for 36 mm PVC door leaf.
+// Model: purchase unit -> write-off unit -> unit cost -> norm -> technological waste -> normative cost -> factual write-off -> deviation.
+const COST36_STORE='hd_v85_cost36_model';
+const COST36_LEGACY_STORE='hd_v84_cost36_rules';
+
 const COST36_DEFAULTS=Object.freeze({
-  geometry:Object.freeze({
-    width:800,
-    height:2000,
-    sideFrameWidth:45,
-    ribWidth:28,
-    ribGap:30
-  }),
-  faceMdf:Object.freeze({sheetPrice:1354,doorsPerSheet:1.5}),
-  frameMdf:Object.freeze({materialPrice:4783,partsPerMaterial:56,partsPerDoor:3}),
-  ribs:Object.freeze({sheetPrice:1354,ribsPerSheet:103}),
-  pva:Object.freeze({packPrice:9100,packKg:30,kgPerDoor:0.3}),
-  pvc:Object.freeze({priceM2:165,m2PerDoor:14}),
-  vacuumGlue:Object.freeze({packPrice:26450,packKg:30,kgPerDoor:0.2}),
-  packagingFilm:Object.freeze({rollPrice:13375,rollMeters:1051.2,metersPerDoor:2.5}),
-  cardboard:Object.freeze({sheetPrice:94,piecesPerSheet:12,piecesPerDoor:6}),
-  tape:Object.freeze({rollPrice:100,rollSharePerDoor:0.3}),
+  geometry:Object.freeze({width:800,height:2000,sideFrameWidth:45,ribWidth:28,ribGap:30,faceMdfDoorsPerSheet:1.5}),
   overhead:Object.freeze({
-    rent:265000,
-    electricity:50000,
-    driver:75000,
-    productionManager:75000,
-    shopEmployees:450000,
-    monthlyDoors:0
-  })
+    rent:265000,electricity:50000,driver:75000,productionManager:75000,shopEmployees:450000,
+    normalMonthlyDoors:0,actualMonthlyDoors:0
+  }),
+  operations:Object.freeze({piecework:0,external:0}),
+  resources:Object.freeze([
+    Object.freeze({id:'faceMdf',group:'materials',name:'МДФ 6 мм · щиты полотна',purchaseUnit:'лист',purchasePrice:1354,writeoffUnit:'лист',conversionQty:1,normMode:'face-mdf',norm:0,wastePct:0,actualQty:''}),
+    Object.freeze({id:'frameMdf',group:'materials',name:'Каркас МДФ 8+16 мм',purchaseUnit:'комплект раскроя',purchasePrice:4783,writeoffUnit:'дет.',conversionQty:56,normMode:'fixed',norm:3,wastePct:0,actualQty:''}),
+    Object.freeze({id:'ribs',group:'materials',name:'Рёбра жёсткости · МДФ 6 мм',purchaseUnit:'лист',purchasePrice:1354,writeoffUnit:'ребро',conversionQty:103,normMode:'ribs',norm:0,wastePct:0,actualQty:''}),
+    Object.freeze({id:'pvc',group:'materials',name:'ПВХ-плёнка',purchaseUnit:'м²',purchasePrice:165,writeoffUnit:'м²',conversionQty:1,normMode:'fixed',norm:14,wastePct:0,actualQty:''}),
+    Object.freeze({id:'pva',group:'consumables',name:'Клей ПВА',purchaseUnit:'ведро',purchasePrice:9100,writeoffUnit:'кг',conversionQty:30,normMode:'fixed',norm:0.3,wastePct:0,actualQty:''}),
+    Object.freeze({id:'vacuumGlue',group:'consumables',name:'Клей вакуумного пресса',purchaseUnit:'ведро',purchasePrice:26450,writeoffUnit:'кг',conversionQty:30,normMode:'fixed',norm:0.2,wastePct:0,actualQty:''}),
+    Object.freeze({id:'packFilm',group:'packaging',name:'Плёнка упаковочная',purchaseUnit:'рулон',purchasePrice:13375,writeoffUnit:'м',conversionQty:1051.2,normMode:'fixed',norm:2.5,wastePct:0,actualQty:''}),
+    Object.freeze({id:'cardboard',group:'packaging',name:'Картон упаковочный',purchaseUnit:'лист',purchasePrice:94,writeoffUnit:'дет.',conversionQty:12,normMode:'fixed',norm:6,wastePct:0,actualQty:''}),
+    Object.freeze({id:'tape',group:'packaging',name:'Скотч',purchaseUnit:'рулон',purchasePrice:100,writeoffUnit:'рулон',conversionQty:1,normMode:'fixed',norm:0.3,wastePct:0,actualQty:''})
+  ])
+});
+const COST36_GROUP_META=Object.freeze({
+  materials:{label:'Материалы',order:1},
+  components:{label:'Комплектующие',order:2},
+  consumables:{label:'Расходники',order:3},
+  packaging:{label:'Упаковка',order:4},
+  operations:{label:'Работы',order:5}
 });
 
-function cloneCost36Defaults(){return JSON.parse(JSON.stringify(COST36_DEFAULTS))}
-function cost36Merge(base,extra){
-  const out=JSON.parse(JSON.stringify(base));
-  Object.keys(out).forEach(key=>{
-    if(out[key]&&typeof out[key]==='object'&&!Array.isArray(out[key])){
-      out[key]=Object.assign({},out[key],extra?.[key]||{});
-    }
+function cost36Clone(v){return JSON.parse(JSON.stringify(v))}
+function cost36DefaultValues(){return cost36Clone(COST36_DEFAULTS)}
+function cost36LegacyValues(){
+  const legacy=typeof getStore==='function'?getStore(COST36_LEGACY_STORE,null):null;
+  if(!legacy?.values)return null;
+  const x=cost36DefaultValues(),v=legacy.values;
+  x.geometry.width=Number(v.geometry?.width||x.geometry.width);
+  x.geometry.height=Number(v.geometry?.height||x.geometry.height);
+  x.geometry.sideFrameWidth=Number(v.geometry?.sideFrameWidth||x.geometry.sideFrameWidth);
+  x.geometry.ribWidth=Number(v.geometry?.ribWidth||x.geometry.ribWidth);
+  x.geometry.ribGap=Number(v.geometry?.ribGap||x.geometry.ribGap);
+  x.geometry.faceMdfDoorsPerSheet=Number(v.faceMdf?.doorsPerSheet||x.geometry.faceMdfDoorsPerSheet);
+  const patch=(id,data)=>{const r=x.resources.find(y=>y.id===id);if(r)Object.assign(r,data)};
+  patch('faceMdf',{purchasePrice:Number(v.faceMdf?.sheetPrice||1354)});
+  patch('frameMdf',{purchasePrice:Number(v.frameMdf?.materialPrice||4783),conversionQty:Number(v.frameMdf?.partsPerMaterial||56),norm:Number(v.frameMdf?.partsPerDoor||3)});
+  patch('ribs',{purchasePrice:Number(v.ribs?.sheetPrice||1354),conversionQty:Number(v.ribs?.ribsPerSheet||103)});
+  patch('pva',{purchasePrice:Number(v.pva?.packPrice||9100),conversionQty:Number(v.pva?.packKg||30),norm:Number(v.pva?.kgPerDoor||0.3)});
+  patch('pvc',{purchasePrice:Number(v.pvc?.priceM2||165),norm:Number(v.pvc?.m2PerDoor||14)});
+  patch('vacuumGlue',{purchasePrice:Number(v.vacuumGlue?.packPrice||26450),conversionQty:Number(v.vacuumGlue?.packKg||30),norm:Number(v.vacuumGlue?.kgPerDoor||0.2)});
+  patch('packFilm',{purchasePrice:Number(v.packagingFilm?.rollPrice||13375),conversionQty:Number(v.packagingFilm?.rollMeters||1051.2),norm:Number(v.packagingFilm?.metersPerDoor||2.5)});
+  patch('cardboard',{purchasePrice:Number(v.cardboard?.sheetPrice||94),conversionQty:Number(v.cardboard?.piecesPerSheet||12),norm:Number(v.cardboard?.piecesPerDoor||6)});
+  patch('tape',{purchasePrice:Number(v.tape?.rollPrice||100),norm:Number(v.tape?.rollSharePerDoor||0.3)});
+  Object.assign(x.overhead,{
+    rent:Number(v.overhead?.rent||265000),electricity:Number(v.overhead?.electricity||50000),
+    driver:Number(v.overhead?.driver||75000),productionManager:Number(v.overhead?.productionManager||75000),
+    shopEmployees:Number(v.overhead?.shopEmployees||450000),normalMonthlyDoors:Number(v.overhead?.monthlyDoors||0)
   });
-  return out;
+  return x;
 }
-function cost36Rules(){
+function cost36State(){
   const saved=typeof getStore==='function'?getStore(COST36_STORE,null):null;
-  const merged=cost36Merge(COST36_DEFAULTS,saved?.values||{});
-  return {values:merged,manualOverride:!!saved,manualUpdatedAt:saved?.updatedAt||''};
+  if(saved?.values)return {values:saved.values,manualOverride:true,updatedAt:saved.updatedAt||''};
+  const legacy=cost36LegacyValues();
+  return {values:legacy||cost36DefaultValues(),manualOverride:!!legacy,updatedAt:'',migratedLegacy:!!legacy};
 }
 function cost36Num(id,fallback=0){
   const el=typeof $==='function'?$(id):null;
@@ -2530,237 +2576,230 @@ function cost36Num(id,fallback=0){
   const n=Number(el.value);
   return Number.isFinite(n)?n:Number(fallback)||0;
 }
-function cost36FormValues(){
-  const base=cost36Rules().values;
-  return {
-    geometry:{
-      width:cost36Num('cost36Width',base.geometry.width),
-      height:cost36Num('cost36Height',base.geometry.height),
-      sideFrameWidth:cost36Num('cost36SideFrameWidth',base.geometry.sideFrameWidth),
-      ribWidth:cost36Num('cost36RibWidth',base.geometry.ribWidth),
-      ribGap:cost36Num('cost36RibGap',base.geometry.ribGap)
-    },
-    faceMdf:{
-      sheetPrice:cost36Num('cost36FaceMdfPrice',base.faceMdf.sheetPrice),
-      doorsPerSheet:cost36Num('cost36FaceMdfYield',base.faceMdf.doorsPerSheet)
-    },
-    frameMdf:{
-      materialPrice:cost36Num('cost36FrameMdfPrice',base.frameMdf.materialPrice),
-      partsPerMaterial:cost36Num('cost36FrameMdfYield',base.frameMdf.partsPerMaterial),
-      partsPerDoor:cost36Num('cost36FrameMdfQty',base.frameMdf.partsPerDoor)
-    },
-    ribs:{
-      sheetPrice:cost36Num('cost36RibSheetPrice',base.ribs.sheetPrice),
-      ribsPerSheet:cost36Num('cost36RibsPerSheet',base.ribs.ribsPerSheet)
-    },
-    pva:{
-      packPrice:cost36Num('cost36PvaPackPrice',base.pva.packPrice),
-      packKg:cost36Num('cost36PvaPackKg',base.pva.packKg),
-      kgPerDoor:cost36Num('cost36PvaNorm',base.pva.kgPerDoor)
-    },
-    pvc:{
-      priceM2:cost36Num('cost36PvcPrice',base.pvc.priceM2),
-      m2PerDoor:cost36Num('cost36PvcNorm',base.pvc.m2PerDoor)
-    },
-    vacuumGlue:{
-      packPrice:cost36Num('cost36VacuumPackPrice',base.vacuumGlue.packPrice),
-      packKg:cost36Num('cost36VacuumPackKg',base.vacuumGlue.packKg),
-      kgPerDoor:cost36Num('cost36VacuumNorm',base.vacuumGlue.kgPerDoor)
-    },
-    packagingFilm:{
-      rollPrice:cost36Num('cost36PackFilmPrice',base.packagingFilm.rollPrice),
-      rollMeters:cost36Num('cost36PackFilmMeters',base.packagingFilm.rollMeters),
-      metersPerDoor:cost36Num('cost36PackFilmNorm',base.packagingFilm.metersPerDoor)
-    },
-    cardboard:{
-      sheetPrice:cost36Num('cost36CardboardPrice',base.cardboard.sheetPrice),
-      piecesPerSheet:cost36Num('cost36CardboardYield',base.cardboard.piecesPerSheet),
-      piecesPerDoor:cost36Num('cost36CardboardQty',base.cardboard.piecesPerDoor)
-    },
-    tape:{
-      rollPrice:cost36Num('cost36TapePrice',base.tape.rollPrice),
-      rollSharePerDoor:cost36Num('cost36TapeShare',base.tape.rollSharePerDoor)
-    },
-    overhead:{
-      rent:cost36Num('cost36OverheadRent',base.overhead.rent),
-      electricity:cost36Num('cost36OverheadElectricity',base.overhead.electricity),
-      driver:cost36Num('cost36OverheadDriver',base.overhead.driver),
-      productionManager:cost36Num('cost36OverheadManager',base.overhead.productionManager),
-      shopEmployees:cost36Num('cost36OverheadEmployees',base.overhead.shopEmployees),
-      monthlyDoors:cost36Num('cost36MonthlyDoors',base.overhead.monthlyDoors)
-    }
-  };
+function cost36Text(id,fallback=''){
+  const el=typeof $==='function'?$(id):null;
+  return el?String(el.value||''):String(fallback||'');
 }
-function cost36SafeDiv(a,b){return Number(b)>0?Number(a)/Number(b):0}
+function cost36Actual(id){
+  const el=typeof $==='function'?$(id):null;
+  if(!el||String(el.value).trim()==='')return '';
+  const n=Number(el.value);return Number.isFinite(n)&&n>=0?n:'';
+}
+function cost36Money(v){
+  const n=Number(v||0);return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n)+' ₽';
+}
+function cost36Plain(v,d=3){
+  const n=Number(v);return Number.isFinite(n)?new Intl.NumberFormat('ru-RU',{maximumFractionDigits:d}).format(n):'0';
+}
 function cost36RibGeometry(values){
-  const g=values.geometry;
-  const inner=Math.max(0,Number(g.width)-2*Number(g.sideFrameWidth));
+  const g=values.geometry,inner=Math.max(0,Number(g.width)-2*Number(g.sideFrameWidth));
   const pitch=Math.max(0,Number(g.ribWidth)+Number(g.ribGap));
   const count=pitch>0?Math.max(0,Math.floor((inner+Number(g.ribGap))/pitch)):0;
   const occupied=count>0?count*Number(g.ribWidth)+(count-1)*Number(g.ribGap):0;
   const residual=Math.max(0,inner-occupied);
-  return {inner,count,occupied,residual,edge:residual/2,pitch};
+  return {inner,pitch,count,occupied,residual,edge:residual/2};
+}
+function cost36NormForResource(resource,values,rib){
+  if(resource.normMode==='ribs')return rib.count;
+  if(resource.normMode==='face-mdf')return Number(values.geometry.faceMdfDoorsPerSheet)>0?1/Number(values.geometry.faceMdfDoorsPerSheet):0;
+  return Number(resource.norm||0);
+}
+function cost36ResourceCalc(resource,values,rib){
+  const purchasePrice=Math.max(0,Number(resource.purchasePrice||0));
+  const conversionQty=Math.max(0,Number(resource.conversionQty||0));
+  const unitPrice=conversionQty>0?purchasePrice/conversionQty:0;
+  const norm=Math.max(0,cost36NormForResource(resource,values,rib));
+  const wastePct=Math.max(0,Number(resource.wastePct||0));
+  const writeoffNorm=norm*(1+wastePct/100);
+  const normativeCost=writeoffNorm*unitPrice;
+  const actualRaw=resource.actualQty;
+  const hasActual=actualRaw!==''&&actualRaw!==null&&actualRaw!==undefined&&Number.isFinite(Number(actualRaw));
+  const actualQty=hasActual?Math.max(0,Number(actualRaw)):null;
+  const actualCost=hasActual?actualQty*unitPrice:null;
+  return {...resource,purchasePrice,conversionQty,unitPrice,norm,wastePct,writeoffNorm,normativeCost,hasActual,actualQty,actualCost,deviation:hasActual?actualCost-normativeCost:null};
+}
+function cost36FormValues(){
+  const base=cost36State().values;
+  const values=cost36Clone(base);
+  values.geometry={
+    width:cost36Num('cost36Width',base.geometry.width),
+    height:cost36Num('cost36Height',base.geometry.height),
+    sideFrameWidth:cost36Num('cost36SideFrameWidth',base.geometry.sideFrameWidth),
+    ribWidth:cost36Num('cost36RibWidth',base.geometry.ribWidth),
+    ribGap:cost36Num('cost36RibGap',base.geometry.ribGap),
+    faceMdfDoorsPerSheet:cost36Num('cost36FaceYield',base.geometry.faceMdfDoorsPerSheet)
+  };
+  values.resources=(base.resources||[]).map((r,i)=>({
+    ...r,
+    purchaseUnit:cost36Text('cost36PurchaseUnit_'+i,r.purchaseUnit),
+    purchasePrice:cost36Num('cost36PurchasePrice_'+i,r.purchasePrice),
+    writeoffUnit:cost36Text('cost36WriteoffUnit_'+i,r.writeoffUnit),
+    conversionQty:cost36Num('cost36Conversion_'+i,r.conversionQty),
+    norm:r.normMode==='fixed'?cost36Num('cost36Norm_'+i,r.norm):Number(r.norm||0),
+    wastePct:cost36Num('cost36Waste_'+i,r.wastePct),
+    actualQty:cost36Actual('cost36Actual_'+i)
+  }));
+  values.operations={
+    piecework:cost36Num('cost36Piecework',base.operations?.piecework||0),
+    external:cost36Num('cost36External',base.operations?.external||0)
+  };
+  values.overhead={
+    rent:cost36Num('cost36OverheadRent',base.overhead.rent),
+    electricity:cost36Num('cost36OverheadElectricity',base.overhead.electricity),
+    driver:cost36Num('cost36OverheadDriver',base.overhead.driver),
+    productionManager:cost36Num('cost36OverheadManager',base.overhead.productionManager),
+    shopEmployees:cost36Num('cost36OverheadEmployees',base.overhead.shopEmployees),
+    normalMonthlyDoors:cost36Num('cost36NormalMonthlyDoors',base.overhead.normalMonthlyDoors),
+    actualMonthlyDoors:cost36Num('cost36ActualMonthlyDoors',base.overhead.actualMonthlyDoors)
+  };
+  return values;
 }
 function calculateCost36(values){
-  const r=cost36RibGeometry(values);
-  const rows=[
-    {group:'Материалы',name:'МДФ 6 мм · щиты полотна',norm:'1 / '+String(values.faceMdf.doorsPerSheet).replace('.',',')+' листа',formula:cost36Money(values.faceMdf.sheetPrice)+' / '+cost36Plain(values.faceMdf.doorsPerSheet),cost:cost36SafeDiv(values.faceMdf.sheetPrice,values.faceMdf.doorsPerSheet)},
-    {group:'Материалы',name:'Каркас МДФ 8+16 мм',norm:cost36Plain(values.frameMdf.partsPerDoor)+' дет.',formula:cost36Money(values.frameMdf.materialPrice)+' / '+cost36Plain(values.frameMdf.partsPerMaterial)+' × '+cost36Plain(values.frameMdf.partsPerDoor),cost:cost36SafeDiv(values.frameMdf.materialPrice,values.frameMdf.partsPerMaterial)*values.frameMdf.partsPerDoor},
-    {group:'Материалы',name:'Рёбра жёсткости · МДФ 6 мм',norm:r.count+' шт.',formula:cost36Money(values.ribs.sheetPrice)+' / '+cost36Plain(values.ribs.ribsPerSheet)+' × '+r.count,cost:cost36SafeDiv(values.ribs.sheetPrice,values.ribs.ribsPerSheet)*r.count},
-    {group:'Материалы',name:'Клей ПВА',norm:cost36Plain(values.pva.kgPerDoor)+' кг',formula:cost36Money(values.pva.packPrice)+' / '+cost36Plain(values.pva.packKg)+' кг × '+cost36Plain(values.pva.kgPerDoor)+' кг',cost:cost36SafeDiv(values.pva.packPrice,values.pva.packKg)*values.pva.kgPerDoor},
-    {group:'Материалы',name:'ПВХ-плёнка',norm:cost36Plain(values.pvc.m2PerDoor)+' м²',formula:cost36Money(values.pvc.priceM2)+' × '+cost36Plain(values.pvc.m2PerDoor)+' м²',cost:values.pvc.priceM2*values.pvc.m2PerDoor},
-    {group:'Материалы',name:'Клей вакуумного пресса',norm:cost36Plain(values.vacuumGlue.kgPerDoor)+' кг',formula:cost36Money(values.vacuumGlue.packPrice)+' / '+cost36Plain(values.vacuumGlue.packKg)+' кг × '+cost36Plain(values.vacuumGlue.kgPerDoor)+' кг',cost:cost36SafeDiv(values.vacuumGlue.packPrice,values.vacuumGlue.packKg)*values.vacuumGlue.kgPerDoor},
-    {group:'Упаковка',name:'Плёнка упаковочная',norm:cost36Plain(values.packagingFilm.metersPerDoor)+' м',formula:cost36Money(values.packagingFilm.rollPrice)+' / '+cost36Plain(values.packagingFilm.rollMeters)+' м × '+cost36Plain(values.packagingFilm.metersPerDoor)+' м',cost:cost36SafeDiv(values.packagingFilm.rollPrice,values.packagingFilm.rollMeters)*values.packagingFilm.metersPerDoor},
-    {group:'Упаковка',name:'Картон',norm:cost36Plain(values.cardboard.piecesPerDoor)+' дет.',formula:cost36Money(values.cardboard.sheetPrice)+' / '+cost36Plain(values.cardboard.piecesPerSheet)+' × '+cost36Plain(values.cardboard.piecesPerDoor),cost:cost36SafeDiv(values.cardboard.sheetPrice,values.cardboard.piecesPerSheet)*values.cardboard.piecesPerDoor},
-    {group:'Упаковка',name:'Скотч',norm:cost36Plain(values.tape.rollSharePerDoor)+' рул.',formula:cost36Money(values.tape.rollPrice)+' × '+cost36Plain(values.tape.rollSharePerDoor),cost:values.tape.rollPrice*values.tape.rollSharePerDoor}
-  ];
-  const materials=rows.filter(x=>x.group==='Материалы').reduce((s,x)=>s+x.cost,0);
-  const packaging=rows.filter(x=>x.group==='Упаковка').reduce((s,x)=>s+x.cost,0);
-  const direct=materials+packaging;
+  const rib=cost36RibGeometry(values);
+  const rows=values.resources.map(r=>cost36ResourceCalc(r,values,rib));
+  const sums={materials:0,components:0,consumables:0,packaging:0};
+  rows.forEach(r=>{if(sums[r.group]!==undefined)sums[r.group]+=r.normativeCost});
+  const operations=Number(values.operations.piecework||0)+Number(values.operations.external||0);
+  const direct=sums.materials+sums.components+sums.consumables+sums.packaging+operations;
   const overheadMonth=['rent','electricity','driver','productionManager','shopEmployees'].reduce((s,k)=>s+Number(values.overhead[k]||0),0);
-  const monthlyDoors=Number(values.overhead.monthlyDoors||0);
-  const overheadPerDoor=monthlyDoors>0?overheadMonth/monthlyDoors:null;
-  return {
-    rows,ribs:r,materials,packaging,direct,overheadMonth,monthlyDoors,overheadPerDoor,
-    full:overheadPerDoor===null?null:direct+overheadPerDoor
-  };
+  const normalDoors=Number(values.overhead.normalMonthlyDoors||0);
+  const actualDoors=Number(values.overhead.actualMonthlyDoors||0);
+  const normativeOverhead=normalDoors>0?overheadMonth/normalDoors:null;
+  const fullNormative=normativeOverhead===null?null:direct+normativeOverhead;
+  const actualRows=rows.filter(r=>r.hasActual);
+  const allActual=rows.length>0&&actualRows.length===rows.length;
+  const actualResources=allActual?rows.reduce((s,r)=>s+Number(r.actualCost||0),0):null;
+  const actualDirect=allActual?actualResources+operations:null;
+  const actualOverhead=actualDoors>0?overheadMonth/actualDoors:null;
+  const fullActual=actualDirect!==null&&actualOverhead!==null?actualDirect+actualOverhead:null;
+  const deviation=fullActual!==null&&fullNormative!==null?fullActual-fullNormative:null;
+  return {rib,rows,sums,operations,direct,overheadMonth,normativeOverhead,fullNormative,actualRowsCount:actualRows.length,allActual,actualDirect,actualOverhead,fullActual,deviation};
 }
-function cost36Plain(v){
-  const n=Number(v);
-  return Number.isFinite(n)?new Intl.NumberFormat('ru-RU',{maximumFractionDigits:3}).format(n):'0';
-}
-function cost36Money(v){
-  const n=Number(v||0);
-  return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n)+' ₽';
-}
-function cost36Input(id,label,value,suffix='',step='0.01'){
-  return '<label class="cost36-field"><span>'+escapeHtml(label)+'</span><div class="pricing-rule-input-wrap"><input id="'+id+'" type="number" min="0" step="'+step+'" value="'+escapeHtml(String(value))+'" oninput="renderCost36Preview()">'+(suffix?'<em>'+escapeHtml(suffix)+'</em>':'')+'</div></label>';
+function cost36GroupLabel(id){return COST36_GROUP_META[id]?.label||id}
+function cost36ResourceRow(resource,index,values,calc){
+  const auto=resource.normMode!=='fixed';
+  const normHelp=resource.normMode==='ribs'?'авто по геометрии':resource.normMode==='face-mdf'?'1 / выход дверей с листа':'норма на дверь';
+  return '<tr>'+
+    '<td><span class="cost36-group '+escapeHtml(resource.group)+'">'+escapeHtml(cost36GroupLabel(resource.group))+'</span></td>'+
+    '<td><b>'+escapeHtml(resource.name)+'</b><div class="mini">'+escapeHtml(normHelp)+'</div></td>'+
+    '<td><div class="cost36-inline-edit"><input id="cost36PurchaseUnit_'+index+'" value="'+escapeHtml(resource.purchaseUnit)+'" oninput="renderCost36Preview()"><input id="cost36PurchasePrice_'+index+'" type="number" min="0" step="0.01" value="'+escapeHtml(String(resource.purchasePrice))+'" oninput="renderCost36Preview()"><span>₽</span></div></td>'+
+    '<td><div class="cost36-inline-edit"><input id="cost36WriteoffUnit_'+index+'" value="'+escapeHtml(resource.writeoffUnit)+'" oninput="renderCost36Preview()"><input id="cost36Conversion_'+index+'" type="number" min="0.0001" step="0.0001" value="'+escapeHtml(String(resource.conversionQty))+'" oninput="renderCost36Preview()"></div><div class="mini">1 '+escapeHtml(resource.purchaseUnit)+' = '+cost36Plain(resource.conversionQty)+' '+escapeHtml(resource.writeoffUnit)+'</div></td>'+
+    '<td><b>'+cost36Money(calc.unitPrice)+'</b><div class="mini">за 1 '+escapeHtml(resource.writeoffUnit)+'</div></td>'+
+    '<td><div class="cost36-inline-number"><input id="cost36Norm_'+index+'" type="number" min="0" step="0.001" value="'+escapeHtml(String(calc.norm))+'" '+(auto?'disabled':'')+' oninput="renderCost36Preview()"><span>'+escapeHtml(resource.writeoffUnit)+'</span></div></td>'+
+    '<td><div class="cost36-inline-number"><input id="cost36Waste_'+index+'" type="number" min="0" step="0.1" value="'+escapeHtml(String(resource.wastePct||0))+'" oninput="renderCost36Preview()"><span>%</span></div></td>'+
+    '<td><b>'+cost36Plain(calc.writeoffNorm)+'</b> '+escapeHtml(resource.writeoffUnit)+'</td>'+
+    '<td><b>'+cost36Money(calc.normativeCost)+'</b></td>'+
+    '<td><div class="cost36-inline-number"><input id="cost36Actual_'+index+'" type="number" min="0" step="0.001" value="'+(resource.actualQty===''?'':escapeHtml(String(resource.actualQty)))+'" placeholder="—" oninput="renderCost36Preview()"><span>'+escapeHtml(resource.writeoffUnit)+'</span></div></td>'+
+    '<td class="cost36-deviation" data-dev="'+index+'">'+(calc.hasActual?cost36Money(calc.deviation):'—')+'</td>'+
+  '</tr>';
 }
 function saveCost36AdminRules(){
   const values=cost36FormValues();
-  if(values.geometry.width<=0||values.geometry.sideFrameWidth<0||values.geometry.ribWidth<=0||values.geometry.ribGap<0){
-    const msg=$('cost36Message');if(msg){msg.className='pricing-admin-message error';msg.textContent='Проверьте геометрию полотна.'}return;
+  if(values.geometry.width<=0||values.geometry.ribWidth<=0||values.geometry.faceMdfDoorsPerSheet<=0){
+    const msg=$('cost36Message');if(msg){msg.className='pricing-admin-message error';msg.textContent='Проверьте геометрию и выход МДФ.'}return;
   }
   setStore(COST36_STORE,{values,updatedAt:new Date().toISOString()});
   renderPricingAdmin();
-  const msg=$('cost36Message');if(msg){msg.className='pricing-admin-message success';msg.textContent='Себестоимость 36 мм сохранена и применяется в этом браузере.'}
+  const msg=$('cost36Message');if(msg){msg.className='pricing-admin-message success';msg.textContent='Эталонная модель 36 мм сохранена и применяется в этом браузере.'}
 }
 function resetCost36AdminRules(){
-  if(!confirm('Вернуть исходные значения из таблицы себестоимости 36 мм?'))return;
-  localStorage.removeItem(COST36_STORE);
-  renderPricingAdmin();
-  const msg=$('cost36Message');if(msg){msg.className='pricing-admin-message success';msg.textContent='Исходные значения таблицы восстановлены.'}
+  if(!confirm('Вернуть исходные значения 36 мм из таблицы себестоимости?'))return;
+  localStorage.removeItem(COST36_STORE);localStorage.removeItem(COST36_LEGACY_STORE);renderPricingAdmin();
 }
 function renderCost36Preview(){
-  const values=cost36FormValues();
-  const c=calculateCost36(values);
-  const set=(id,html)=>{const el=$(id);if(el)el.innerHTML=html};
-  set('cost36MaterialsTotal',cost36Money(c.materials));
-  set('cost36PackagingTotal',cost36Money(c.packaging));
+  const values=cost36FormValues(),c=calculateCost36(values);
+  const set=(id,val)=>{const el=$(id);if(el)el.innerHTML=val};
+  set('cost36MaterialsTotal',cost36Money(c.sums.materials));
+  set('cost36ConsumablesTotal',cost36Money(c.sums.consumables));
+  set('cost36PackagingTotal',cost36Money(c.sums.packaging));
   set('cost36DirectTotal',cost36Money(c.direct));
-  set('cost36OverheadMonth',cost36Money(c.overheadMonth));
-  set('cost36OverheadPerDoor',c.overheadPerDoor===null?'Задайте выпуск':cost36Money(c.overheadPerDoor));
-  set('cost36FullTotal',c.full===null?'—':cost36Money(c.full));
-  set('cost36RibCount',String(c.ribs.count));
-  set('cost36InnerWidth',cost36Plain(c.ribs.inner)+' мм');
-  set('cost36RibPitch',cost36Plain(c.ribs.pitch)+' мм');
-  set('cost36RibEdge',cost36Plain(c.ribs.edge)+' мм');
-  const body=$('cost36Rows');
-  if(body)body.innerHTML=c.rows.map(row=>'<tr><td><span class="cost36-group '+(row.group==='Упаковка'?'pack':'')+'">'+escapeHtml(row.group)+'</span></td><td><b>'+escapeHtml(row.name)+'</b></td><td>'+escapeHtml(row.norm)+'</td><td class="cost36-formula">'+escapeHtml(row.formula)+'</td><td><b>'+cost36Money(row.cost)+'</b></td></tr>').join('');
-  const note=$('cost36GeometryFormula');
-  if(note)note.innerHTML='Рабочая ширина: <b>'+cost36Plain(values.geometry.width)+' − 2 × '+cost36Plain(values.geometry.sideFrameWidth)+' = '+cost36Plain(c.ribs.inner)+' мм</b>. '+
-    'Рёбра: <b>'+c.ribs.count+' шт.</b> при ширине ребра '+cost36Plain(values.geometry.ribWidth)+' мм и чистом зазоре '+cost36Plain(values.geometry.ribGap)+' мм. '+
-    'Остаток по краям ≈ '+cost36Plain(c.ribs.edge)+' мм с каждой стороны.';
+  set('cost36NormOverhead',c.normativeOverhead===null?'Задайте нормальный выпуск':cost36Money(c.normativeOverhead));
+  set('cost36FullNorm',c.fullNormative===null?'—':cost36Money(c.fullNormative));
+  set('cost36ActualProgress',c.actualRowsCount+' / '+c.rows.length+' ресурсов');
+  set('cost36FullActual',c.fullActual===null?'Не заполнен':cost36Money(c.fullActual));
+  set('cost36Deviation',c.deviation===null?'—':(c.deviation>=0?'+':'')+cost36Money(c.deviation));
+  set('cost36RibCount',String(c.rib.count));
+  set('cost36InnerWidth',cost36Plain(c.rib.inner)+' мм');
+  set('cost36RibPitch',cost36Plain(c.rib.pitch)+' мм');
+  set('cost36RibEdge',cost36Plain(c.rib.edge)+' мм');
+  const formula=$('cost36GeometryFormula');
+  if(formula)formula.innerHTML='Рабочая ширина: <b>'+cost36Plain(values.geometry.width)+' − 2 × '+cost36Plain(values.geometry.sideFrameWidth)+' = '+cost36Plain(c.rib.inner)+' мм</b>. Рёбра: <b>'+c.rib.count+' шт.</b>, ширина '+cost36Plain(values.geometry.ribWidth)+' мм, чистый зазор '+cost36Plain(values.geometry.ribGap)+' мм.';
+  c.rows.forEach((r,i)=>{
+    const row=document.querySelector('[data-cost-row="'+i+'"]');
+    if(!row)return;
+    const cells=row.querySelectorAll('[data-live]');
+    cells.forEach(el=>{
+      const key=el.getAttribute('data-live');
+      if(key==='unit')el.textContent=cost36Money(r.unitPrice);
+      if(key==='norm')el.textContent=cost36Plain(r.norm);
+      if(key==='writeoff')el.textContent=cost36Plain(r.writeoffNorm);
+      if(key==='cost')el.textContent=cost36Money(r.normativeCost);
+      if(key==='dev')el.textContent=r.hasActual?((r.deviation>=0?'+':'')+cost36Money(r.deviation)):'—';
+    });
+  });
 }
 function renderCost36Admin(){
-  const state=cost36Rules();
-  const v=state.values;
+  const state=cost36State(),v=state.values,rib=cost36RibGeometry(v),calc=calculateCost36(v);
   const mode=state.manualOverride?'Ручные настройки активны':'Исходные значения таблицы';
   const modeCls=state.manualOverride?'manual':'approved';
-  const updated=state.manualOverride&&state.manualUpdatedAt?new Date(state.manualUpdatedAt).toLocaleString('ru-RU'):'';
-  return pricingAdminSectionHeader('Себестоимость · 36 мм ПВХ','Живая нормативная модель: меняете закупочную цену, норму или геометрию — себестоимость пересчитывается сразу.','Первый рабочий блок')+
-    '<div class="cost36-summary">'+
-      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Материальная себестоимость</div><div id="cost36DirectTotal" class="pricing-admin-big">—</div><div class="mini">Материалы + упаковка на одно полотно</div></div>'+
-      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Материалы</div><div id="cost36MaterialsTotal" class="pricing-admin-big">—</div><div class="mini">Без упаковки и накладных</div></div>'+
-      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Упаковка</div><div id="cost36PackagingTotal" class="pricing-admin-big">—</div><div class="mini">Плёнка + картон + скотч</div></div>'+
-      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Полная нормативная</div><div id="cost36FullTotal" class="pricing-admin-big">—</div><div class="mini">Появится после задания выпуска в месяц</div></div>'+
+  const rows=(v.resources||[]).map((r,i)=>{
+    const cr=cost36ResourceCalc(r,v,rib);
+    return '<tr data-cost-row="'+i+'">'+
+      '<td><span class="cost36-group '+escapeHtml(r.group)+'">'+escapeHtml(cost36GroupLabel(r.group))+'</span></td>'+
+      '<td><b>'+escapeHtml(r.name)+'</b><div class="mini">'+(r.normMode==='ribs'?'Норма автоматически по геометрии':r.normMode==='face-mdf'?'Норма = 1 / выход дверей с листа':'Норма на изделие')+'</div></td>'+
+      '<td><div class="cost36-inline-edit"><input id="cost36PurchaseUnit_'+i+'" value="'+escapeHtml(r.purchaseUnit)+'"><input id="cost36PurchasePrice_'+i+'" type="number" min="0" step="0.01" value="'+escapeHtml(String(r.purchasePrice))+'" oninput="renderCost36Preview()"><span>₽</span></div></td>'+
+      '<td><div class="cost36-inline-edit"><input id="cost36WriteoffUnit_'+i+'" value="'+escapeHtml(r.writeoffUnit)+'"><input id="cost36Conversion_'+i+'" type="number" min="0.0001" step="0.0001" value="'+escapeHtml(String(r.conversionQty))+'" oninput="renderCost36Preview()"></div></td>'+
+      '<td><b data-live="unit">'+cost36Money(cr.unitPrice)+'</b></td>'+
+      '<td><div class="cost36-inline-number"><input id="cost36Norm_'+i+'" type="number" min="0" step="0.001" value="'+escapeHtml(String(cr.norm))+'" '+(r.normMode!=='fixed'?'disabled':'')+' oninput="renderCost36Preview()"><span>'+escapeHtml(r.writeoffUnit)+'</span></div></td>'+
+      '<td><div class="cost36-inline-number"><input id="cost36Waste_'+i+'" type="number" min="0" step="0.1" value="'+escapeHtml(String(r.wastePct||0))+'" oninput="renderCost36Preview()"><span>%</span></div></td>'+
+      '<td><b data-live="writeoff">'+cost36Plain(cr.writeoffNorm)+'</b> '+escapeHtml(r.writeoffUnit)+'</td>'+
+      '<td><b data-live="cost">'+cost36Money(cr.normativeCost)+'</b></td>'+
+      '<td><div class="cost36-inline-number"><input id="cost36Actual_'+i+'" type="number" min="0" step="0.001" value="'+(r.actualQty===''?'':escapeHtml(String(r.actualQty)))+'" placeholder="—" oninput="renderCost36Preview()"><span>'+escapeHtml(r.writeoffUnit)+'</span></div></td>'+
+      '<td data-live="dev">'+(cr.hasActual?((cr.deviation>=0?'+':'')+cost36Money(cr.deviation)):'—')+'</td>'+
+    '</tr>';
+  }).join('');
+  const num=(id,label,value,suffix,step='0.01')=>'<label class="cost36-field"><span>'+escapeHtml(label)+'</span><div class="pricing-rule-input-wrap"><input id="'+id+'" type="number" min="0" step="'+step+'" value="'+escapeHtml(String(value))+'" oninput="renderCost36Preview()"><em>'+escapeHtml(suffix)+'</em></div></label>';
+  return pricingAdminSectionHeader('Себестоимость · 36 мм ПВХ','Эталонная схема: закупка → списание → норма → технологический отход → норматив → факт → отклонение.','v85 · эталон')+
+    '<div class="cost36-kpi-grid">'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Материалы</div><div id="cost36MaterialsTotal" class="pricing-admin-big">'+cost36Money(calc.sums.materials)+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Расходники</div><div id="cost36ConsumablesTotal" class="pricing-admin-big">'+cost36Money(calc.sums.consumables)+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Упаковка</div><div id="cost36PackagingTotal" class="pricing-admin-big">'+cost36Money(calc.sums.packaging)+'</div></div>'+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Прямая нормативная</div><div id="cost36DirectTotal" class="pricing-admin-big">'+cost36Money(calc.direct)+'</div><div class="mini">Материалы + расходники + упаковка + работы</div></div>'+
+    '</div>'+
+    '<div class="cost36-kpi-grid second">'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Накладные / дверь</div><div id="cost36NormOverhead" class="pricing-admin-big">'+(calc.normativeOverhead===null?'—':cost36Money(calc.normativeOverhead))+'</div><div class="mini">По нормальному выпуску</div></div>'+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Полная нормативная</div><div id="cost36FullNorm" class="pricing-admin-big">'+(calc.fullNormative===null?'—':cost36Money(calc.fullNormative))+'</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Фактическая полная</div><div id="cost36FullActual" class="pricing-admin-big">'+(calc.fullActual===null?'Не заполнен':cost36Money(calc.fullActual))+'</div><div id="cost36ActualProgress" class="mini">'+calc.actualRowsCount+' / '+calc.rows.length+' ресурсов</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Отклонение факт − норма</div><div id="cost36Deviation" class="pricing-admin-big">'+(calc.deviation===null?'—':(calc.deviation>=0?'+':'')+cost36Money(calc.deviation))+'</div></div>'+
     '</div>'+
     '<div class="section pricing-rule-editor">'+
-      '<div class="pricing-rule-editor-head"><div><div class="section-title">36 мм · ПВХ · параметры расчёта</div><div class="mini">Все поля редактируемые. Значения по умолчанию перенесены из рабочей таблицы себестоимости.</div></div><span class="pricing-rule-mode '+modeCls+'">'+escapeHtml(mode)+'</span></div>'+
-      (state.manualOverride?'<div class="pricing-rule-local-note"><b>Ручной режим прототипа.</b> Настройки сохранены в этом браузере'+(updated?' · '+escapeHtml(updated):'')+'.</div>':'')+
-      '<div class="cost36-geometry">'+
-        '<div><div class="pricing-rule-block-title">Геометрия полотна и рёбер</div><div class="cost36-fields">'+
-          cost36Input('cost36Width','Ширина полотна',v.geometry.width,'мм','10')+
-          cost36Input('cost36Height','Высота полотна',v.geometry.height,'мм','10')+
-          cost36Input('cost36SideFrameWidth','Боковой каркас',v.geometry.sideFrameWidth,'мм','1')+
-          cost36Input('cost36RibWidth','Ширина ребра',v.geometry.ribWidth,'мм','1')+
-          cost36Input('cost36RibGap','Чистый зазор между рёбрами',v.geometry.ribGap,'мм','1')+
-        '</div></div>'+
-        '<div class="cost36-rib-card"><div class="pricing-rule-block-title">Автоматический конструктив</div><div class="cost36-rib-number"><b id="cost36RibCount">—</b><span>рёбер жёсткости</span></div>'+
-          '<div class="cost36-rib-metrics"><span>Внутри <b id="cost36InnerWidth">—</b></span><span>Шаг <b id="cost36RibPitch">—</b></span><span>Край <b id="cost36RibEdge">—</b></span></div>'+
-          '<div id="cost36GeometryFormula" class="mini cost36-geometry-formula"></div>'+
-          '<div class="mini cost36-height-note">Высота сейчас показывается как параметр изделия. Изменение нормы раскроя МДФ по высоте подключим после отдельного утверждения схемы раскроя — система её не выдумывает.</div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="cost36-material-grid">'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">МДФ 6 мм · щиты</div><div class="cost36-fields two">'+
-          cost36Input('cost36FaceMdfPrice','Цена листа',v.faceMdf.sheetPrice,'₽','1')+
-          cost36Input('cost36FaceMdfYield','Выход дверей с листа',v.faceMdf.doorsPerSheet,'двери','0.1')+
-        '</div><div class="mini">Лист 2800×2070. Зафиксировано: из одного листа ≈ 1,5 двери → расход на дверь 2/3 листа.</div></div>'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">Каркас МДФ 8+16 мм</div><div class="cost36-fields">'+
-          cost36Input('cost36FrameMdfPrice','Стоимость материала',v.frameMdf.materialPrice,'₽','1')+
-          cost36Input('cost36FrameMdfYield','Деталей из материала',v.frameMdf.partsPerMaterial,'шт.','1')+
-          cost36Input('cost36FrameMdfQty','Деталей на дверь',v.frameMdf.partsPerDoor,'шт.','1')+
-        '</div></div>'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">Рёбра жёсткости</div><div class="cost36-fields two">'+
-          cost36Input('cost36RibSheetPrice','Цена листа МДФ 6',v.ribs.sheetPrice,'₽','1')+
-          cost36Input('cost36RibsPerSheet','Выход рёбер с листа',v.ribs.ribsPerSheet,'шт.','1')+
-        '</div><div class="mini">Количество рёбер на дверь не вводится вручную — рассчитывается по ширине полотна.</div></div>'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">Клей ПВА</div><div class="cost36-fields">'+
-          cost36Input('cost36PvaPackPrice','Цена упаковки',v.pva.packPrice,'₽','1')+
-          cost36Input('cost36PvaPackKg','Вес упаковки',v.pva.packKg,'кг','0.1')+
-          cost36Input('cost36PvaNorm','Расход на дверь',v.pva.kgPerDoor,'кг','0.01')+
-        '</div></div>'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">ПВХ-плёнка</div><div class="cost36-fields two">'+
-          cost36Input('cost36PvcPrice','Цена за м²',v.pvc.priceM2,'₽','1')+
-          cost36Input('cost36PvcNorm','Норма на дверь',v.pvc.m2PerDoor,'м²','0.1')+
-        '</div><div class="mini">Норма 14 м² зафиксирована по текущей технологии и остаётся редактируемой.</div></div>'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">Клей вакуумного пресса</div><div class="cost36-fields">'+
-          cost36Input('cost36VacuumPackPrice','Цена упаковки',v.vacuumGlue.packPrice,'₽','1')+
-          cost36Input('cost36VacuumPackKg','Вес упаковки',v.vacuumGlue.packKg,'кг','0.1')+
-          cost36Input('cost36VacuumNorm','Расход на дверь',v.vacuumGlue.kgPerDoor,'кг','0.01')+
-        '</div></div>'+
-      '</div>'+
-      '<div class="section-title cost36-subtitle">Упаковка полотна</div>'+
-      '<div class="cost36-material-grid">'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">Упаковочная плёнка</div><div class="cost36-fields">'+
-          cost36Input('cost36PackFilmPrice','Цена рулона',v.packagingFilm.rollPrice,'₽','1')+
-          cost36Input('cost36PackFilmMeters','Метров в рулоне',v.packagingFilm.rollMeters,'м','0.1')+
-          cost36Input('cost36PackFilmNorm','Норма на дверь',v.packagingFilm.metersPerDoor,'м','0.1')+
-        '</div></div>'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">Картон</div><div class="cost36-fields">'+
-          cost36Input('cost36CardboardPrice','Цена листа',v.cardboard.sheetPrice,'₽','1')+
-          cost36Input('cost36CardboardYield','Деталей из листа',v.cardboard.piecesPerSheet,'шт.','1')+
-          cost36Input('cost36CardboardQty','Деталей на дверь',v.cardboard.piecesPerDoor,'шт.','1')+
-        '</div></div>'+
-        '<div class="pricing-rule-block"><div class="pricing-rule-block-title">Скотч</div><div class="cost36-fields two">'+
-          cost36Input('cost36TapePrice','Цена рулона',v.tape.rollPrice,'₽','1')+
-          cost36Input('cost36TapeShare','Доля рулона на дверь',v.tape.rollSharePerDoor,'рул.','0.01')+
-        '</div></div>'+
-      '</div>'+
-      '<div class="section-title cost36-subtitle">Накладные расходы цеха</div>'+
+      '<div class="pricing-rule-editor-head"><div><div class="section-title">1. Геометрия и нормативы изделия</div><div class="mini">Геометрия управляет автоматическими нормами. Здесь не храним «12 рёбер» константой — получаем их из конструкции.</div></div><span class="pricing-rule-mode '+modeCls+'">'+escapeHtml(mode)+'</span></div>'+
+      '<div class="cost36-geometry"><div><div class="cost36-fields">'+
+        num('cost36Width','Ширина полотна',v.geometry.width,'мм','10')+
+        num('cost36Height','Высота полотна',v.geometry.height,'мм','10')+
+        num('cost36SideFrameWidth','Боковой каркас',v.geometry.sideFrameWidth,'мм','1')+
+        num('cost36RibWidth','Ширина ребра',v.geometry.ribWidth,'мм','1')+
+        num('cost36RibGap','Чистый зазор',v.geometry.ribGap,'мм','1')+
+        num('cost36FaceYield','Выход дверей с листа МДФ 6',v.geometry.faceMdfDoorsPerSheet,'двери','0.1')+
+      '</div></div><div class="cost36-rib-card"><div class="pricing-rule-block-title">Автоматический конструктив</div><div class="cost36-rib-number"><b id="cost36RibCount">'+rib.count+'</b><span>рёбер жёсткости</span></div><div class="cost36-rib-metrics"><span>Внутри <b id="cost36InnerWidth">'+cost36Plain(rib.inner)+' мм</b></span><span>Шаг <b id="cost36RibPitch">'+cost36Plain(rib.pitch)+' мм</b></span><span>Край <b id="cost36RibEdge">'+cost36Plain(rib.edge)+' мм</b></span></div><div id="cost36GeometryFormula" class="mini cost36-geometry-formula"></div></div></div>'+
+      '<div class="section-title cost36-subtitle">2. Ресурсы и правила списания</div>'+
+      '<div class="cost36-reference-note"><b>Правило:</b> цена единицы списания = цена закупки ÷ количество единиц списания в закупочной единице. Норматив к списанию = норма × (1 + технологический отход %). Брак и переделка сюда не включаются — они должны идти отдельным фактическим отклонением.</div>'+
+      '<div class="table-wrap"><table class="cost36-reference-table"><thead><tr><th>Группа</th><th>Ресурс</th><th>Закупка</th><th>Списание / конверсия</th><th>Цена ед.</th><th>Норма</th><th>Тех. отход</th><th>К списанию</th><th>Норм. стоимость</th><th>Факт</th><th>Отклонение</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="section-title cost36-subtitle">3. Работы</div><div class="cost36-material-grid"><div class="pricing-rule-block"><div class="cost36-fields two">'+
+        num('cost36Piecework','Сдельные операции / дверь',v.operations?.piecework||0,'₽','1')+
+        num('cost36External','Внешние работы / дверь',v.operations?.external||0,'₽','1')+
+      '</div><div class="mini">Работы входят в прямую себестоимость. Когда появится пооперационный учёт, эти две строки можно заменить маршрутной картой.</div></div></div>'+
+      '<div class="section-title cost36-subtitle">4. Производственные накладные</div>'+
       '<div class="cost36-overhead-wrap"><div class="pricing-rule-block"><div class="cost36-fields">'+
-        cost36Input('cost36OverheadRent','Аренда / месяц',v.overhead.rent,'₽','1000')+
-        cost36Input('cost36OverheadElectricity','Электричество / месяц',v.overhead.electricity,'₽','1000')+
-        cost36Input('cost36OverheadDriver','Водитель / месяц',v.overhead.driver,'₽','1000')+
-        cost36Input('cost36OverheadManager','Начальник производства / месяц',v.overhead.productionManager,'₽','1000')+
-        cost36Input('cost36OverheadEmployees','Сотрудники цеха / месяц',v.overhead.shopEmployees,'₽','1000')+
-        cost36Input('cost36MonthlyDoors','Выпуск дверей / месяц',v.overhead.monthlyDoors,'шт.','1')+
-      '</div></div>'+
-      '<div class="cost36-overhead-summary"><div><span>Накладные в месяц</span><b id="cost36OverheadMonth">—</b></div><div><span>На одну дверь</span><b id="cost36OverheadPerDoor">—</b></div><p>В исходной таблице месячные расходы попадали в общий SUM одной двери. Здесь они отделены и распределяются только через фактический/плановый выпуск.</p></div></div>'+
-      '<div class="section-title cost36-subtitle">Расшифровка формулы</div>'+
-      '<div class="table-wrap"><table class="cost36-table"><thead><tr><th>Блок</th><th>Материал</th><th>Норма</th><th>Формула</th><th>На дверь</th></tr></thead><tbody id="cost36Rows"></tbody></table></div>'+
-      '<div class="pricing-rule-actions"><button class="primary" onclick="saveCost36AdminRules()">Сохранить и применить</button><button class="secondary" onclick="resetCost36AdminRules()">Вернуть значения таблицы</button><div id="cost36Message" class="pricing-admin-message"></div></div>'+
+        num('cost36OverheadRent','Аренда / месяц',v.overhead.rent,'₽','1000')+
+        num('cost36OverheadElectricity','Электричество / месяц',v.overhead.electricity,'₽','1000')+
+        num('cost36OverheadDriver','Водитель / месяц',v.overhead.driver,'₽','1000')+
+        num('cost36OverheadManager','Начальник производства / месяц',v.overhead.productionManager,'₽','1000')+
+        num('cost36OverheadEmployees','Сотрудники цеха / месяц',v.overhead.shopEmployees,'₽','1000')+
+        num('cost36NormalMonthlyDoors','Нормальный выпуск / месяц',v.overhead.normalMonthlyDoors,'дверей','1')+
+        num('cost36ActualMonthlyDoors','Фактический выпуск / месяц',v.overhead.actualMonthlyDoors,'дверей','1')+
+      '</div></div><div class="cost36-overhead-summary"><b>Почему два выпуска?</b><p><b>Нормальная мощность</b> используется для нормативной себестоимости и цены. <b>Фактический выпуск</b> — только для анализа периода. Так падение выпуска не искажает нормативную цену изделия.</p></div></div>'+
+      '<div class="pricing-rule-actions"><button class="primary" onclick="saveCost36AdminRules()">Сохранить и применить</button><button class="secondary" onclick="resetCost36AdminRules()">Вернуть исходные значения</button><div id="cost36Message" class="pricing-admin-message"></div></div>'+
     '</div>';
 }
 
