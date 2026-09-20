@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v94 · Отчёты упаковки</title>
+<title>Hidden Doors — Личный кабинет · Прототип v95 · Sticky-навигация</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1170,10 +1170,102 @@ th,td{border-color:#ece5dc;padding:10px 11px}
   .hd-cost-tip-table{font-size:10px!important}
   .hd-cost-tip-table th,.hd-cost-tip-table td{padding:7px 6px!important}
 }
+
+
+/* v95: persistent context in pricing/cost admin */
+#pricingAdminRoot{
+  --pricing-admin-nav-height:56px;
+}
+#pricingAdminRoot .pricing-admin-nav{
+  top:8px;
+  z-index:70;
+  margin-bottom:10px;
+  box-shadow:0 5px 18px rgba(42,33,24,.08);
+}
+#pricingAdminRoot .cost-model-nav{
+  position:sticky;
+  top:calc(var(--pricing-admin-nav-height,56px) + 16px);
+  z-index:68;
+  margin-bottom:14px;
+  background:rgba(247,243,238,.97);
+  backdrop-filter:blur(12px);
+  box-shadow:0 5px 18px rgba(42,33,24,.09);
+}
+#pricingAdminRoot .pricing-admin-nav,
+#pricingAdminRoot .cost-model-nav{
+  scrollbar-width:thin;
+  scrollbar-color:#cdbda9 transparent;
+}
+#pricingAdminRoot .cost-model-nav button.active{
+  box-shadow:0 0 0 2px rgba(255,255,255,.55),0 2px 8px rgba(31,27,23,.18);
+}
+.pricing-floating-table-head{
+  position:fixed;
+  display:none;
+  z-index:66;
+  overflow:hidden;
+  pointer-events:none;
+  border:1px solid #d8cabb;
+  border-radius:10px;
+  background:#f4eee7;
+  box-shadow:0 7px 22px rgba(42,33,24,.14);
+}
+.pricing-floating-table-head.show{display:block}
+.pricing-floating-table-head-viewport{
+  width:100%;
+  overflow:hidden;
+}
+.pricing-floating-table{
+  margin:0!important;
+  border-collapse:separate!important;
+  border-spacing:0!important;
+  transition:none!important;
+  will-change:transform;
+}
+.pricing-floating-table thead,
+.pricing-floating-table thead tr{
+  background:#f4eee7!important;
+}
+.pricing-floating-table th{
+  box-sizing:border-box!important;
+  padding:9px 10px!important;
+  border:0!important;
+  border-right:1px solid #e1d5c8!important;
+  border-bottom:1px solid #d8cabb!important;
+  background:#f4eee7!important;
+  color:#5f5144!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  line-height:1.2!important;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+  white-space:nowrap!important;
+}
+.pricing-floating-table th:last-child{border-right:0!important}
+@media(max-width:700px){
+  #pricingAdminRoot .pricing-admin-nav{
+    top:4px;
+    padding:6px;
+    margin-bottom:8px;
+  }
+  #pricingAdminRoot .pricing-admin-nav button{
+    padding:7px 9px;
+  }
+  #pricingAdminRoot .cost-model-nav{
+    top:calc(var(--pricing-admin-nav-height,48px) + 9px);
+    padding:6px;
+  }
+  #pricingAdminRoot .cost-model-nav button{
+    padding:7px 9px;
+  }
+  .pricing-floating-table-head{
+    border-radius:8px;
+  }
+}
 </style>
 </head>
 <body>
-<!-- v94-packaging-report-fix -->
+<!-- v95-sticky-cost-navigation -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1188,7 +1280,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v94 · Отчёты упаковки</div>
+        <div class="version-chip"><span>HD</span> v95 · Sticky-навигация</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2146,6 +2238,101 @@ function renderPricing42RuleEditor(){
     '<div class="mini pricing-rule-footnote">Уже сохранённые строки заказа не пересчитываются автоматически: они сохраняют цену-снимок. Новые конфигурации используют актуальные правила.</div>'+
   '</div>';
 }
+function pricingStickyUxEnsure(){
+  if(window.__hdPricingStickyUx)return window.__hdPricingStickyUx;
+  const state={raf:0,overlay:null,viewport:null,table:null,activeWrap:null};
+  const ensureOverlay=()=>{
+    if(state.overlay?.isConnected)return state.overlay;
+    const overlay=document.createElement('div');
+    overlay.className='pricing-floating-table-head';
+    overlay.setAttribute('aria-hidden','true');
+    const viewport=document.createElement('div');
+    viewport.className='pricing-floating-table-head-viewport';
+    overlay.appendChild(viewport);
+    document.body.appendChild(overlay);
+    state.overlay=overlay;state.viewport=viewport;
+    return overlay;
+  };
+  const clear=()=>{
+    if(state.overlay)state.overlay.classList.remove('show');
+    state.activeWrap=null;
+  };
+  const syncClone=(table)=>{
+    const thead=table.tHead;
+    if(!thead||!state.viewport)return;
+    const cloneTable=document.createElement('table');
+    cloneTable.className=(table.className||'')+' pricing-floating-table';
+    cloneTable.style.width=Math.max(table.scrollWidth,table.getBoundingClientRect().width)+'px';
+    cloneTable.style.minWidth=cloneTable.style.width;
+    cloneTable.style.tableLayout='fixed';
+    const cloneHead=thead.cloneNode(true);
+    cloneTable.appendChild(cloneHead);
+    const src=[...thead.querySelectorAll('th')],dst=[...cloneHead.querySelectorAll('th')];
+    src.forEach((th,i)=>{
+      const w=th.getBoundingClientRect().width;
+      if(dst[i]){dst[i].style.width=w+'px';dst[i].style.minWidth=w+'px';dst[i].style.maxWidth=w+'px'}
+    });
+    state.viewport.innerHTML='';
+    state.viewport.appendChild(cloneTable);
+    state.table=cloneTable;
+  };
+  const update=()=>{
+    state.raf=0;
+    const root=typeof $==='function'?$('pricingAdminRoot'):document.getElementById('pricingAdminRoot');
+    if(!root||activePricingAdminSection?.()!=='cost'){clear();return}
+    const topNav=root.querySelector('.pricing-admin-nav');
+    const modelNav=root.querySelector('.cost-model-nav');
+    const navH=topNav?Math.ceil(topNav.getBoundingClientRect().height):0;
+    root.style.setProperty('--pricing-admin-nav-height',navH+'px');
+    const stackBottom=Math.max(
+      0,
+      topNav?.getBoundingClientRect().bottom||0,
+      modelNav?.getBoundingClientRect().bottom||0
+    );
+    const stickyTop=Math.max(0,Math.ceil(stackBottom))+6;
+    const tables=[...root.querySelectorAll('.cost36-reference-table,.hd-cost-table')];
+    let picked=null;
+    for(const table of tables){
+      const wrap=table.closest('.table-wrap')||table.parentElement;
+      const tr=table.getBoundingClientRect(),hr=table.tHead?.getBoundingClientRect(),wr=wrap?.getBoundingClientRect();
+      if(!hr||!wr)continue;
+      const visible=tr.bottom>stickyTop+hr.height&&tr.top<window.innerHeight&&wr.right>0&&wr.left<window.innerWidth;
+      if(visible&&hr.top<stickyTop){picked={table,wrap,hr,wr};break}
+    }
+    if(!picked){clear();return}
+    ensureOverlay();
+    if(state.activeWrap!==picked.wrap||!state.table)syncClone(picked.table);
+    state.activeWrap=picked.wrap;
+    const left=Math.max(8,picked.wr.left);
+    const right=Math.min(window.innerWidth-8,picked.wr.right);
+    const width=Math.max(0,right-left);
+    state.overlay.style.top=stickyTop+'px';
+    state.overlay.style.left=left+'px';
+    state.overlay.style.width=width+'px';
+    state.overlay.classList.add('show');
+    if(state.table)state.table.style.transform='translateX('+(-picked.wrap.scrollLeft)+'px)';
+  };
+  const schedule=()=>{if(!state.raf)state.raf=requestAnimationFrame(update)};
+  state.schedule=schedule;state.update=update;
+  window.addEventListener('scroll',schedule,{passive:true});
+  window.addEventListener('resize',()=>{state.table=null;schedule()},{passive:true});
+  window.__hdPricingStickyUx=state;
+  return state;
+}
+function pricingStickyUxRefresh(){
+  const state=pricingStickyUxEnsure();
+  const root=typeof $==='function'?$('pricingAdminRoot'):document.getElementById('pricingAdminRoot');
+  if(root){
+    root.querySelectorAll('.cost36-reference-table,.hd-cost-table').forEach(table=>{
+      const wrap=table.closest('.table-wrap');
+      if(wrap&&!wrap.dataset.hdStickyHeadBound){
+        wrap.dataset.hdStickyHeadBound='1';
+        wrap.addEventListener('scroll',state.schedule,{passive:true});
+      }
+    });
+  }
+  state.schedule();
+}
 function renderPricingAdmin(){
   const root=typeof $==='function'?$('pricingAdminRoot'):null;
   if(!root)return;
@@ -2153,6 +2340,7 @@ function renderPricingAdmin(){
   root.innerHTML=pricingAdminNavHtml(section)+'<div class="pricing-admin-content">'+renderPricingAdminBody(section)+'</div>';
   if(section==='door42'&&typeof renderPricing42RulePreview==='function')renderPricing42RulePreview();
   if(section==='cost'&&activeCostAdminModel?.()==='leaf36'&&typeof renderCost36Preview==='function')renderCost36Preview();
+  pricingStickyUxRefresh();
 }
 
 // --- data/prices36.js ---
