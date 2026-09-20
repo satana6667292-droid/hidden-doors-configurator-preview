@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v95 · Sticky-навигация</title>
+<title>Hidden Doors — Личный кабинет · Прототип v96 · Компактная себестоимость</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1262,10 +1262,95 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     border-radius:8px;
   }
 }
+
+
+/* v96: compact cost resource table — fit desktop without horizontal scroll */
+#pricingAdminRoot .cost36-reference-table{
+  width:100%;
+  min-width:0;
+  table-layout:fixed;
+}
+#pricingAdminRoot .cost36-reference-table th,
+#pricingAdminRoot .cost36-reference-table td{
+  box-sizing:border-box;
+  padding:8px 6px;
+  overflow-wrap:anywhere;
+}
+#pricingAdminRoot .cost36-reference-table th{
+  white-space:normal;
+  line-height:1.15;
+  font-size:9px;
+}
+#pricingAdminRoot .cost36-reference-table th:nth-child(1),
+#pricingAdminRoot .cost36-reference-table td:nth-child(1){width:8%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(2),
+#pricingAdminRoot .cost36-reference-table td:nth-child(2){width:15%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(3),
+#pricingAdminRoot .cost36-reference-table td:nth-child(3){width:13%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(4),
+#pricingAdminRoot .cost36-reference-table td:nth-child(4){width:14%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(5),
+#pricingAdminRoot .cost36-reference-table td:nth-child(5){width:7%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(6),
+#pricingAdminRoot .cost36-reference-table td:nth-child(6){width:8%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(7),
+#pricingAdminRoot .cost36-reference-table td:nth-child(7){width:7%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(8),
+#pricingAdminRoot .cost36-reference-table td:nth-child(8){width:8%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(9),
+#pricingAdminRoot .cost36-reference-table td:nth-child(9){width:8%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(10),
+#pricingAdminRoot .cost36-reference-table td:nth-child(10){width:7%}
+#pricingAdminRoot .cost36-reference-table th:nth-child(11),
+#pricingAdminRoot .cost36-reference-table td:nth-child(11){width:5%}
+
+#pricingAdminRoot .cost36-reference-table .cost36-inline-edit{
+  min-width:0;
+  grid-template-columns:minmax(0,1fr) minmax(54px,68px) auto;
+  gap:3px;
+}
+#pricingAdminRoot .cost36-reference-table .cost36-inline-edit input{
+  min-width:0;
+  padding:6px 6px!important;
+  font-size:11px;
+}
+#pricingAdminRoot .cost36-reference-table .cost36-inline-number{
+  min-width:0;
+  gap:3px;
+}
+#pricingAdminRoot .cost36-reference-table .cost36-inline-number input{
+  width:100%;
+  min-width:0;
+  max-width:76px;
+  padding:6px 6px!important;
+}
+#pricingAdminRoot .cost36-reference-table .cost36-inline-number span,
+#pricingAdminRoot .cost36-reference-table .cost36-inline-edit span{
+  font-size:9px;
+}
+#pricingAdminRoot .cost36-reference-table td:nth-child(5),
+#pricingAdminRoot .cost36-reference-table td:nth-child(8),
+#pricingAdminRoot .cost36-reference-table td:nth-child(9),
+#pricingAdminRoot .cost36-reference-table td:nth-child(11){
+  white-space:normal;
+}
+#pricingAdminRoot .cost36-reference-table .cost-source-note{
+  max-width:none;
+  font-size:9px;
+  line-height:1.3;
+}
+
+/* Preserve a usable fallback only when the viewport is genuinely narrow. */
+@media(max-width:1100px){
+  #pricingAdminRoot .cost36-reference-table{
+    min-width:1080px;
+    table-layout:fixed;
+  }
+}
 </style>
 </head>
 <body>
-<!-- v95-sticky-cost-navigation -->
+<!-- v96-compact-cost-table -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1280,7 +1365,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v95 · Sticky-навигация</div>
+        <div class="version-chip"><span>HD</span> v96 · Компактная таблица</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
