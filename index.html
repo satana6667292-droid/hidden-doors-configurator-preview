@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v89 · Себестоимость по раскрою</title>
+<title>Hidden Doors — Личный кабинет · Прототип v90 · Читаемая себестоимость</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1087,10 +1087,93 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 .hd-cost-tip-table td:last-child{white-space:nowrap;font-weight:850}
 @media(max-width:900px){.hd-cost-kpis{grid-template-columns:1fr 1fr}.hd-cost-kpis .primary{grid-column:1/-1}.hd-cost-controls{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.hd-cost-head{display:grid}.hd-cost-kpis,.hd-cost-controls{grid-template-columns:1fr}.hd-cost-kpis .primary{grid-column:auto}.hd-cost-tooltip{max-width:calc(100vw - 20px);max-height:68vh}.hd-cost-table-wrap{overflow-x:auto}.hd-cost-table{min-width:850px}}
+
+
+/* v90: readable cost help — wide, high contrast, no scrollbars */
+.hd-cost-tooltip{
+  max-width:calc(100vw - 32px)!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding:0!important;
+  border:1px solid #cbb99f!important;
+  border-radius:16px!important;
+  background:#fffdf9!important;
+  color:#2b241d!important;
+  box-shadow:0 22px 64px rgba(35,27,20,.28)!important;
+}
+.hd-cost-tip-title{
+  margin:0!important;
+  padding:14px 18px 6px!important;
+  font-size:16px!important;
+  line-height:1.2!important;
+  color:#211b16!important;
+}
+.hd-cost-tip-rule{
+  margin:0 18px 13px!important;
+  padding:11px 13px!important;
+  border-radius:10px!important;
+  background:#f3ece3!important;
+  color:#3f352b!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+  font-weight:650!important;
+}
+.hd-cost-tip-caption{
+  margin:0!important;
+  padding:9px 18px 8px!important;
+  border-top:1px solid #e2d7ca!important;
+  color:#6d5c49!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:.035em!important;
+}
+.hd-cost-tip-table{
+  width:100%!important;
+  table-layout:fixed!important;
+  border-collapse:separate!important;
+  border-spacing:0!important;
+  font-size:11px!important;
+  line-height:1.4!important;
+  color:#2f281f!important;
+  background:#fff!important;
+}
+.hd-cost-tip-table th,.hd-cost-tip-table td{
+  padding:9px 10px!important;
+  border:0!important;
+  border-top:1px solid #e7ddd2!important;
+  border-right:1px solid #eee6dd!important;
+  vertical-align:top!important;
+  text-align:left!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  opacity:1!important;
+}
+.hd-cost-tip-table th:last-child,.hd-cost-tip-table td:last-child{border-right:0!important}
+.hd-cost-tip-table th{
+  background:#eee4d8!important;
+  color:#43382d!important;
+  font-size:10px!important;
+  font-weight:900!important;
+}
+.hd-cost-tip-table tbody tr:nth-child(even) td{background:#faf6f1!important}
+.hd-cost-tip-table tbody tr:hover td{background:#fff2df!important}
+.hd-cost-tip-table th:nth-child(1),.hd-cost-tip-table td:nth-child(1){width:7%!important}
+.hd-cost-tip-table th:nth-child(2),.hd-cost-tip-table td:nth-child(2){width:35%!important}
+.hd-cost-tip-table th:nth-child(3),.hd-cost-tip-table td:nth-child(3){width:14%!important}
+.hd-cost-tip-table th:nth-child(4),.hd-cost-tip-table td:nth-child(4){width:27%!important}
+.hd-cost-tip-table th:nth-child(5),.hd-cost-tip-table td:nth-child(5){width:17%!important;white-space:nowrap!important}
+.hd-cost-table td{color:#332b23}
+.hd-cost-table td:nth-child(2){font-weight:650;color:#4a3e32}
+@media(max-width:760px){
+  .hd-cost-tooltip{max-width:calc(100vw - 20px)!important}
+  .hd-cost-tip-rule{font-size:11px!important}
+  .hd-cost-tip-table{font-size:10px!important}
+  .hd-cost-tip-table th,.hd-cost-tip-table td{padding:7px 6px!important}
+}
 </style>
 </head>
 <body>
-<!-- v89-transparent-cost-cutting -->
+<!-- v90-readable-cost-tooltip -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -3571,9 +3654,10 @@ function renderCost59AluminumAdmin(){
 
 // --- data/cost-production-v89.js ---
 // v89 — transparent engineering cost model for 42/59 aluminum doors.
+// v90 readable tooltip: high-contrast full-width explanations and robust geometry fallbacks.
 const HD89_W=[600,700,800,900,1000],HD89_K=3;
 const HD89_TIMBER={m3:30750,bar:3000,keep:500,source:'Сиблесстрой, счёт №811 от 11.08.2026: сосна 50×150×6000, 30 000 ₽/м³ + распиловка 750 ₽/м³'};
-function hd89n(v,d=0){v=Number(String(v??'').replace(',','.'));return Number.isFinite(v)?v:d}
+function hd89n(v,d=0){if(v===null||v===undefined||String(v).trim()==='')return d;const n=Number(String(v).replace(',','.'));return Number.isFinite(n)?n:d}
 function hd89rub(v){return hd89n(v).toLocaleString('ru-RU',{maximumFractionDigits:2})+' ₽'}
 function hd89mm(v){return Math.round(v).toLocaleString('ru-RU')+' мм'}
 function hd89m(v){return (v/1000).toLocaleString('ru-RU',{maximumFractionDigits:3})+' м'}
@@ -3589,14 +3673,14 @@ function hd89prices(id,v){const c=id==='alu59'?'59':'42';return{
 }}
 function hd89cut(parts,stock,keep,kerf=3,box=false){const bars=[];[...parts].sort((a,b)=>b-a).forEach(p=>{let need=p+(box?0:kerf),bi=-1,best=1e9;bars.forEach((b,i)=>{let x=b.r-need;if(x>=0&&x<best){best=x;bi=i}});if(bi<0){bars.push({r:stock,c:[]});bi=bars.length-1}bars[bi].r-=need;bars[bi].c.push(p)});let ret=0,waste=0,write=0;bars.forEach(b=>{if(b.r>=keep){ret+=b.r;write+=stock-b.r}else{waste+=b.r;write+=stock}});return{bars,ret,waste,write}}
 function hd89rem(c,keep){const a=c.bars.map(b=>Math.round(b.r)).filter(x=>x>=keep),w=c.bars.map(b=>Math.round(b.r)).filter(x=>x>0&&x<keep);return a.length?a.map(hd89mm).join(' + ')+' → склад':w.length?w.map(hd89mm).join(' + ')+' → отход':'—'}
-function hd89mdf(h,w,price){let H=h+20,W=w+20;if(H+3>2070)return{k:'mdf',name:'МДФ 4 мм',ok:false,phys:'2 × '+H+'×'+W+' мм',write:'—',rem:'—',cost:0,why:'Для этой высоты утверждённый раскрой листа 2800×2070 не подходит.'};let rw=2800-2*W-6,keep=rw>720,area=2800*2070-(keep?H*rw:0),f=area/(2800*2070);return{k:'mdf',name:'МДФ 4 мм',ok:true,phys:'2 × '+H+'×'+W+' мм',write:f.toLocaleString('ru-RU',{maximumFractionDigits:3})+' листа',rem:keep?rw+'×'+H+' мм → склад':rw+' мм → отход',cost:price*f,why:'Две одинаковые заготовки (H+20)×(W+20). Лист 2800×2070, пропил 3 мм. Остаток сохраняется только при ширине >720 мм.'}}
+function hd89mdf(h,w,price){let H=h+20,W=w+20;if(H+3>2070)return{k:'mdf',name:'МДФ 4 мм',ok:false,phys:'2 щита по '+H+'×'+W+' мм',write:'—',rem:'—',cost:0,why:'Для этой высоты утверждённый раскрой листа 2800×2070 не подходит.'};let rw=2800-2*W-6,keep=rw>720,area=2800*2070-(keep?H*rw:0),f=area/(2800*2070);return{k:'mdf',name:'МДФ 4 мм',ok:true,phys:'2 щита по '+H+'×'+W+' мм',write:f.toLocaleString('ru-RU',{maximumFractionDigits:3})+' листа',rem:keep?rw+'×'+H+' мм → склад':rw+' мм → отход',cost:price*f,why:'На каждую сторону двери режем одинаковую заготовку: высота двери +20 мм и ширина двери +20 мм. Исходный лист 2800×2070 мм, пропил 3 мм. Полезный остаток сохраняем только если его ширина больше 720 мм.'}}
 function hd89honey(c,h,w,price){if(h!==2000)return{k:'honey',name:'Сотопанель',ok:false,phys:'H='+h+' мм',write:'—',rem:'—',cost:0,why:'Вертикальная схема сот подтверждена пока только для H=2000.'};let i=w-(c==='59'?85:87),hs=c==='59'?[702,623,500]:[700,612,500],clean=(hs[0]*i+hs[1]*i+500*(i-100))/1e6,n=clean*1.1;return{k:'honey',name:'Сотопанель',ok:true,phys:hs[0]+'×'+i+' + '+hs[1]+'×'+i+' + 500×'+(i-100),write:hd89m2(n),rem:'10% технологические отходы',cost:n*price,why:(c==='59'?'I=W−85':'I=W−87')+'. Три детали по чертежу; к чистой площади добавляется 10%. Отдельный склад обрезков сот не ведём.'}}
-function hd89timber(c,w,price){let x=w-(c==='59'?85:87),p=[x,x,500,500],used=p.reduce((s,n)=>s+n,0)+12,r=3000-used,keep=r>=500,write=keep?used:3000;return{k:'timber',name:'Деревянный каркас',ok:true,phys:x+'×2 + 500×2 мм',write:hd89m(write),rem:keep?hd89mm(r)+' → склад':hd89mm(r)+' → отход',cost:write/1000*price,why:(c==='59'?'Две детали W−85':'Две детали W−87')+' и две по 500 мм. Рабочий кусок 3000, 4 пропила по 3 мм. Остаток <500 мм списывается.'}}
+function hd89timber(c,w,price){let x=w-(c==='59'?85:87),p=[x,x,500,500],used=p.reduce((s,n)=>s+n,0)+12,r=3000-used,keep=r>=500,write=keep?used:3000;return{k:'timber',name:'Деревянный каркас',ok:true,phys:'2 детали по '+x+' мм + 2 по 500 мм',write:hd89m(write),rem:keep?hd89mm(r)+' → склад':hd89mm(r)+' → отход',cost:write/1000*price,why:(c==='59'?'Две длинные детали = ширина двери −85 мм.':'Две длинные детали = ширина двери −87 мм.')+' Ещё две детали по 500 мм. Режем из рабочего куска 3000 мм; четыре пропила по 3 мм. Остаток от 500 мм сохраняем, меньший списываем.'}}
 function hd89profile(k,name,p,price,stock=6000,keep=600,box=false){let c=hd89cut(p,stock,keep,3,box);return{k,name,ok:true,phys:p.map(hd89mm).join(' + '),write:hd89m(c.write),rem:hd89rem(c,keep),cost:c.write/stock*price,cut:c}}
 function hd89rows(id,h,w,opening,v){let c=id==='alu59'?'59':'42',p=hd89prices(id,v),frame=hd89profile('frame','Алюминиевый каркас',[h+20,h+20,w+20],p.frame),edge;
- frame.why='H+20 + H+20 + W+20. Низ деревянный. Хлыст 6000, пропил 3 мм, остаток ≥600 мм — на склад.';
- if(c==='42'&&opening==='revers'){let a=hd89profile('edge','Алюминиевый торец',[h+20,h+20,w+20],p.edge),b=hd89profile('edge','Алюминиевый торец',[w+20],p.edge);edge={k:'edge',name:'Алюминиевый торец',ok:true,phys:'Revers: '+a.phys+' · низ: '+b.phys,write:hd89m(a.cut.write+b.cut.write),rem:'Revers '+a.rem+' · низ '+b.rem,cost:a.cost+b.cost,why:'Все детали +20 мм. В Revers три детали и нижний прямой профиль считаются разными складскими профилями.'}}else{edge=hd89profile('edge','Алюминиевый торец',[h+20,h+20,w+20,w+20],p.edge);edge.why='H+20 + H+20 + W+20 + W+20. Хлыст 6000, пропил 3 мм, остаток ≥600 мм — на склад.'}
- let box=hd89profile('box','Алюминиевый короб',[h+100,h+100,w+100],p.box,5100,700,true);box.why='H+100 + H+100 + W+100. Номинал 5100. Заводские +20–30 мм покрывают пропил и не являются складским остатком. Остаток ≥700 мм — на склад.';
+ frame.phys='2 стойки по '+(h+20)+' мм + верх '+(w+20)+' мм';frame.why='Две алюминиевые стойки: высота двери +20 мм каждая. Верхняя перемычка: ширина двери +20 мм. Нижней алюминиевой детали нет — низ деревянный. Хлыст 6000 мм, пропил 3 мм, остаток от 600 мм возвращаем на склад.';
+ if(c==='42'&&opening==='revers'){let a=hd89profile('edge','Алюминиевый торец',[h+20,h+20,w+20],p.edge),b=hd89profile('edge','Алюминиевый торец',[w+20],p.edge);edge={k:'edge',name:'Алюминиевый торец',ok:true,phys:'Revers: '+a.phys+' · низ: '+b.phys,write:hd89m(a.cut.write+b.cut.write),rem:'Revers '+a.rem+' · низ '+b.rem,cost:a.cost+b.cost,why:'Все детали +20 мм. В Revers три детали и нижний прямой профиль считаются разными складскими профилями.'}}else{edge=hd89profile('edge','Алюминиевый торец',[h+20,h+20,w+20,w+20],p.edge);edge.phys='2 вертикали по '+(h+20)+' мм + верх/низ по '+(w+20)+' мм';edge.why='Четыре детали торца: две вертикали = высота двери +20 мм; верх и низ = ширина двери +20 мм. Хлыст 6000 мм, пропил 3 мм, остаток от 600 мм возвращаем на склад.'}
+ let box=hd89profile('box','Алюминиевый короб',[h+100,h+100,w+100],p.box,5100,700,true);box.phys='2 стойки по '+(h+100)+' мм + верх '+(w+100)+' мм';box.why='Две стойки короба = высота двери +100 мм. Верхняя деталь = ширина двери +100 мм. Номинальный хлыст 5100 мм. Заводские дополнительные 20–30 мм покрывают пропил и не считаются складским остатком. Остаток от 700 мм возвращаем на склад.';
  return[hd89mdf(h,w,p.mdf),hd89honey(c,h,w,p.honey),hd89timber(c,w,p.timber),frame,edge,box]}
 function hd89legacy(calc){let ps=[/МДФ 4 мм/i,/Брус внутреннего каркаса|Закладной брус/i,/Алюминиевый каркас/i,/Сотовая панель/i,/Алюминиевая кромка/i,/Короб (42|59)/i];return calc.rows.filter(r=>ps.some(p=>p.test(r.name||''))).reduce((s,r)=>s+r.normativeCost,0)}
 function hd89calc(id,h,w,o,v){let base=costGenericCalc(v),rows=hd89rows(id,h,w,o,v),old=hd89legacy(base),good=rows.filter(x=>x.ok).reduce((s,x)=>s+x.cost,0),bad=rows.filter(x=>!x.ok),fallback=0;bad.forEach(x=>{let re=x.k==='mdf'?/МДФ 4 мм/i:/Сотовая панель/i,r=base.rows.find(y=>re.test(y.name||''));fallback+=hd89n(r?.normativeCost)});let adjusted=base.direct-old+good+fallback;return{base,rows,old,good,bad,fallback,adjusted,delta:adjusted-base.direct}}
@@ -3607,7 +3691,7 @@ function hd89body(id,c){return'<div class="hd-cost-kpis"><div class="pricing-adm
 function hd89panel(id){let g=hd89geom(id),v=hd89vals(id),c=hd89calc(id,g.h,g.w,g.o,v);return'<div class="section hd-cost-engineering"><div class="hd-cost-head"><div><div class="section-title">Рабочая себестоимость по раскрою</div><div class="mini">Норма → раскрой → остаток → списание. Наведи на ⓘ — увидишь формулу и таблицу 600–1000 мм.</div></div><span class="pricing-section-badge">v89 · рабочая норма</span></div><div class="hd-cost-controls"><label class="cost36-field"><span>Высота</span><div class="pricing-rule-input-wrap"><input id="hd89h_'+id+'" type="number" min="1700" max="2950" step="50" value="'+g.h+'" oninput="hd89refresh(\''+id+'\')"><em>мм</em></div></label><label class="cost36-field"><span>Ширина</span><select id="hd89w_'+id+'" onchange="hd89refresh(\''+id+'\')">'+HD89_W.map(x=>'<option '+(x===g.w?'selected':'')+'>'+x+'</option>').join('')+'</select></label>'+(id==='alu42'?'<label class="cost36-field"><span>Открывание</span><select id="hd89o_'+id+'" onchange="hd89refresh(\''+id+'\')"><option value="direct" '+(g.o==='direct'?'selected':'')+'>На себя / прямое</option><option value="revers" '+(g.o==='revers'?'selected':'')+'>Revers</option></select></label>':'')+'</div><div id="hd89b_'+id+'">'+hd89body(id,c)+'</div><div class="cost36-reference-note"><b>Рабочая модель:</b> верхняя сумма заменяет старые условные нормы МДФ 4 мм, сот, бруса, алюминиевого каркаса, торца и короба. Остальные материалы берутся из редактируемой таблицы ниже.</div><div id="hd89tip" class="hd-cost-tooltip"></div></div>'}
 function hd89refresh(id){let g=hd89read(id);setStore(hd89gkey(id),g);let b=$('hd89b_'+id);if(b)b.innerHTML=hd89body(id,hd89calc(id,g.h,g.w,g.o,hd89vals(id)))}
 function hd89table(id,k){let g=hd89read(id),v=hd89vals(id);return'<table class="hd-cost-tip-table"><thead><tr><th>W</th><th>Физика</th><th>Списание</th><th>Остаток</th><th>Стоимость</th></tr></thead><tbody>'+HD89_W.map(w=>{let r=hd89calc(id,2000,w,g.o,v).rows.find(x=>x.k===k);return'<tr><td><b>'+w+'</b></td><td>'+hd89e(r.phys)+'</td><td>'+hd89e(r.write)+'</td><td>'+hd89e(r.rem)+'</td><td>'+(r.ok?hd89rub(r.cost):'—')+'</td></tr>'}).join('')+'</tbody></table>'}
-function hd89tip(e,id,k){let g=hd89read(id),r=hd89calc(id,g.h,g.w,g.o,hd89vals(id)).rows.find(x=>x.k===k),t=$('hd89tip');if(!t)return;t.innerHTML='<div class="hd-cost-tip-title">Как рассчитано</div><div class="hd-cost-tip-rule">'+hd89e(r.why)+'</div><div class="hd-cost-tip-caption">Контрольная таблица при H=2000 мм</div>'+hd89table(id,k);t.classList.add('show');let a=e.currentTarget.getBoundingClientRect();requestAnimationFrame(()=>{let W=Math.min(720,innerWidth-24);t.style.width=W+'px';t.style.left=Math.max(12,Math.min(innerWidth-W-12,a.left-20))+'px';let y=a.bottom+8;if(y+t.offsetHeight>innerHeight-12)y=Math.max(12,a.top-t.offsetHeight-8);t.style.top=y+'px'})}
+function hd89tip(e,id,k){let g=hd89read(id),r=hd89calc(id,g.h,g.w,g.o,hd89vals(id)).rows.find(x=>x.k===k),t=$('hd89tip');if(!t)return;t.innerHTML='<div class="hd-cost-tip-title">Как рассчитано</div><div class="hd-cost-tip-rule">'+hd89e(r.why)+'</div><div class="hd-cost-tip-caption">Контроль по ширинам · высота двери 2000 мм</div>'+hd89table(id,k);t.classList.add('show');let a=e.currentTarget.getBoundingClientRect();requestAnimationFrame(()=>{let W=Math.min(1080,innerWidth-32);t.style.width=W+'px';t.style.left=Math.max(16,Math.min(innerWidth-W-16,a.left-24))+'px';let y=a.bottom+10;if(y+t.offsetHeight>innerHeight-12)y=Math.max(12,a.top-t.offsetHeight-10);t.style.top=y+'px'})}
 function hd89hide(){let t=$('hd89tip');if(t)t.classList.remove('show')}
 const HD89_OLD_PREVIEW=renderGenericCostPreview;renderGenericCostPreview=function(id,d){HD89_OLD_PREVIEW(id,d);if(id==='alu42'||id==='alu59')hd89refresh(id)};
 renderCost42AluminumAdmin=function(){return renderGenericCostModel('alu42',COST42_ALU_DEFAULTS,{title:'Себестоимость · 42 мм · алюминиевый каркас',subtitle:'Рабочая модель v89: геометрия, раскрой, полезные остатки и финансовое списание.',badge:'42 мм · алюминий',extraTop:hd89panel('alu42'),footerNote:'<b>Важно:</b> верхний инженерный блок — рабочая норма; таблица ниже сохраняет цены и старые нормы для аудита.'})};
