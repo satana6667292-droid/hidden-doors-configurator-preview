@@ -3983,7 +3983,40 @@ function hd89refresh(id){let g=hd89read(id);setStore(hd89gkey(id),g);let b=$('hd
 function hd89table(id,k){let g=hd89read(id),v=hd89vals(id);return'<table class="hd-cost-tip-table"><thead><tr><th>W</th><th>Физика</th><th>Списание</th><th>Остаток</th><th>Стоимость</th></tr></thead><tbody>'+HD89_W.map(w=>{let r=hd89calc(id,2000,w,g.o,v,g).rows.find(x=>x.k===k);return'<tr><td><b>'+w+'</b></td><td>'+hd89e(r.phys)+'</td><td>'+hd89e(r.write)+'</td><td>'+hd89e(r.rem)+'</td><td>'+(r.ok?hd89rub(r.cost):'—')+'</td></tr>'}).join('')+'</tbody></table>'}
 function hd89tip(e,id,k){let g=hd89read(id),r=hd89calc(id,g.h,g.w,g.o,hd89vals(id),g).rows.find(x=>x.k===k),t=$('hd89tip');if(!t)return;t.innerHTML='<div class="hd-cost-tip-title">Как рассчитано</div><div class="hd-cost-tip-rule">'+hd89e(r.why)+'</div><div class="hd-cost-tip-caption">Контроль по ширинам · высота двери 2000 мм</div>'+hd89table(id,k);t.classList.add('show');let a=e.currentTarget.getBoundingClientRect();requestAnimationFrame(()=>{let W=Math.min(1080,innerWidth-32);t.style.width=W+'px';t.style.left=Math.max(16,Math.min(innerWidth-W-16,a.left-24))+'px';let y=a.bottom+10;if(y+t.offsetHeight>innerHeight-12)y=Math.max(12,a.top-t.offsetHeight-10);t.style.top=y+'px'})}
 function hd89hide(){let t=$('hd89tip');if(t)t.classList.remove('show')}
+function hd93plyKey(){return'hd_v93_ply42_pack_geom'}
+function hd93plyGeom(){const s=getStore(hd93plyKey(),null)||{};return{h:hd89n(s.h,2000),w:hd89n(s.w,800)}}
+function hd93plyRead(){const g=hd93plyGeom();return{h:hd89n($('hd93ply_h')?.value,g.h),w:hd89n($('hd93ply_w')?.value,g.w)}}
+function hd93plyRows(h,w,v){
+  const p=hd93packagingCalc({system:'42',height:h,width:w,thickness:42,aluminumFrame:false,hasLock:true});
+  const cardboardUnit=hd93costUnit(v,/Картон упаковки полотна/i,HD93_PACKAGING.cardboard.sheetPrice/HD93_PACKAGING.cardboard.stripsPerSheet);
+  const leafTapeUnit=hd93costUnit(v,/Скотч упаковки полотна/i,HD93_PACKAGING.tape.rollPrice/HD93_PACKAGING.tape.rollMeters);
+  const boxTapeUnit=hd93costUnit(v,/Скотч упаковки короба/i,HD93_PACKAGING.tape.rollPrice/HD93_PACKAGING.tape.rollMeters);
+  const stretchUnit=hd93costUnit(v,/Стрейч упаковки короба/i,HD93_PACKAGING.stretch.rollPrice/HD93_PACKAGING.stretch.rollMeters);
+  const sleeveUnit=hd93costUnit(v,/ПЭ рукав упаковки полотна/i,HD93_PACKAGING.sleeve.rollPrice/HD93_PACKAGING.sleeve.rollMeters);
+  const outerW=w+2*HD93_PACKAGING.cardboard.thicknessMm,outerT=42+2*HD93_PACKAGING.cardboard.thicknessMm;
+  return[
+    hd93packRow('ply_pack_card_leaf','Картон · полотно','6 полос 160×1000 мм','6 полос = 0,5 листа','1 лист = 12 полос',p.rows.leafCardboard.qty*cardboardUnit,'94 ₽/лист; 12 полос из листа, 6 полос на полотно.'),
+    hd93packRow('ply_pack_card_box','Картон · короб','2 полосы 160×1000 мм','2 полосы = 1/6 листа','1 лист = 12 полос',p.rows.boxCardboard.qty*cardboardUnit,'2 полосы на комплект короба.'),
+    hd93packRow('ply_pack_tape_leaf','Скотч · полотно','5 полных витков; внешний контур '+outerW+'×'+outerT+' мм',p.rows.leafTape.qty.toLocaleString('ru-RU',{maximumFractionDigits:3})+' м','рулон 150 м',p.rows.leafTape.qty*leafTapeUnit,'5 × 2 × ((W + 6 мм картона) + (42 мм + 6 мм картона)).'),
+    hd93packRow('ply_pack_tape_box','Скотч · короб','3 точки фиксации × примерно 5 витков','6 м','рулон 150 м',p.rows.boxTape.qty*boxTapeUnit,'Утверждённая рабочая норма 6 м на короб.'),
+    hd93packRow('ply_pack_stretch','Стрейч · короб','500 мм × 23 мкм; 5 м на короб','5 м','2 кг ≈ 190 м · рабочая конверсия',p.rows.stretch.qty*stretchUnit,'550 ₽ за рулон 2 кг; 190 м/рулон — рабочая конверсия, потому что счёт не содержит метраж.'),
+    hd93packRow('ply_pack_sleeve','ПЭ рукав · полотно','(1500×2)×0,08; H + 300 мм',p.rows.sleeve.qty.toLocaleString('ru-RU',{maximumFractionDigits:3})+' м','рулон 100 м',p.rows.sleeve.qty*sleeveUnit,'4 173,75 ₽ за 100 п.м.; расход = высота полотна + 300 мм.')
+  ]
+}
+function hd93plyCalc(h,w,v){
+  const base=costGenericCalc(v),rows=hd93plyRows(h,w,v);
+  const old=base.rows.filter(r=>r.group==='packaging').reduce((s,r)=>s+r.normativeCost,0);
+  const pack=rows.reduce((s,r)=>s+r.cost,0);
+  return{base,rows,old,pack,adjusted:base.direct-old+pack,delta:pack-old}
+}
+function hd93plyBody(c){return'<div class="hd-cost-kpis"><div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Прямая себестоимость с упаковкой</div><div class="pricing-admin-big">'+hd89rub(c.adjusted)+'</div><div class="mini">Упаковка '+hd89rub(c.pack)+' · изменение к старой норме '+(c.delta>=0?'+':'')+hd89rub(c.delta)+'</div></div><div class="pricing-admin-card"><div class="pricing-admin-kicker">Упаковка</div><div class="pricing-admin-big">'+hd89rub(c.pack)+'</div><div class="mini">полотно + короб</div></div></div><div class="table-wrap hd-cost-table-wrap"><table class="hd-cost-table"><thead><tr><th>Узел</th><th>Что физически нужно</th><th>Списание</th><th>Закупочная единица</th><th>Стоимость</th></tr></thead><tbody>'+c.rows.map(r=>hd89row('ply42',r)).join('')+'</tbody></table></div>'}
+function hd93plyPanel(){
+  const g=hd93plyGeom(),v=hd89vals('ply42'),c=hd93plyCalc(g.h,g.w,v);
+  return'<div class="section hd-cost-engineering"><div class="hd-cost-head"><div><div class="section-title">Рабочая упаковка 42 · фанерный каркас</div><div class="mini">Упаковка пересчитывается от фактической высоты и ширины полотна. Синего скотча здесь нет — он применяется только на алюминиевом каркасе.</div></div><span class="pricing-section-badge">v93 · упаковка</span></div><div class="hd-cost-controls"><label class="cost36-field"><span>Высота</span><div class="pricing-rule-input-wrap"><input id="hd93ply_h" type="number" min="1700" max="2200" step="50" value="'+g.h+'" oninput="hd93plyRefresh()"><em>мм</em></div></label><label class="cost36-field"><span>Ширина</span><select id="hd93ply_w" onchange="hd93plyRefresh()">'+HD89_W.map(x=>'<option '+(x===g.w?'selected':'')+'>'+x+'</option>').join('')+'</select></label></div><div id="hd93ply_body">'+hd93plyBody(c)+'</div><div class="cost36-reference-note"><b>Важно:</b> нижняя таблица хранит редактируемые закупочные цены и конверсии; верхний блок заменяет её стандартные упаковочные нормы на геометрию выбранного полотна.</div></div>'
+}
+function hd93plyRefresh(){const g=hd93plyRead();setStore(hd93plyKey(),g);const b=$('hd93ply_body');if(b)b.innerHTML=hd93plyBody(hd93plyCalc(g.h,g.w,hd89vals('ply42')))}
 const HD89_OLD_PREVIEW=renderGenericCostPreview;renderGenericCostPreview=function(id,d){HD89_OLD_PREVIEW(id,d);if(id==='alu42'||id==='alu59')hd89refresh(id)};
+renderCost42PlywoodAdmin=function(){return renderGenericCostModel('ply42',COST42_PLY_DEFAULTS,{title:'Себестоимость · 42 мм · фанерный каркас',subtitle:'Рабочая модель v93: стандартная материальная база + динамическая упаковка по геометрии.',badge:'42 мм · фанера',extraTop:hd93plyPanel(),footerNote:'<b>Важно:</b> упаковка сверху — рабочая норма; нижняя таблица сохраняет закупочные цены и аудит.'})};
 renderCost42AluminumAdmin=function(){return renderGenericCostModel('alu42',COST42_ALU_DEFAULTS,{title:'Себестоимость · 42 мм · алюминиевый каркас',subtitle:'Рабочая модель v93: геометрия, раскрой, упаковка, полезные остатки и финансовое списание.',badge:'42 мм · алюминий',extraTop:hd89panel('alu42'),footerNote:'<b>Важно:</b> верхний инженерный блок — рабочая норма; таблица ниже сохраняет закупочные цены, конверсии и аудит.'})};
 renderCost59AluminumAdmin=function(){return renderGenericCostModel('alu59',COST59_ALU_DEFAULTS,{title:'Себестоимость · 59 мм · алюминиевый каркас',subtitle:'Рабочая модель v93: геометрия, раскрой, упаковка, полезные остатки и финансовое списание.',badge:'59 мм · алюминий',extraTop:hd89panel('alu59'),footerNote:'<b>Важно:</b> верхний инженерный блок — рабочая норма; таблица ниже сохраняет закупочные цены, конверсии и аудит.'})};
 
