@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Hidden Doors — мобильный пилот сотрудника</title>
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#e9eef3;color:#0f172a}
+button,textarea{font:inherit}.page{width:100%;max-width:480px;min-height:100vh;margin:0 auto;background:#f8fafc;padding:14px 14px 92px;box-shadow:0 0 50px rgba(15,23,42,.12)}
+.topnote{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;font-size:11px;color:#64748b}.demo{background:#fff7ed;color:#9a3412;padding:6px 9px;border-radius:999px;font-weight:800}.reset{border:0;background:transparent;color:#64748b;font-weight:700;padding:6px}
+.hero{background:#0f172a;color:#fff;border-radius:28px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,.12)}
+.hero-main{padding:20px}.person{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#4ade80;font-weight:900}.hero h1{margin:7px 0 3px;font-size:27px;line-height:1.08}.sub{font-size:13px;color:rgba(255,255,255,.55)}.metrics{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}.metric{text-align:center;padding:14px 8px}.metric b{display:block;font-size:24px}.metric span{display:block;font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.08em;font-weight:800;margin-top:3px}.metric.problem b{color:#fbbf24}
+.section{margin-top:18px}.eyebrow{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8;margin:0 4px 4px}.sectiontitle{font-size:21px;font-weight:900;margin:0 4px 10px}.card{background:#fff;border:1px solid #e2e8f0;border-radius:26px;overflow:hidden;box-shadow:0 4px 14px rgba(15,23,42,.04)}.cardhead{padding:18px;border-bottom:1px solid #f1f5f9}.orderline{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.order{font-size:25px;font-weight:900}.client{font-size:13px;color:#64748b;margin-top:3px}.qty{background:#0f172a;color:#fff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;white-space:nowrap}.itemname{font-size:18px;font-weight:900;line-height:1.3;margin-top:14px}.more{font-size:11px;color:#94a3b8;margin-top:4px}
+.details{display:grid;grid-template-columns:1fr 1fr;background:#f1f5f9;gap:1px}.detail{background:#fff;padding:12px;min-width:0}.detail span{display:block;font-size:9px;color:#94a3b8;font-weight:900;text-transform:uppercase;letter-spacing:.07em}.detail b{display:block;font-size:13px;line-height:1.35;margin-top:5px;overflow-wrap:anywhere}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}.btn{height:50px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;font-weight:900;font-size:15px}.btn.done{background:#16a34a;border-color:#16a34a;color:#fff}.foot{border-top:1px solid #f1f5f9;padding:10px 14px;text-align:center;font-size:11px;color:#94a3b8}
+.problem-list{display:grid;gap:9px}.problemcard{background:#fffbeb;border:1px solid #fcd34d;border-radius:20px;padding:14px}.problemhead{display:flex;justify-content:space-between;gap:10px}.tag{border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900;background:#d97706;color:#fff}.reason{margin-top:10px;background:rgba(255,255,255,.8);border-radius:12px;padding:10px;font-size:12px;line-height:1.4}.smallbtn{margin-top:10px;width:100%;height:40px;border-radius:12px;border:1px solid #d6d3d1;background:#fff;font-weight:800}
+.fold{margin-top:12px;background:#fff;border:1px solid #e2e8f0;border-radius:22px;overflow:hidden}.foldbtn{width:100%;border:0;background:#fff;padding:15px;display:flex;justify-content:space-between;text-align:left;align-items:center}.foldbtn b{font-size:14px}.foldbtn span{font-size:11px;color:#64748b;display:block;margin-top:3px}.queue{display:none;border-top:1px solid #f1f5f9;padding:10px}.queue.open{display:grid;gap:8px}.qrow{display:grid;grid-template-columns:32px 1fr;gap:10px;background:#f8fafc;border-radius:16px;padding:10px}.num{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#fff;font-size:11px;font-weight:900;box-shadow:0 1px 5px rgba(15,23,42,.08)}.qtop{display:flex;justify-content:space-between;font-size:12px;font-weight:900}.qdesc{font-size:12px;color:#475569;line-height:1.35;margin-top:3px}.qlink{border:0;background:transparent;padding:0;margin-top:6px;color:#a16207;font-size:11px;font-weight:900}
+.empty{background:#ecfdf5;border:1px solid #bbf7d0;border-radius:24px;padding:25px;text-align:center}.empty .big{font-size:32px}.empty b{display:block;color:#14532d;font-size:19px;margin-top:7px}.empty span{font-size:12px;color:#15803d}
+.bottom{position:fixed;z-index:20;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,.96);border-top:1px solid #e2e8f0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(10px)}.bottomgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.navbtn{border:0;background:transparent;border-radius:14px;height:55px;font-size:10px;color:#64748b;font-weight:800}.navbtn strong{display:block;font-size:17px;margin-bottom:2px}.navbtn.warn{background:#fffbeb;color:#92400e}
+.sheetback{display:none;position:fixed;z-index:40;inset:0;background:rgba(15,23,42,.45);align-items:flex-end;justify-content:center}.sheetback.open{display:flex}.sheet{width:100%;max-width:480px;background:#fff;border-radius:28px 28px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -10px 35px rgba(15,23,42,.2)}.handle{width:46px;height:5px;background:#e2e8f0;border-radius:99px;margin:0 auto 15px}.sheet .kicker{font-size:10px;color:#b45309;font-weight:900;text-transform:uppercase;letter-spacing:.1em}.sheet h2{font-size:21px;margin:4px 0 14px}.reasons{display:grid;grid-template-columns:1fr 1fr;gap:7px}.reasonbtn{border:1px solid #e2e8f0;background:#fff;border-radius:14px;padding:11px;text-align:left;font-size:12px;font-weight:800}.reasonbtn.active{background:#fffbeb;border-color:#f59e0b;color:#78350f}.comment{width:100%;min-height:76px;resize:none;margin-top:10px;border:1px solid #e2e8f0;border-radius:14px;padding:12px;outline:none}.mode{display:grid;grid-template-columns:1fr 1fr;background:#f8fafc;padding:5px;border-radius:14px;margin-top:10px;gap:4px}.mode button{border:0;background:transparent;border-radius:10px;padding:9px;font-size:11px;font-weight:800;color:#64748b}.mode button.active{background:#fff;color:#0f172a;box-shadow:0 1px 4px rgba(15,23,42,.08)}.sheetactions{display:grid;grid-template-columns:1fr 1.6fr;gap:7px;margin-top:13px}.cancel,.save{height:46px;border-radius:13px;font-weight:900}.cancel{background:#fff;border:1px solid #e2e8f0}.save{border:0;background:#d97706;color:#fff}.toast{position:fixed;z-index:60;left:50%;top:14px;transform:translateX(-50%) translateY(-80px);width:calc(100% - 28px);max-width:450px;background:#0f172a;color:#fff;border-radius:16px;padding:12px 14px;font-size:12px;font-weight:700;box-shadow:0 8px 25px rgba(15,23,42,.2);transition:.25s}.toast.show{transform:translateX(-50%) translateY(0)}
+@media(min-width:650px){body{padding:22px}.page{min-height:calc(100vh - 44px);border-radius:30px}.bottom{bottom:22px;border-radius:0 0 30px 30px}.sheet{border-radius:28px;margin-bottom:20px}.sheetback{align-items:center}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<main class="page">
+  <div class="topnote"><span class="demo">ДЕМО · без production-данных</span><button class="reset" onclick="resetDemo()">Сбросить</button></div>
+  <section class="hero">
+    <div class="hero-main">
+      <div class="person">● Денис · сотрудник участка</div>
+      <h1>Ламинация</h1>
+      <div class="sub">Сегодня · 20 сентября · только нужные задания</div>
+    </div>
+    <div class="metrics">
+      <div class="metric"><b id="leftCount">40</b><span>Осталось</span></div>
+      <div class="metric"><b id="doneCount">0</b><span>Готово</span></div>
+      <div class="metric problem"><b id="problemCount">0</b><span>Проблем</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="problemsSection" style="display:none">
+    <div class="eyebrow" style="color:#92400e">⚠ Требуют решения</div>
+    <div class="problem-list" id="problemList"></div>
+  </section>
+
+  <section class="section" id="today">
+    <div class="eyebrow">Сейчас</div>
+    <div class="sectiontitle">Что делать дальше</div>
+    <div id="currentTask"></div>
+  </section>
+
+  <div class="fold">
+    <button class="foldbtn" onclick="toggleQueue()"><div><b>Дальше по очереди</b><span id="queueCaption"></span></div><strong id="queueArrow">⌄</strong></button>
+    <div class="queue" id="queue"></div>
+  </div>
+
+  <div class="fold" id="done">
+    <button class="foldbtn" onclick="toggleDone()"><div><b>Готово на участке</b><span id="doneCaption">0 заказов</span></div><strong id="doneArrow">⌄</strong></button>
+    <div class="queue" id="doneList"></div>
+  </div>
+</main>
+
+<div class="bottom">
+  <div class="bottomgrid">
+    <button class="navbtn" onclick="document.getElementById('today').scrollIntoView()"><strong>◷</strong>Сегодня</button>
+    <button class="navbtn" onclick="openDone()"><strong>✓</strong>Готово</button>
+    <button class="navbtn" id="problemNav" onclick="scrollProblems()"><strong>⚠</strong>Проблемы</button>
+  </div>
+</div>
+
+<div class="sheetback" id="sheetback" onclick="backdropClose(event)">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="kicker">Сообщить руководителю</div>
+    <h2 id="sheetTitle">Заказ</h2>
+    <div class="reasons" id="reasons"></div>
+    <textarea class="comment" id="comment" placeholder="Комментарий — по желанию"></textarea>
+    <div class="mode">
+      <button id="blockingBtn" class="active" onclick="setBlocking(true)">Останавливает</button>
+      <button id="questionBtn" onclick="setBlocking(false)">Просто вопрос</button>
+    </div>
+    <div class="sheetactions">
+      <button class="cancel" onclick="closeSheet()">Отмена</button>
+      <button class="save" id="saveIssueBtn" onclick="saveIssue()">Отложить и дальше</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const initialTasks=[
+ {id:"1847",client:"ЖК Европейский",qty:6,unit:"двер.",item:"Скрытая дверь 59 мм · алюминиевый каркас",shipment:"29.09.2026",details:[["Размер","2400 × 800"],["Сторона 1","ПВХ Stone Grey"],["Сторона 2","ПВХ Stone Grey"],["Торец","Чёрный анод"]]},
+ {id:"1855",client:"Архитектор Петрова",qty:8,unit:"двер.",item:"Скрытая дверь 59 мм · алюминиевый каркас",shipment:"30.09.2026",details:[["Размер","2700 × 850"],["Сторона 1","ПВХ Oak Natural"],["Сторона 2","Эмаль RAL 9016"],["Торец","Чёрный анод"]]},
+ {id:"1861",client:"Салон Екатеринбург",qty:22,unit:"двер.",item:"Скрытая дверь 42 мм · алюминиевый каркас",shipment:"01.10.2026",details:[["Размер","2500 × 800"],["Сторона 1","ПВХ White"],["Сторона 2","ПВХ White"],["Торец","Серый анод"]]},
+ {id:"1870",client:"Частный интерьер",qty:4,unit:"двер.",item:"Полотно 36 мм · ПВХ",shipment:"02.10.2026",details:[["Размер","2000 × 700"],["Покрытие","ПВХ Mocha"],["Модель","Гладкая"],["Комментарий","Проверить оттенок перед запуском"]]}
+];
+let tasks=[],done=[],problems=[],queueOpen=false,doneOpen=false,currentIssueId=null,selectedReason="Нет материала",blocking=true;
+const reasons=["Нет материала","Поломка","Брак","Ошибка спецификации","Вопрос","Другое"];
+function cloneInitial(){return initialTasks.map(x=>JSON.parse(JSON.stringify(x)))}
+function resetDemo(){tasks=cloneInitial();done=[];problems=[];queueOpen=false;doneOpen=false;closeSheet();render();toast("Демо возвращено в исходное состояние.")}
+function render(){
+ const left=tasks.reduce((s,t)=>s+t.qty,0), ready=done.reduce((s,t)=>s+t.qty,0);
+ document.getElementById("leftCount").textContent=left;
+ document.getElementById("doneCount").textContent=ready;
+ document.getElementById("problemCount").textContent=problems.length;
+ document.getElementById("problemNav").classList.toggle("warn",problems.length>0);
+ renderProblems(); renderCurrent(); renderQueue(); renderDone();
+}
+function renderProblems(){
+ const sec=document.getElementById("problemsSection"),box=document.getElementById("problemList");
+ sec.style.display=problems.length?"block":"none";
+ box.innerHTML=problems.map(p=>`<article class="problemcard"><div class="problemhead"><div><b>№ ${p.id}</b><div style="font-size:11px;color:#78716c;margin-top:2px">${p.client}</div></div><span class="tag">Остановлен</span></div><div class="reason"><b>${p.reason}</b><div style="margin-top:4px;color:#57534e">${p.comment||"Причина отправлена руководителю."}</div></div><button class="smallbtn" onclick="restoreTask('${p.id}')">↻ Вернуть в работу</button></article>`).join("");
+}
+function renderCurrent(){
+ const box=document.getElementById("currentTask");
+ if(!tasks.length){box.innerHTML='<div class="empty"><div class="big">✓</div><b>Активных заданий нет</b><span>Новые задания появятся здесь автоматически.</span></div>';return}
+ const t=tasks[0];
+ box.innerHTML=`<article class="card"><div class="cardhead"><div class="orderline"><div><div class="order">№ ${t.id}</div><div class="client">${t.client}</div></div><div class="qty">${t.qty} ${t.unit}</div></div><div class="itemname">${t.item}</div></div><div class="details">${t.details.map(d=>`<div class="detail"><span>${d[0]}</span><b>${d[1]}</b></div>`).join("")}</div><div class="actions"><button class="btn done" onclick="completeCurrent()">✓ Готово</button><button class="btn" onclick="openIssue('${t.id}')">⚠ Проблема</button></div><div class="foot">Отгрузка: ${t.shipment} · приоритет менять не нужно</div></article>`;
+}
+function renderQueue(){
+ const list=tasks.slice(1);document.getElementById("queueCaption").textContent=`${list.length} заказов · приоритет уже задан`;
+ document.getElementById("queue").classList.toggle("open",queueOpen);document.getElementById("queueArrow").textContent=queueOpen?"⌃":"⌄";
+ document.getElementById("queue").innerHTML=list.length?list.map((t,i)=>`<div class="qrow"><div class="num">${i+2}</div><div><div class="qtop"><span>№ ${t.id}</span><span>${t.qty} ${t.unit}</span></div><div class="qdesc">${t.item}</div><button class="qlink" onclick="openIssue('${t.id}')">Есть проблема?</button></div></div>`).join(""):'<div style="padding:14px;text-align:center;color:#94a3b8;font-size:12px">Следующих заказов пока нет.</div>';
+}
+function renderDone(){
+ document.getElementById("doneCaption").textContent=`${done.length} заказов · ${done.reduce((s,t)=>s+t.qty,0)} ед.`;
+ document.getElementById("doneList").classList.toggle("open",doneOpen);document.getElementById("doneArrow").textContent=doneOpen?"⌃":"⌄";
+ document.getElementById("doneList").innerHTML=done.length?done.map(t=>`<div class="qrow"><div class="num">✓</div><div><div class="qtop"><span>№ ${t.id}</span><span style="color:#15803d">Готово</span></div><div class="qdesc">${t.qty} ${t.unit} · ${t.item}</div></div></div>`).join(""):'<div style="padding:14px;text-align:center;color:#94a3b8;font-size:12px">Завершённых заказов пока нет.</div>';
+}
+function completeCurrent(){if(!tasks.length)return;const t=tasks.shift();done.unshift(t);render();toast(`Заказ № ${t.id}: этап ламинации готов.`)}
+function toggleQueue(){queueOpen=!queueOpen;renderQueue()} function toggleDone(){doneOpen=!doneOpen;renderDone()}
+function openDone(){doneOpen=true;renderDone();document.getElementById("done").scrollIntoView()}
+function scrollProblems(){if(problems.length)document.getElementById("problemsSection").scrollIntoView();else toast("Активных проблем сейчас нет.")}
+function openIssue(id){currentIssueId=id;selectedReason="Нет материала";blocking=true;document.getElementById("comment").value="";renderReasonButtons();setBlocking(true);document.getElementById("sheetTitle").textContent="Заказ № "+id;document.getElementById("sheetback").classList.add("open")}
+function closeSheet(){document.getElementById("sheetback").classList.remove("open");currentIssueId=null}
+function backdropClose(e){if(e.target.id==="sheetback")closeSheet()}
+function renderReasonButtons(){document.getElementById("reasons").innerHTML=reasons.map(r=>`<button class="reasonbtn ${r===selectedReason?"active":""}" onclick="selectReason('${r}')">${r}</button>`).join("");const c=document.getElementById("comment");c.placeholder=(selectedReason==="Вопрос"||selectedReason==="Другое")?"Коротко напишите, что произошло":"Комментарий — по желанию"}
+function selectReason(r){selectedReason=r;renderReasonButtons()}
+function setBlocking(v){blocking=v;document.getElementById("blockingBtn").classList.toggle("active",v);document.getElementById("questionBtn").classList.toggle("active",!v);document.getElementById("saveIssueBtn").textContent=v?"Отложить и дальше":"Отправить вопрос"}
+function saveIssue(){if(!currentIssueId)return;const comment=document.getElementById("comment").value.trim();if((selectedReason==="Вопрос"||selectedReason==="Другое")&&!comment){toast("Добавьте короткий комментарий.");return}const idx=tasks.findIndex(t=>t.id===currentIssueId);if(idx<0){closeSheet();return}const t=tasks[idx];if(blocking){tasks.splice(idx,1);problems.push({...t,reason:selectedReason,comment});toast("Проблема отправлена. Открыто следующее задание.")}else{toast("Вопрос записан и отправлен руководителю.")}closeSheet();render()}
+function restoreTask(id){const idx=problems.findIndex(p=>p.id===id);if(idx<0)return;const p=problems.splice(idx,1)[0];delete p.reason;delete p.comment;tasks.unshift(p);render();toast(`Заказ № ${id} возвращён в работу.`)}
+function toast(text){const el=document.getElementById("toast");el.textContent=text;el.classList.add("show");clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>el.classList.remove("show"),2200)}
+resetDemo();
+</script>
+</body></html>
