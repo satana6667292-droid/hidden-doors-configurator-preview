@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v110 · Контраст цены</title>
+<title>Hidden Doors — Личный кабинет · Прототип v111 · Цена комплекта</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1499,6 +1499,47 @@ th,td{border-color:#ece5dc;padding:10px 11px}
   .trim42-door-order-head .badge{display:inline-block;margin-top:8px}
   .trim42-box-parts-grid{grid-template-columns:1fr}
 }
+
+
+/* v111: unified configured door price card */
+.configured-price-card{
+  background:#fffaf1;border-color:#dbc7a4;color:#2f271f;
+  box-shadow:0 8px 20px rgba(73,55,34,.07);padding:16px 17px
+}
+.configured-price-card .cap{color:#85633b;font-weight:850}
+.configured-price-grand-total{
+  margin:2px 0 12px;font-family:'Manrope','Inter',sans-serif;
+  font-size:25px!important;font-weight:850!important;line-height:1.15;color:#2f271f!important
+}
+.configured-price-details{display:grid;gap:0;border-top:1px solid #eadfce}
+.configured-price-line{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start;
+  padding:8px 0;border-bottom:1px solid #eee5d8;font-size:12px;line-height:1.45;color:#5f554a
+}
+.configured-price-line>strong{color:#2f271f;text-align:right;white-space:nowrap;font-weight:800}
+.configured-price-label{font-weight:650;color:#51483f}
+.configured-price-line.unknown>strong{color:#9a5f2c;font-size:11px}
+.configured-price-line-note{margin-top:2px;color:#8a7d6e;font-size:10px;line-height:1.4}
+.configured-price-type-note{
+  display:inline-flex;margin-left:7px;padding:2px 6px;border-radius:999px;
+  background:#f4e7d2;border:1px solid #ddc298;color:#73532f;font-size:9px;font-weight:850
+}
+.configured-price-total{
+  display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;
+  margin-top:3px;padding:11px 0 2px;font-size:13px;font-weight:850;color:#2f271f
+}
+.configured-price-total strong{font-size:15px}
+.configured-price-total.partial{color:#7d6548}
+.configured-price-status{
+  margin-top:11px;padding:9px 10px;border-radius:10px;background:#fff4de;
+  border:1px solid #e5c991;color:#805d26;font-size:10px;line-height:1.45
+}
+.configured-price-status>div+div{margin-top:4px}
+.configured-price-source{margin-top:11px!important;color:#7b7064!important;line-height:1.45}
+@media(max-width:650px){
+  .configured-price-line{grid-template-columns:1fr;gap:3px}
+  .configured-price-line>strong{text-align:left;white-space:normal}
+}
 </style>
 </head>
 <body>
@@ -1517,7 +1558,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v110 · Контраст цены</div>
+        <div class="version-chip"><span>HD</span> v111 · Цена комплекта</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1659,6 +1700,13 @@ th,td{border-color:#ece5dc;padding:10px 11px}
       <div class="result"><div class="cap">Признак цены</div><div class="val" id="standardResult"></div></div>
       <div class="result hidden" id="price36ResultWrap"><div class="cap" id="price36Caption">Цена · Опт 2</div><div class="val" id="price36Result"></div><div id="price36Details" class="mini" style="margin-top:6px;line-height:1.55"></div><div id="price36Note" class="mini" style="margin-top:6px"></div></div>
       <div class="result hidden" id="price42ResultWrap"><div class="cap" id="price42Caption">Цена полотна 42 · Опт 2</div><div class="val" id="price42Result"></div><div id="price42Details" class="mini" style="margin-top:6px;line-height:1.55"></div><div id="price42Note" class="mini" style="margin-top:6px"></div></div>
+      <div class="result configured-price-card hidden" id="configuredPriceResultWrap">
+        <div class="cap" id="configuredPriceCaption">Цена · Опт 2</div>
+        <div class="val configured-price-grand-total" id="configuredPriceResult"></div>
+        <div id="configuredPriceDetails" class="configured-price-details"></div>
+        <div id="configuredPriceStatus" class="configured-price-status hidden"></div>
+        <div id="configuredPriceNote" class="mini configured-price-source"></div>
+      </div>
       <div class="result"><div class="cap">Ключ уникальности</div><div class="val" id="uniqKey"></div></div>
 
       <div id="recommendations"></div>
@@ -2131,6 +2179,7 @@ function setActiveSalesPriceType(value,{refresh=true}={}){
   if(refresh){
     if(typeof renderPartnerPrice36==='function')renderPartnerPrice36();
     if(typeof renderSalesPrice42==='function')renderSalesPrice42();
+    if(typeof renderConfiguredPriceCard==='function')renderConfiguredPriceCard();
     if(typeof renderOrderExtras==='function')renderOrderExtras();
     if(typeof renderStock==='function'&&!$('viewStock')?.classList.contains('hidden'))renderStock();
     if(typeof renderCart==='function'&&!$('viewOrder')?.classList.contains('hidden'))renderCart();
@@ -2668,6 +2717,267 @@ function renderPricingAdmin(){
   pricingStickyUxRefresh();
 }
 
+
+// v111: one transparent price card for configured door assemblies.
+const CONFIGURED_PRICE_CARD_PRODUCTS=Object.freeze(['leaf36','single42','single59','double42']);
+
+function configuredPriceRound(value){
+  const n=Number(value);
+  return Number.isFinite(n)?Math.ceil(n):null;
+}
+function configuredPriceQty(value,fallback=1){
+  const n=Number(value);
+  return Number.isFinite(n)&&n>0?n:fallback;
+}
+function configuredPriceLine({key,label,qty=1,unit='шт.',unitPrice=null,priceKnown,actualPriceType=null,note='',source=''}){
+  const q=configuredPriceQty(qty,1);
+  const p=configuredPriceRound(unitPrice);
+  const known=priceKnown===undefined?p!==null:!!priceKnown;
+  return {
+    key:String(key||''),
+    label:String(label||'Позиция'),
+    qty:q,
+    unit:String(unit||'шт.'),
+    unitPrice:known?p:null,
+    total:known?configuredPriceRound(p*q):null,
+    priceKnown:known,
+    actualPriceType:actualPriceType?normalizeSalesPriceType(actualPriceType):null,
+    note:String(note||''),
+    source:String(source||'')
+  };
+}
+function configuredPriceCompanionLabel(item){
+  const key=String(item?.baseKey||item?.key||'');
+  const name=String(item?.name||'').trim();
+  if(key==='BUNDLE-P36-BOX')return 'Короб';
+  if(key==='BUNDLE-P36-TRIM')return 'Наличник';
+  if(key==='BUNDLE-P42-BOX')return 'Комплект короба 42';
+  if(key==='DOOR-HINGE')return name?'Петли · '+name:'Петли';
+  if(key==='DOOR-LOCK')return name?'Замок · '+name:'Замок';
+  if(key==='DOOR-HANDLE')return name?'Ручка · '+name:'Ручка';
+  if(key==='DOOR-TURN')return name?'Завёртка · '+name:'Завёртка';
+  if(key==='DOOR-CYLINDER')return name?'Цилиндр · '+name:'Цилиндр';
+  if(key==='DOOR-STOPPER')return name?'Стопор · '+name:'Стопор';
+  if(key==='DOOR-THRESHOLD')return name?'Автопорог · '+name:'Автопорог';
+  if(key==='DOOR-CLOSER')return name?'Доводчик · '+name:'Доводчик';
+  if(/^BOX-MITER45-/.test(key))return 'Запил короба под 45°';
+  if(/^DOUBLE42-BOLT-/.test(key))return 'Ригель · '+(key.endsWith('LEFT')?'левая створка':'правая створка');
+  return name||key||'Позиция';
+}
+function configuredPriceLineFromCompanion(item,requestedType=activeSalesPriceType()){
+  const unitPrice=typeof companionItemUnitPrice==='function'?companionItemUnitPrice(item):null;
+  const actualType=typeof companionSalesPriceType==='function'?companionSalesPriceType(item):null;
+  return configuredPriceLine({
+    key:item?.baseKey||item?.key||'companion',
+    label:configuredPriceCompanionLabel(item),
+    qty:item?.qty||1,
+    unit:item?.unit||'шт.',
+    unitPrice,
+    priceKnown:unitPrice!==null&&unitPrice!==undefined&&Number.isFinite(Number(unitPrice)),
+    actualPriceType:actualType,
+    note:actualType&&normalizeSalesPriceType(actualType)!==normalizeSalesPriceType(requestedType)
+      ?'Для этой позиции выбранный тип цены пока не утверждён; используется '+salesPriceTypeLabel(actualType)+'.'
+      :''
+  });
+}
+function configuredPrice42LeafLine(prefix,width,label,priceType=activeSalesPriceType()){
+  const h=currentHeight();
+  const w=Number(width);
+  const frameKey=price42FrameKey($('frame')?.value||'');
+  const edgeKey=price42EdgeKey($(prefix+'EdgeColor')?.value||'');
+  if(!frameKey||!edgeKey){
+    return configuredPriceLine({key:'door-leaf-'+prefix,label,priceKnown:false,note:'Для выбранного каркаса/торца цена полотна не определена.'});
+  }
+  const base=price42RuleCalculation({height:h,width:w,frameKey,edgeKey},priceType);
+  const finish=price42FinishCalculation({
+    height:h,width:w,
+    side1Type:$(prefix+'Side1Type')?.value||'Грунт под покраску',
+    side2Type:$(prefix+'Side2Type')?.value||'Грунт под покраску',
+    side1Catalog:$(prefix+'Side1FilmCatalog')?.value||'Hidden Doors',
+    side2Catalog:$(prefix+'Side2FilmCatalog')?.value||'Hidden Doors'
+  },priceType);
+  if(!base.ok||!finish.ok||finish.priceOnRequest){
+    return configuredPriceLine({
+      key:'door-leaf-'+prefix,label,priceKnown:false,
+      note:finish?.reason||base?.reason||'Цена полотна требует согласования.'
+    });
+  }
+  return configuredPriceLine({
+    key:'door-leaf-'+prefix,label,qty:1,unit:'шт.',
+    unitPrice:Number(base.price)+Number(finish.price||0),
+    actualPriceType:priceType
+  });
+}
+function configuredPriceUnknownSelectedExtras(existingLabels=new Set()){
+  if(typeof selectedOrderExtras!=='function')return [];
+  const skip=new Set(['Створка с замком','Ответная часть замка']);
+  const represented=new Set([
+    'Петли','Замок','Ручка','Завертка','Завёртка','Цилиндр','Стопор','Автопорог','Доводчик',
+    'Запил короба под 45°','Ригель'
+  ]);
+  for(const label of existingLabels)represented.add(label);
+  return selectedOrderExtras()
+    .filter(([label,value])=>value&&!skip.has(label)&&!represented.has(label))
+    .map(([label,value],index)=>configuredPriceLine({
+      key:'selected-extra-'+index,
+      label:label+' · '+value,
+      qty:1,unit:'шт.',priceKnown:false,
+      note:'Позиция выбрана, но продажная цена для неё пока не подключена к карточке комплекта.'
+    }));
+}
+function configuredPriceBreakdown(){
+  const productKey=product();
+  if(!CONFIGURED_PRICE_CARD_PRODUCTS.includes(productKey))return {visible:false};
+  const requestedType=activeSalesPriceType();
+  const lines=[];
+  let sourceNote=typeof activeSalesPriceBookNote==='function'?activeSalesPriceBookNote(requestedType):'';
+
+  if(productKey==='leaf36'){
+    const book=price36Book(requestedType);
+    const pvc=$('cover36')?.value==='ПВХ-пленка';
+    lines.push(configuredPriceLine({
+      key:'door-leaf-36',label:'Полотно 36 мм',qty:1,unit:'шт.',
+      unitPrice:pvc?book?.doorLeaf:null,
+      priceKnown:!!book&&pvc&&Number.isFinite(Number(book.doorLeaf)),
+      actualPriceType:requestedType,
+      note:pvc?'':'Автоматическая цена полотна 36 мм сейчас утверждена только для ПВХ-плёнки.'
+    }));
+    if(includeBox()){
+      for(const item of companionItems()){
+        const raw=configuredPriceLineFromCompanion(item,requestedType);
+        const known=pvc&&raw.priceKnown;
+        lines.push({...raw,priceKnown:known,unitPrice:known?raw.unitPrice:null,total:known?raw.total:null,
+          note:known?raw.note:'Для комплекта 36 мм автоматическая цена погонажа сейчас утверждена в ПВХ-плёнке.'});
+      }
+    }
+    sourceNote=book?price36SourceNote(book):sourceNote;
+  }
+
+  if(productKey==='single42'){
+    const calc=price42Calculation(requestedType);
+    lines.push(configuredPriceLine({
+      key:'door-leaf-42',label:'Полотно 42 мм',qty:1,unit:'шт.',
+      unitPrice:calc?.eligible&&calc?.price!==null?calc.price:null,
+      priceKnown:!!calc?.eligible&&calc?.price!==null,
+      actualPriceType:requestedType,
+      note:calc?.priceOnRequest?(calc?.finish?.reason||'Цена покрытия после согласования.'):(calc?.eligible?'':(calc?.reasons||[]).join('; '))
+    }));
+    const companions=companionItems();
+    for(const item of companions)lines.push(configuredPriceLineFromCompanion(item,requestedType));
+    lines.push(...configuredPriceUnknownSelectedExtras());
+    sourceNote=price42SourceNote(price42Book(requestedType));
+  }
+
+  if(productKey==='single59'){
+    lines.push(configuredPriceLine({
+      key:'door-leaf-59',label:'Полотно 59 мм',qty:1,unit:'шт.',priceKnown:false,
+      note:'Продажная цена полотна 59 мм пока не зафиксирована в активном прайсе.'
+    }));
+    const companions=companionItems();
+    const boxParts=companions.filter(x=>/^BUNDLE-P59-/.test(String(x?.baseKey||x?.key||'')));
+    if(boxParts.length){
+      lines.push(configuredPriceLine({
+        key:'box-kit-59',label:'Комплект короба 59',qty:1,unit:'комплект',priceKnown:false,
+        note:'Комплект сформирован автоматически, но продажные цены деталей короба 59 пока не заполнены.'
+      }));
+    }
+    for(const item of companions){
+      if(/^BUNDLE-P59-/.test(String(item?.baseKey||item?.key||'')))continue;
+      lines.push(configuredPriceLineFromCompanion(item,requestedType));
+    }
+    lines.push(...configuredPriceUnknownSelectedExtras());
+    sourceNote=(typeof activeSalesPriceBookNote==='function'?activeSalesPriceBookNote(requestedType):'')+
+      ' · Полотно и короб 59 мм: продажные цены требуют заполнения.';
+  }
+
+  if(productKey==='double42'){
+    lines.push(configuredPrice42LeafLine('Left',doubleWidth('left'),'Левая створка',requestedType));
+    lines.push(configuredPrice42LeafLine('Right',doubleWidth('right'),'Правая створка',requestedType));
+    const companions=companionItems();
+    const boxParts=companions.filter(x=>/^BUNDLE-P42-DOUBLE-/.test(String(x?.baseKey||x?.key||'')));
+    if(boxParts.length){
+      lines.push(configuredPriceLine({
+        key:'box-kit-double42',label:'Короб двухстворчатый 42',qty:1,unit:'комплект',priceKnown:false,
+        note:'Геометрия комплекта рассчитана, но продажная цена двухстворчатого короба пока не зафиксирована.'
+      }));
+    }
+    for(const item of companions){
+      if(/^BUNDLE-P42-DOUBLE-/.test(String(item?.baseKey||item?.key||'')))continue;
+      lines.push(configuredPriceLineFromCompanion(item,requestedType));
+    }
+    lines.push(...configuredPriceUnknownSelectedExtras());
+    sourceNote=price42SourceNote(price42Book(requestedType))+' · Створки рассчитаны по правилам полотна 42 мм.';
+  }
+
+  const visibleLines=lines.filter(x=>Number(x.qty)>0);
+  const knownTotal=visibleLines.reduce((sum,line)=>sum+(line.priceKnown&&Number.isFinite(Number(line.total))?Number(line.total):0),0);
+  const unknownLines=visibleLines.filter(x=>!x.priceKnown);
+  const mismatchedLines=visibleLines.filter(x=>x.priceKnown&&x.actualPriceType&&normalizeSalesPriceType(x.actualPriceType)!==normalizeSalesPriceType(requestedType));
+  return {
+    visible:true,
+    productKey,
+    priceType:requestedType,
+    lines:visibleLines,
+    knownTotal:configuredPriceRound(knownTotal)||0,
+    total:unknownLines.length?null:(configuredPriceRound(knownTotal)||0),
+    hasUnknownPrices:unknownLines.length>0,
+    unknownCount:unknownLines.length,
+    hasMixedPriceTypes:mismatchedLines.length>0,
+    mixedPriceTypes:[...new Set(mismatchedLines.map(x=>salesPriceTypeLabel(x.actualPriceType)))],
+    complete:unknownLines.length===0,
+    sourceNote
+  };
+}
+function configuredPriceLineHtml(line,requestedType){
+  const qty=Number(line.qty||1);
+  const priceTypeNote=line.actualPriceType&&normalizeSalesPriceType(line.actualPriceType)!==normalizeSalesPriceType(requestedType)
+    ?'<span class="configured-price-type-note">'+escapeHtml(salesPriceTypeLabel(line.actualPriceType))+'</span>':'';
+  if(!line.priceKnown){
+    return '<div class="configured-price-line unknown"><div><span class="configured-price-label">'+escapeHtml(line.label)+'</span>'+
+      (line.note?'<div class="configured-price-line-note">'+escapeHtml(line.note)+'</div>':'')+
+      '</div><strong>цена не заполнена</strong></div>';
+  }
+  const qtyText=(qty!==1)
+    ?escapeHtml(String(qty).replace('.',','))+' × '+formatRub(line.unitPrice)+' = '
+    :'';
+  return '<div class="configured-price-line"><div><span class="configured-price-label">'+escapeHtml(line.label)+'</span>'+priceTypeNote+
+    (line.note?'<div class="configured-price-line-note">'+escapeHtml(line.note)+'</div>':'')+
+    '</div><strong>'+qtyText+formatRub(line.total)+'</strong></div>';
+}
+function renderConfiguredPriceCard(){
+  const wrap=$('configuredPriceResultWrap');
+  if(!wrap)return;
+  const data=configuredPriceBreakdown();
+  wrap.classList.toggle('hidden',!data.visible);
+  if(!data.visible)return;
+  $('price36ResultWrap')?.classList.add('hidden');
+  $('price42ResultWrap')?.classList.add('hidden');
+  const caption=$('configuredPriceCaption');
+  const value=$('configuredPriceResult');
+  const details=$('configuredPriceDetails');
+  const status=$('configuredPriceStatus');
+  const note=$('configuredPriceNote');
+  if(caption)caption.textContent='Цена · '+salesPriceTypeLabel(data.priceType);
+  if(value)value.textContent=data.complete
+    ?formatRub(data.total)
+    :(data.knownTotal>0?formatRub(data.knownTotal)+' + позиции без цены':'Цена требует уточнения');
+  if(details){
+    const rows=data.lines.map(line=>configuredPriceLineHtml(line,data.priceType)).join('');
+    const footer=data.complete
+      ?'<div class="configured-price-total"><span>Комплект</span><strong>'+formatRub(data.total)+'</strong></div>'
+      :(data.knownTotal>0?'<div class="configured-price-total partial"><span>Известная часть</span><strong>'+formatRub(data.knownTotal)+'</strong></div>':'');
+    details.innerHTML=rows+footer;
+  }
+  if(status){
+    const messages=[];
+    if(data.hasUnknownPrices)messages.push('Не включено в итог позиций без установленной цены: '+data.unknownCount+'.');
+    if(data.hasMixedPriceTypes)messages.push('Есть позиции в другом доступном типе цены: '+data.mixedPriceTypes.join(', ')+'. Тип цены указан в соответствующей строке.');
+    status.classList.toggle('hidden',messages.length===0);
+    status.innerHTML=messages.map(x=>'<div>'+escapeHtml(x)+'</div>').join('');
+  }
+  if(note)note.textContent=data.sourceNote||'';
+}
+
 // --- data/prices36.js ---
 // 36 mm sales prices.
 // Approved Opt 2 source: «Партнёрский прайс Hidden Doors 2026».
@@ -2677,7 +2987,7 @@ const PRICE36_RETAIL_MARKUP=0.50;
 
 function price36ApplyMarkup(value,markup=PRICE36_WHOLESALE1_MARKUP){
   const n=Number(value);
-  return Number.isFinite(n)?Math.round(n*(1+markup)*100)/100:null;
+  return Number.isFinite(n)?Math.ceil(n*(1+markup)):null;
 }
 
 const SALES_PRICE_36_OPT2=Object.freeze({
@@ -9091,7 +9401,7 @@ function hardwareSalesPriceMeta(category,name,requestedType=activeSalesPriceType
   const priceType=hardwareSalesPriceType(category,name,requestedType);
   const eligible=hardwarePartnerOpt2Eligible(category,name);
   const price=retailPrice===null?null:
-    (priceType==='wholesale2'?Math.round(retailPrice*(1-HARDWARE_OPT2_PARTNER_DISCOUNT)*100)/100:retailPrice);
+    (priceType==='wholesale2'?Math.ceil(retailPrice*(1-HARDWARE_OPT2_PARTNER_DISCOUNT)):retailPrice);
   return {
     ...base,
     retailPrice,
@@ -9099,7 +9409,7 @@ function hardwareSalesPriceMeta(category,name,requestedType=activeSalesPriceType
     price,
     opt2Eligible:eligible,
     opt2Discount:eligible?HARDWARE_OPT2_PARTNER_DISCOUNT:0,
-    opt2Price:eligible&&retailPrice!==null?Math.round(retailPrice*(1-HARDWARE_OPT2_PARTNER_DISCOUNT)*100)/100:null,
+    opt2Price:eligible&&retailPrice!==null?Math.ceil(retailPrice*(1-HARDWARE_OPT2_PARTNER_DISCOUNT)):null,
     salesSource:eligible?'Розница каталога → Опт 2 −33%':'Розничная цена каталога'
   };
 }
@@ -11842,6 +12152,8 @@ function companionItems(){
   }
   if(product()==='double42'){
     const items=[];
+    const hinge=$('doorHinges')?.value?.trim()||'';
+    if(hinge)items.push({key:'DOOR-HINGE',type:'Фурнитура / Петли',priceCategory:'Петли',qty:4,unit:'шт.',step:1,name:hinge});
     const lock=$('doorLock')?.value?.trim()||'';
     if(lock)items.push({key:'DOOR-LOCK',type:'Фурнитура / Замки',priceCategory:'Замки',qty:1,unit:'шт.',step:1,name:lock});
     const handle=$('doorHandle')?.value?.trim()||'';
@@ -12816,6 +13128,7 @@ function render(){
   renderRecommendations();
   renderPartnerPrice36();
   if(typeof renderSalesPrice42==='function')renderSalesPrice42();
+  if(typeof renderConfiguredPriceCard==='function')renderConfiguredPriceCard();
   if(product()==='openingSystem' && typeof renderOpeningSystemPrice==='function')renderOpeningSystemPrice();
   renderOrderExtras();
   renderStockMatch();
