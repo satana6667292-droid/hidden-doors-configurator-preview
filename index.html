@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v103 · единая модель цен 36/42/59</title>
+<title>Hidden Doors — Личный кабинет · Прототип v104 · Погонаж 42 под полотно</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1472,10 +1472,31 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     font-size:30px;
   }
 }
+
+/* v104 · trim 42 by-door configurator */
+.trim42-door-order-panel{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01))}
+.trim42-door-order-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.trim42-door-order-eyebrow{font-size:11px;letter-spacing:.12em;font-weight:800;color:var(--muted);margin-bottom:4px}
+.trim42-door-order-title{font-size:18px;font-weight:800;line-height:1.2}
+.trim42-door-filter-grid{margin-top:4px}
+.trim42-door-summary{margin-top:14px}
+.trim42-box-parts-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.trim42-box-part-card{min-width:0;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.trim42-box-part-card.selected{border-color:var(--accent)}
+.trim42-box-part-kicker{font-size:10px;letter-spacing:.1em;font-weight:800;color:var(--muted);margin-bottom:6px}
+.trim42-box-part-title{font-size:14px;font-weight:800}
+.trim42-box-part-size{font-size:24px;font-weight:900;line-height:1.15;margin:6px 0}
+.trim42-box-part-meta{font-size:12px;color:var(--muted);line-height:1.4}
+.trim42-box-part-name{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+@media(max-width:760px){
+  .trim42-door-order-head{display:block}
+  .trim42-door-order-head .badge{display:inline-block;margin-top:8px}
+  .trim42-box-parts-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
-<!-- v103-door-tier-policy-36-42-59 -->
+<!-- v104-trim42-door-linked-ui -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1490,7 +1511,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v103 · Цены 36/42/59</div>
+        <div class="version-chip"><span>HD</span> v104 · Погонаж 42</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -11575,6 +11596,64 @@ function renderTrimSize(){
 function trim42Item(){return $('trim42Type')?.value||'Профиль дверного короба 42'}
 function trim59Item(){return $('trim59Type')?.value||'Профиль дверного короба 59'}
 
+function trim42DoorOrderState(){
+  const height=Number($('trim42DoorHeight')?.value||2000);
+  const width=Number($('trim42DoorWidth')?.value||700);
+  const opening=$('trim42DoorOpening')?.value||'Левое на себя';
+  const color=$('trim42Color')?.value||'Серый';
+  const mode=$('trim42DoorOrderMode')?.value||'Комплект короба';
+  const part=$('trim42DoorPart')?.value||'Петлевая стойка';
+  return {
+    height,width,opening,color,mode,part,
+    verticalLength:height+100,
+    topLength:width+100
+  };
+}
+function trim42DoorPartName(kind,state=trim42DoorOrderState()){
+  if(kind==='TOP')return `Верхняя перемычка / ${state.topLength} мм / ${state.color}`;
+  const label=kind==='HINGE'?'Петлевая стойка':'Ответная стойка';
+  return `${label} / ${state.opening} / ${state.verticalLength} мм / ${state.color}`;
+}
+function trim42DoorSelectedPartName(state=trim42DoorOrderState()){
+  if(state.part==='Верхняя перемычка')return trim42DoorPartName('TOP',state);
+  if(state.part==='Ответная стойка')return trim42DoorPartName('STRIKE',state);
+  return trim42DoorPartName('HINGE',state);
+}
+function trim42DoorPreviewHtml(){
+  const s=trim42DoorOrderState();
+  const rows=[
+    {kind:'HINGE',label:'Петлевая стойка',length:s.verticalLength,opening:s.opening},
+    {kind:'STRIKE',label:'Ответная стойка',length:s.verticalLength,opening:s.opening},
+    {kind:'TOP',label:'Верхняя перемычка',length:s.topLength,opening:'Одна для всех вариантов'}
+  ];
+  const selectedKind=s.part==='Ответная стойка'?'STRIKE':s.part==='Верхняя перемычка'?'TOP':'HINGE';
+  const visible=s.mode==='Комплект короба'?rows:rows.filter(x=>x.kind===selectedKind);
+  return visible.map(x=>`
+    <div class="trim42-box-part-card ${s.mode==='Отдельная деталь'?'selected':''}">
+      <div class="trim42-box-part-kicker">${x.kind==='TOP'?'ОБЩАЯ ДЕТАЛЬ':'СВОЯ НОМЕНКЛАТУРА'}</div>
+      <div class="trim42-box-part-title">${x.label}</div>
+      <div class="trim42-box-part-size">${x.length} мм</div>
+      <div class="trim42-box-part-meta">${x.kind==='TOP'?'Ширина полотна + 100 мм':x.opening+' · высота полотна + 100 мм'}</div>
+      <div class="trim42-box-part-meta">Цвет: <b>${s.color}</b></div>
+      <div class="trim42-box-part-name">${trim42DoorPartName(x.kind,s)}</div>
+    </div>`).join('');
+}
+function updateTrim42DoorOrderUI(){
+  const panel=$('trim42DoorOrderPanel');
+  if(!panel)return;
+  const active=trim42Item()==='Профиль дверного короба 42' && ($('trim42Sale')?.value||'')==='Под конкретную дверь';
+  panel.classList.toggle('hidden',!active);
+  if(!active)return;
+  const s=trim42DoorOrderState();
+  $('trim42DoorPartWrap')?.classList.toggle('hidden',s.mode!=='Отдельная деталь');
+  const preview=$('trim42DoorPreview');
+  if(preview)preview.innerHTML=trim42DoorPreviewHtml();
+  const title=$('trim42DoorOrderSummary');
+  if(title){
+    title.innerHTML='<b>'+escapeHtml(s.mode)+'</b> · полотно '+s.height+'×'+s.width+' · '+escapeHtml(s.opening)+' · '+escapeHtml(s.color)+
+      (s.mode==='Отдельная деталь'?' · '+escapeHtml(s.part):'');
+  }
+}
 function renderTrim42(){
   $('form').innerHTML=
     section('Погонаж 42',fields(
@@ -11583,9 +11662,9 @@ function renderTrim42(){
     section('Исполнение',`<div id="trim42Dynamic"></div>`)+
     section('Правила',`<div class="note">
       Для профиля дверного короба 42 используем серый или чёрный цвет. Длина хлыста короба — 5100 мм.
+      При заказе «Под конкретную дверь» полотно выбирается по характеристикам. Петлевая и ответная стойки = высота полотна + 100 мм; верх = ширина полотна + 100 мм.
+      Для «Левое на себя / Правое на себя / Левый реверс / Правый реверс» петлевая и ответная стойки являются разной готовой номенклатурой. Верхняя перемычка одна для всех четырёх вариантов.
       Торцы BC3 и C4 учитываются отдельно, длина хлыста — 6000 мм.
-      Для реверсного 42: верх и боковые детали — с четвертью, нижняя — без четверти.
-      «Каркас» как отдельную позицию погонажа 42 не используем.
     </div>`);
   renderTrim42Dynamic();
 }
@@ -11593,11 +11672,33 @@ function renderTrim42Dynamic(){
   const w=$('trim42Dynamic');if(!w)return;
   const t=trim42Item();
   if(t==='Профиль дверного короба 42'){
-    w.innerHTML=fields(
-      field('Цвет',selectEl('trim42Color',['Серый','Чёрный'],'Серый'))+
-      field('Длина целого хлыста',inputEl('trim42Length','5100 мм','text','disabled'))+
-      field('Способ заказа',selectEl('trim42Sale',['Метраж','Целый хлыст','Под конкретную дверь'],'Метраж'),'full')
-    );
+    w.innerHTML=
+      fields(
+        field('Цвет',selectEl('trim42Color',['Серый','Чёрный'],'Серый'))+
+        field('Длина целого хлыста',inputEl('trim42Length','5100 мм','text','disabled'))+
+        field('Способ заказа',selectEl('trim42Sale',['Метраж','Целый хлыст','Под конкретную дверь'],'Метраж'),'full')
+      )+
+      `<div id="trim42DoorOrderPanel" class="trim42-door-order-panel hidden">
+        <div class="trim42-door-order-head">
+          <div>
+            <div class="trim42-door-order-eyebrow">ПОДБОР ПО ПОЛОТНУ</div>
+            <div class="trim42-door-order-title">Короб 42 под конкретную дверь</div>
+            <div class="mini">Выбираем характеристики полотна — приложение подбирает нужную номенклатуру и длины деталей.</div>
+          </div>
+          <span class="badge">без цены · согласование UX</span>
+        </div>
+        <div class="fields trim42-door-filter-grid">
+          ${field('Что заказать',selectEl('trim42DoorOrderMode',['Комплект короба','Отдельная деталь'],'Комплект короба'))}
+          ${field('Открывание полотна',selectEl('trim42DoorOpening',['Левое на себя','Правое на себя','Левый реверс','Правый реверс'],'Левое на себя'))}
+          ${field('Высота полотна, мм',selectEl('trim42DoorHeight',range(1700,2300,50),2000))}
+          ${field('Ширина полотна, мм',selectEl('trim42DoorWidth',range(450,1000,50),700))}
+          <div id="trim42DoorPartWrap" class="hidden">
+            ${field('Отдельная деталь',selectEl('trim42DoorPart',['Петлевая стойка','Ответная стойка','Верхняя перемычка'],'Петлевая стойка'),'full')}
+          </div>
+        </div>
+        <div id="trim42DoorOrderSummary" class="catalog-note trim42-door-summary"></div>
+        <div id="trim42DoorPreview" class="trim42-box-parts-grid"></div>
+      </div>`;
   }else{
     w.innerHTML=fields(
       field('Профиль торца',inputEl('trim42Edge',t,'text','disabled'))+
@@ -11605,7 +11706,12 @@ function renderTrim42Dynamic(){
       field('Способ заказа',selectEl('trim42Sale',['Метраж','Целый хлыст','Под конкретную дверь'],'Метраж'),'full')
     );
   }
-  w.querySelectorAll('select,input').forEach(el=>{el.addEventListener('input',render);el.addEventListener('change',render)});
+  w.querySelectorAll('select,input').forEach(el=>{
+    const sync=()=>{updateTrim42DoorOrderUI();render()};
+    el.addEventListener('input',sync);
+    el.addEventListener('change',sync);
+  });
+  updateTrim42DoorOrderUI();
 }
 
 function renderTrim59(){
@@ -12171,6 +12277,14 @@ function longName(){
   }
   if(product()==='trim42'){
     const t=trim42Item(), sale=$('trim42Sale')?.value||'Метраж';
+    if(t==='Профиль дверного короба 42'&&sale==='Под конкретную дверь'){
+      const s=trim42DoorOrderState();
+      if(s.mode==='Комплект короба'){
+        return ['Комплект дверного короба 42',`Под полотно ${s.height}x${s.width}`,s.opening,s.color,
+          `Петлевая ${s.verticalLength} мм`,`Ответная ${s.verticalLength} мм`,`Верх ${s.topLength} мм`].join(' / ');
+      }
+      return ['Профиль дверного короба 42',trim42DoorSelectedPartName(s),'Под конкретную дверь'].join(' / ');
+    }
     if(t==='Профиль дверного короба 42')return [t,$('trim42Color')?.value,'хлыст 5100 мм',sale].join(' / ');
     return [t,'хлыст 6000 мм',sale].join(' / ');
   }
@@ -12203,7 +12317,16 @@ function shortName(){
   if(product()==='single59')return `Дверь 59 | ${currentHeight()}×${currentWidth()} | ${$('opening').value}`;
   if(product()==='leaf36')return `Дверь 36 | ${$('collection36').value} | ${$('group36').value} | ${$('model36').value} | ${$('height36').value}×${width36()} | ${$('cover36').value}`;
   if(product()==='trim36')return `Погонаж 36 | ${$('trimType').value}`;
-  if(product()==='trim42')return `Погонаж 42 | ${trim42Item()}`;
+  if(product()==='trim42'){
+    const sale=$('trim42Sale')?.value||'Метраж';
+    if(trim42Item()==='Профиль дверного короба 42'&&sale==='Под конкретную дверь'){
+      const s=trim42DoorOrderState();
+      return s.mode==='Комплект короба'
+        ?`Короб 42 | комплект | ${s.height}×${s.width} | ${s.opening} | ${s.color}`
+        :`Короб 42 | ${s.part} | ${s.opening} | ${s.color}`;
+    }
+    return `Погонаж 42 | ${trim42Item()}`;
+  }
   if(product()==='trim59')return `Погонаж 59 | ${trim59Item()}`;
   if(product()==='double42')return `Двустворчатая 42 | ${$('frame').value==='Каркас из фанеры'?'Фанера':'Алюм.'} | H${currentHeight()} | ${doubleWidth('left')}+${doubleWidth('right')} | ${$('opening').value}`;
   return '';
@@ -12221,7 +12344,14 @@ function canonical(){
   if(product()==='single59')parts.push('59','ALU',currentHeight(),currentWidth(),$('opening').value,finishText('Single',1),finishText('Single',2),edgeText('Single'),$('doorHinges')?.value||'',Number($('doorHingeQty')?.value||0));
   if(product()==='leaf36')parts.push('36',$('collection36').value.trim(),$('group36').value.trim(),$('model36').value.trim(),$('height36').value,width36(),cover36Text());
   if(product()==='trim36')parts.push($('trimType').value,$('trimType').value==='Добор телескопический'?doborWidth():$('trimFixedSize')?.value,trimCoverText());
-  if(product()==='trim42')parts.push(trim42Item(),$('trim42Color')?.value||'', $('trim42Sale')?.value||'');
+  if(product()==='trim42'){
+    const sale=$('trim42Sale')?.value||'';
+    parts.push(trim42Item(),$('trim42Color')?.value||'',sale);
+    if(trim42Item()==='Профиль дверного короба 42'&&sale==='Под конкретную дверь'){
+      const s=trim42DoorOrderState();
+      parts.push(s.mode,s.opening,s.height,s.width,s.part,s.verticalLength,s.topLength);
+    }
+  }
   if(product()==='trim59')parts.push(trim59Item(),$('trim59Color')?.value||'', $('trim59Sale')?.value||'');
   if(product()==='double42')parts.push('42',$('frame').value,currentHeight(),doubleWidth('left'),doubleWidth('right'),$('opening').value,
     finishText('Left',1),finishText('Left',2),edgeText('Left'),finishText('Right',1),finishText('Right',2),edgeText('Right'));
