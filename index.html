@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v105 · Покрытия 42</title>
+<title>Hidden Doors — Личный кабинет · Прототип v106 · Фурнитура Опт 2</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1496,7 +1496,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
-<!-- v105-price42-finishes -->
+<!-- v106-hardware-opt2 -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1511,7 +1511,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v105 · Покрытия 42</div>
+        <div class="version-chip"><span>HD</span> v106 · Фурнитура Опт 2</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2230,7 +2230,7 @@ const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'42 мм',area:'Полотно · грунт / ПВХ / эмаль · фанера 1700–2200 / AL 1700–2300',status:'connected',note:'База и ПВХ следуют уровням Опт 2 / Опт 1 / Розница; эмаль 4 000 ₽/м² одинакова для всех уровней; шпон/HPL — после согласования'}),
   Object.freeze({block:'42 мм',area:'Короб / комплект',status:'pending',note:'Уровни цены зафиксированы: Опт 1 +12,5%, Розница +50% от Опт 2; базовые строки короба подключаем следующим блоком'}),
   Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Модель уровней зафиксирована: Опт 1 = Опт 2 +12,5%, Розница = Опт 2 +50%; базовые строки Опт 2 ещё подключаются'}),
-  Object.freeze({block:'Фурнитура',area:'Петли / замки / ручки / прочее',status:'external',note:'Сейчас BASE Bitrix24. Проценты дверей 36/42/59 к фурнитуре не применяются; для неё будет отдельная математика'}),
+  Object.freeze({block:'Фурнитура',area:'K8060 + Vantage магнитные серый/чёрный',status:'connected',note:'Все текущие цены фурнитуры считаются розничными. Только K8060 во всех цветах и Vantage магнитные в сером/чёрном имеют Опт 2 = Розница −33%; остальная фурнитура пока остаётся по рознице'}),
   Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL короба и прочее',status:'pending',note:'ПВХ и эмаль полотна 42 уже подключены в блоке двери; остальные дополнительные работы подключаются отдельно'}),
   Object.freeze({block:'Себестоимость',area:'36 мм · полотно ПВХ + короб',status:'connected',note:'Полотно и покупной короб считаются отдельными объектами по схеме закупка → списание → норма → тех. отход → факт → отклонение'})
 ]);
@@ -2306,7 +2306,7 @@ function renderPricingOverview(){
         ['door42','42 мм','Три уровня цены + покрытия: ПВХ, общий каталог, эмаль; шпон/HPL по согласованию','ok'],
         ['door59','59 мм','Уровни цен зафиксированы (+12,5% / +50%); базовые строки Опт 2 ещё подключаются','warn'],
         ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
-        ['hardware','Фурнитура','Отдельная математика: проценты дверей не наследуются','info'],
+        ['hardware','Фурнитура','Розница для всего каталога; Опт 2 −33% только K8060 и Vantage серый/чёрный','ok'],
         ['extras','Доп. работы','Цены источника собраны, автоматизация впереди','warn'],
         ['cost','Себестоимость','36 мм: полотно и короб уже считаются отдельными объектами себестоимости','ok']
       ].map(([id,title,desc,status])=>'<button class="pricing-category-card" onclick="setPricingAdminSection(\''+id+'\')">'+
@@ -2377,6 +2377,22 @@ function renderPricing42Admin(){
       '<div><b>Итог комплекта</b><span class="pricing-status warn">Следующий блок</span><small>Контроль против прайса 19 090 / 20 815</small></div>'+
     '</div></div>';
 }
+function renderPricingHardwareAdmin(){
+  const rows=typeof hardwarePartnerOpt2Rows==='function'?hardwarePartnerOpt2Rows():[];
+  const body=rows.length?rows.map(row=>
+    '<tr><td><b>'+escapeHtml(row.category)+'</b></td><td>'+escapeHtml(row.name)+'</td><td>'+formatRub(row.retailPrice)+'</td><td><b>'+formatRub(row.opt2Price)+'</b></td><td><span class="pricing-status ok">−33%</span></td></tr>'
+  ).join(''):'<tr><td colspan="5" class="mini">Правила загрузятся вместе с каталогом фурнитуры.</td></tr>';
+  return pricingAdminSectionHeader('Фурнитура · розница и Опт 2','Базой считаются текущие цены каталога фурнитуры — это Розница. Отдельная партнёрская цена пока подключена только к согласованным семействам.','Опт 2 частично подключён')+
+    '<div class="pricing-admin-grid">'+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">База фурнитуры</div><div class="pricing-admin-title">Розничная цена</div><div class="mini">Все текущие рабочие цены каталога считаются розничными.</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">K8060</div><div class="pricing-admin-big">−33%</div><div class="mini">Все цвета петли K8060; колпачки не входят.</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Vantage</div><div class="pricing-admin-big">−33%</div><div class="mini">Магнитные замки в чёрном и сером / матовом хроме.</div></div>'+
+    '</div>'+
+    '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Позиции с Опт 2</div>'+
+      '<div class="table-wrap"><table><thead><tr><th>Категория</th><th>Позиция</th><th>Розница</th><th>Опт 2</th><th>Правило</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+      '<div class="mini pricing-table-note">Опт 1 для фурнитуры пока отдельно не согласован. Для всех остальных позиций фурнитуры, включая другие семейства петель и замков, используется розничная цена.</div></div>';
+}
+
 function renderPricingSimpleSection(id){
   const map={
     door59:['Двери 59','Модель уровней зафиксирована: Опт 1 = Опт 2 +12,5%, Розница = Опт 2 +50%. Сейчас нужно последовательно подключить базовые цены Опт 2 и исключения 59 мм.','Модель зафиксирована'],
@@ -2393,6 +2409,7 @@ function renderPricingAdminBody(section){
   if(section==='overview')return renderPricingOverview();
   if(section==='door36')return renderPricing36Admin();
   if(section==='door42')return renderPricing42Admin();
+  if(section==='hardware')return renderPricingHardwareAdmin();
   if(section==='cost'&&typeof renderCostAdmin==='function')return renderCostAdmin();
   if(section==='cost'&&typeof renderCost36Admin==='function')return renderCost36Admin();
   return renderPricingSimpleSection(section);
@@ -2879,15 +2896,40 @@ function is36SalesCatalogItem(item){
     /^BUNDLE-P36-/.test(baseKey)||/телескопический 36|планка.*36/i.test(name);
 }
 function configuredSalesPriceType(){
-  return ['leaf36','trim36','single42'].includes(product())?activeSalesPriceType():null;
+  if(['leaf36','trim36','single42'].includes(product()))return activeSalesPriceType();
+  if(product()==='hardware'&&typeof hardwareSalesPriceType==='function'){
+    const uiCategory=$('hardwareCategory')?.value||'';
+    const category=(typeof HARDWARE_MAP!=='undefined'?(HARDWARE_MAP[uiCategory]||uiCategory):uiCategory);
+    return hardwareSalesPriceType(category,$('catalogItem')?.value||'',activeSalesPriceType());
+  }
+  if(product()==='openingSystem')return 'retail';
+  return null;
 }
 function companionSalesPriceType(item){
   const key=String(item?.baseKey||item?.key||'');
-  return /^BUNDLE-P36-/.test(key)?activeSalesPriceType():null;
+  if(/^BUNDLE-P36-/.test(key))return activeSalesPriceType();
+  if(typeof hardwareSalesPriceType==='function'){
+    const category=String(item?.priceCategory||'');
+    if(category)return hardwareSalesPriceType(category,item?.name||'',activeSalesPriceType());
+  }
+  return null;
 }
 function stockSalesPriceType(item){
   if(is36SalesCatalogItem(item))return activeSalesPriceType();
   if(typeof is42StandardLeafCatalogItem==='function'&&is42StandardLeafCatalogItem(item))return activeSalesPriceType();
+  if(typeof hardwareSalesPriceType==='function'){
+    const category=String(item?.category||'');
+    const name=String(item?.name||'');
+    if(/петл/i.test(category))return hardwareSalesPriceType('Петли',name,activeSalesPriceType());
+    if(/замк|защел|задвиж|ответн.*планк|корпус.*замк/i.test(category+' '+name))return hardwareSalesPriceType('Замки',name,activeSalesPriceType());
+    if(/ручк/i.test(category+' '+name))return 'retail';
+    if(/заверт/i.test(category))return 'retail';
+    if(/цилиндр/i.test(category+' '+name))return 'retail';
+    if(/стоп|упор|ограничител/i.test(category+' '+name))return 'retail';
+    if(/порог/i.test(category+' '+name))return 'retail';
+    if(/доводчик/i.test(category+' '+name))return 'retail';
+    if(category==='Системы открывания')return 'retail';
+  }
   return null;
 }
 function cartStoredPriceType(item){
@@ -7219,9 +7261,10 @@ const HANDLE_PRICE_REVIEW=Object.freeze([
 ]);
 
 // --- data/hardware-prices.js ---
-// BASE prices imported from the current Hidden Doors Bitrix24 hardware review.
-// Live maps: Петли / Замки / Ручки / Завертки. v59 resolves verified Morelli turn prices and removes unresolved catalog entries.
-// BASE is interpreted as unit price per 1 item. Manual agreed overrides remain explicitly marked.
+// Hardware price source imported from the current Hidden Doors Bitrix24 hardware review.
+// Business meaning from v106: every current working hardware price is Retail.
+// Only explicitly approved partner rows derive Opt 2; sourceBase is retained for audit.
+// Manual agreed overrides remain explicitly marked.
 const BITRIX_HINGE_BASE_PRICES=Object.freeze([
   {name:"AGB (АГБ) Петля ввертная 3-D серия (бихром)",price:575,sourceBase:575,parentId:36780,offerId:36782,priceOverride:false},
   {name:"Дверная петля двусторонняя ALDEGHI CODE 87 AO 155-50, матовая латунь",price:2500,sourceBase:2500,parentId:25082,offerId:25084,priceOverride:false},
@@ -8927,67 +8970,126 @@ function hardwareBasePrice(category,name){
   if(!meta||meta.price===null||meta.suspicious)return null;
   return meta.price;
 }
+
+const HARDWARE_OPT2_PARTNER_DISCOUNT=0.33;
+
+function hardwarePartnerOpt2Eligible(category,name){
+  const c=String(category||'');
+  const n=String(name||'');
+  if(c==='Петли'){
+    return /петл/i.test(n)&&!(/колпач/i.test(n))&&/(?:K8060|К8060)/i.test(n);
+  }
+  if(c==='Замки'){
+    if(!/замок магнитный/i.test(n)||!/Vantage/i.test(n))return false;
+    const black=/черн/i.test(n)||/MC\s*\d*BL\b/i.test(n);
+    const gray=/хром/i.test(n)||/MC\s*\d*\s*S[СC]/i.test(n)||/MC\d*S[СC]/i.test(n);
+    return black||gray;
+  }
+  return false;
+}
+function hardwareSalesPriceType(category,name,requestedType=activeSalesPriceType()){
+  const requested=normalizeSalesPriceType(requestedType);
+  return requested==='wholesale2'&&hardwarePartnerOpt2Eligible(category,name)?'wholesale2':'retail';
+}
+function hardwareSalesPriceMeta(category,name,requestedType=activeSalesPriceType()){
+  const base=hardwareBasePriceMeta(category,name);
+  if(!base)return null;
+  const retailPrice=(!base.suspicious&&Number.isFinite(Number(base.price))&&Number(base.price)>0)?Number(base.price):null;
+  const priceType=hardwareSalesPriceType(category,name,requestedType);
+  const eligible=hardwarePartnerOpt2Eligible(category,name);
+  const price=retailPrice===null?null:
+    (priceType==='wholesale2'?Math.round(retailPrice*(1-HARDWARE_OPT2_PARTNER_DISCOUNT)*100)/100:retailPrice);
+  return {
+    ...base,
+    retailPrice,
+    priceType,
+    price,
+    opt2Eligible:eligible,
+    opt2Discount:eligible?HARDWARE_OPT2_PARTNER_DISCOUNT:0,
+    opt2Price:eligible&&retailPrice!==null?Math.round(retailPrice*(1-HARDWARE_OPT2_PARTNER_DISCOUNT)*100)/100:null,
+    salesSource:eligible?'Розница каталога → Опт 2 −33%':'Розничная цена каталога'
+  };
+}
+function hardwareSalesPrice(category,name,requestedType=activeSalesPriceType()){
+  const meta=hardwareSalesPriceMeta(category,name,requestedType);
+  return !meta||meta.price===null||meta.suspicious?null:Number(meta.price);
+}
+function hardwarePartnerOpt2Rows(){
+  const rows=[];
+  for(const category of ['Петли','Замки']){
+    const map=BITRIX_HARDWARE_BASE_PRICE_MAPS[category];
+    if(!map)continue;
+    for(const item of map.values()){
+      if(!hardwarePartnerOpt2Eligible(category,item.name))continue;
+      const meta=hardwareSalesPriceMeta(category,item.name,'wholesale2');
+      if(meta)rows.push({category,name:item.name,retailPrice:meta.retailPrice,opt2Price:meta.opt2Price,discount:meta.opt2Discount});
+    }
+  }
+  return rows;
+}
 function configuredCatalogUnitPrice(){
   if(product()==='hardware'){
     const uiCategory=$('hardwareCategory')?.value||'';
     const sourceCategory=(typeof HARDWARE_MAP!=='undefined'?(HARDWARE_MAP[uiCategory]||uiCategory):uiCategory);
-    return hardwareBasePrice(sourceCategory,$('catalogItem')?.value||'');
+    return hardwareSalesPrice(sourceCategory,$('catalogItem')?.value||'',activeSalesPriceType());
   }
-  if(product()==='openingSystem')return hardwareBasePrice('Системы открывания',$('catalogItem')?.value||'');
+  if(product()==='openingSystem')return hardwareSalesPrice('Системы открывания',$('catalogItem')?.value||'',activeSalesPriceType());
   if(product()==='single42'&&typeof configured42StandardUnitPrice==='function')return configured42StandardUnitPrice();
   return configured36CartUnitPrice();
 }
 function companionItemUnitPrice(item){
   const key=String(item?.key||'');
-  if(key==='DOOR-HINGE')return hardwareBasePrice('Петли',item?.name||'');
-  if(key==='DOOR-LOCK')return hardwareBasePrice('Замки',item?.name||'');
-  if(key==='DOOR-HANDLE'||key==='SLIDE42-HANDLE')return hardwareBasePrice('Ручки',item?.name||'');
-  if(key==='DOOR-TURN')return hardwareBasePrice('Завертки',item?.name||'');
-  if(key==='DOOR-CYLINDER')return hardwareBasePrice('Цилиндровые механизмы',item?.name||'');
-  if(key==='DOOR-STOPPER')return hardwareBasePrice('Стопоры',item?.name||'');
-  if(key==='DOOR-THRESHOLD')return hardwareBasePrice('Скрытый порог',item?.name||'');
-  if(key==='DOOR-CLOSER')return hardwareBasePrice('Доводчики',item?.name||'');
-  if(key==='SLIDE42-SYSTEM')return hardwareBasePrice('Системы открывания',openingSystemPriceName(item?.name||''));
+  const type=activeSalesPriceType();
+  if(key==='DOOR-HINGE')return hardwareSalesPrice('Петли',item?.name||'',type);
+  if(key==='DOOR-LOCK')return hardwareSalesPrice('Замки',item?.name||'',type);
+  if(key==='DOOR-HANDLE'||key==='SLIDE42-HANDLE')return hardwareSalesPrice('Ручки',item?.name||'',type);
+  if(key==='DOOR-TURN')return hardwareSalesPrice('Завертки',item?.name||'',type);
+  if(key==='DOOR-CYLINDER')return hardwareSalesPrice('Цилиндровые механизмы',item?.name||'',type);
+  if(key==='DOOR-STOPPER')return hardwareSalesPrice('Стопоры',item?.name||'',type);
+  if(key==='DOOR-THRESHOLD')return hardwareSalesPrice('Скрытый порог',item?.name||'',type);
+  if(key==='DOOR-CLOSER')return hardwareSalesPrice('Доводчики',item?.name||'',type);
+  if(key==='SLIDE42-SYSTEM')return hardwareSalesPrice('Системы открывания',openingSystemPriceName(item?.name||''),type);
   return companion36UnitPrice(item);
 }
+
 function genericCatalogItemPrice(item){
   if(!item)return null;
   const category=String(item.category||'');
   const name=String(item.name||'');
   if(/петл/i.test(category)){
-    const p=hardwareBasePrice('Петли',name);
+    const p=hardwareSalesPrice('Петли',name,item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(/замк|защел|задвиж|ответн.*планк|корпус.*замк/i.test(category+' '+name)){
-    const p=hardwareBasePrice('Замки',name);
+    const p=hardwareSalesPrice('Замки',name,item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(/ручк/i.test(category+' '+name)){
-    const p=hardwareBasePrice('Ручки',name);
+    const p=hardwareSalesPrice('Ручки',name,item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(/заверт/i.test(category)){
-    const p=hardwareBasePrice('Завертки',name);
+    const p=hardwareSalesPrice('Завертки',name,item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(/цилиндр/i.test(category+' '+name)){
-    const p=hardwareBasePrice('Цилиндровые механизмы',name);
+    const p=hardwareSalesPrice('Цилиндровые механизмы',name,item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(/стоп|упор|ограничител/i.test(category+' '+name)){
-    const p=hardwareBasePrice('Стопоры',name);
+    const p=hardwareSalesPrice('Стопоры',name,item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(/порог/i.test(category+' '+name)){
-    const p=hardwareBasePrice('Скрытый порог',name);
+    const p=hardwareSalesPrice('Скрытый порог',name,item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(/доводчик/i.test(category+' '+name)){
-    const p=hardwareBasePrice('Доводчики',name);
+    const p=hardwareSalesPrice('Доводчики',name,item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(category==='Системы открывания'){
-    const p=hardwareBasePrice('Системы открывания',openingSystemPriceName(name));
+    const p=hardwareSalesPrice('Системы открывания',openingSystemPriceName(name),item?.priceType||activeSalesPriceType());
     if(p!==null)return p;
   }
   if(typeof cart42StandardFallbackUnitPrice==='function'){
@@ -9484,17 +9586,31 @@ function itemMatchesHingeFamily(item,family){
   if(family==='K2760')return (s.includes('k2760')||s.includes('к2760'))&&!s.includes('аналог');
   return false;
 }
-function hingePriceHtml(name,qty=1){
-  const meta=hardwareBasePriceMeta('Петли',name);
-  if(!meta)return '<span class="mini">Цена для этой петли пока не подключена.</span>';
-  if(meta.price===null)return '<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · BASE Bitrix24 требует решения.</span>';
+function hardwarePricePresentation(category,name,qty=1){
+  const meta=hardwareSalesPriceMeta(category,name,activeSalesPriceType());
+  if(!meta)return '<span class="mini">Цена для этой позиции пока не подключена.</span>';
+  if(meta.price===null||meta.suspicious)return '<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходная цена требует решения.</span>';
   const q=Math.max(1,Number(qty)||1);
-  return '<b>'+formatRub(meta.price)+'/шт.</b>'+(q>1?' · '+q+' шт. = <b>'+formatRub(meta.price*q)+'</b>':'')+'<span class="mini"> · BASE Bitrix24</span>';
+  const activeLabel=meta.priceType==='wholesale2'?'Опт 2':'Розница';
+  let html='<b>'+formatRub(meta.price)+'/шт.</b>'+(q>1?' · '+q+' шт. = <b>'+formatRub(meta.price*q)+'</b>':'')+
+    '<span class="mini"> · '+activeLabel+'</span>';
+  if(meta.opt2Eligible){
+    html+='<div class="mini">Розница '+formatRub(meta.retailPrice)+'/шт. · Опт 2 '+formatRub(meta.opt2Price)+'/шт. · скидка 33%</div>';
+  }else{
+    html+='<div class="mini">Отдельная Опт 2 цена пока не задана — используется розница.</div>';
+  }
+  return html;
+}
+function hingePriceHtml(name,qty=1){
+  return hardwarePricePresentation('Петли',name,qty);
 }
 function hingeCardPriceText(name){
-  const meta=hardwareBasePriceMeta('Петли',name);
+  const meta=hardwareSalesPriceMeta('Петли',name,activeSalesPriceType());
   if(!meta)return 'Цена пока не подключена';
-  return meta.price===null?'Цена по запросу':'BASE · '+formatRub(meta.price)+' / шт.';
+  if(meta.price===null||meta.suspicious)return 'Цена по запросу';
+  return meta.opt2Eligible
+    ?(meta.priceType==='wholesale2'?'Опт 2 · '+formatRub(meta.price)+' / шт. · Розница '+formatRub(meta.retailPrice):'Розница · '+formatRub(meta.retailPrice)+' / шт. · Опт 2 −33%')
+    :'Розница · '+formatRub(meta.retailPrice)+' / шт.';
 }
 function hingeCatalogPriceSummary(items){
   const metas=(items||[]).map(name=>hardwareBasePriceMeta('Петли',name));
@@ -9522,104 +9638,57 @@ function updateDoorHingePriceHint(){
 function updateDoorLockPriceHint(){
   const box=$('doorLockPriceHint');if(!box)return;
   const name=$('doorLock')?.value?.trim()||'';
-  const meta=name?hardwareBasePriceMeta('Замки',name):null;
   if(!name){box.innerHTML='Выберите замок.';return}
-  if(!meta){box.innerHTML='<span class="mini">Цена для этого замка пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · BASE Bitrix24 требует решения.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Замки',name,1);
 }
 function updateDoorHandlePriceHint(){
   const box=$('doorHandlePriceHint');if(!box)return;
   const name=$('doorHandle')?.value?.trim()||'';
-  const meta=name?hardwareBasePriceMeta('Ручки',name):null;
   if(!name){box.innerHTML='Выберите ручку.';return}
-  if(!meta){box.innerHTML='<span class="mini">Цена для этой ручки пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Ручки',name,1);
 }
 function updateDoorTurnPriceHint(){
   const box=$('doorTurnPriceHint');if(!box)return;
   const name=$('doorTurn')?.value?.trim()||'';
-  const meta=name?hardwareBasePriceMeta('Завертки',name):null;
   if(!name){box.innerHTML='Выберите завертку.';return}
-  if(!meta){box.innerHTML='<span class="mini">Цена для этой завертки пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Завертки',name,1);
 }
 function updateDoorCylinderPriceHint(){
   const box=$('doorCylinderPriceHint');if(!box)return;
   const name=$('doorCylinder')?.value?.trim()||'';
-  const meta=name?hardwareBasePriceMeta('Цилиндровые механизмы',name):null;
   if(!name){box.innerHTML='Выберите цилиндр.';return}
-  if(!meta){box.innerHTML='<span class="mini">Цена для этого цилиндра пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Цилиндровые механизмы',name,1);
 }
 function updateDoorStopperPriceHint(){
   const box=$('doorStopperPriceHint');if(!box)return;
   const name=$('doorStopper')?.value?.trim()||'';
-  const meta=name?hardwareBasePriceMeta('Стопоры',name):null;
   if(!name){box.innerHTML='Выберите стопор.';return}
-  if(!meta){box.innerHTML='<span class="mini">Цена для этого стопора пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Стопоры',name,1);
 }
 function updateDoorThresholdPriceHint(){
   const box=$('doorThresholdPriceHint');if(!box)return;
   const name=$('doorThreshold')?.value?.trim()||'';
-  const meta=name?hardwareBasePriceMeta('Скрытый порог',name):null;
   if(!name){box.innerHTML='Выберите автоматический порог.';return}
-  if(!meta){box.innerHTML='<span class="mini">Цена для этого порога пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Скрытый порог',name,1);
 }
 function updateDoorCloserPriceHint(){
   const box=$('doorCloserPriceHint');if(!box)return;
   const name=$('doorCloser')?.value?.trim()||'';
-  const meta=name?hardwareBasePriceMeta('Доводчики',name):null;
   if(!name){box.innerHTML='Выберите доводчик.';return}
-  if(!meta){box.innerHTML='<span class="mini">Цена для этого доводчика пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Доводчики',name,1);
 }
 function updateSlidingHandlePriceHint(){
   const box=$('slidingHandlePriceHint');if(!box)return;
   const name=$('slidingHandle')?.value||'Без ручки';
   if(!name||name==='Без ручки'){box.innerHTML='Ручка не добавляется в заказ.';return}
-  const meta=hardwareBasePriceMeta('Ручки',name);
-  if(!meta){box.innerHTML='<span class="mini">Цена для этой ручки пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Ручки',name,1);
 }
 function updateSlidingSystemPriceHint(){
   const box=$('slidingSystemPriceHint');if(!box)return;
   const selected=$('slidingSystem')?.value||'Без системы';
   if(!selected||selected==='Без системы'){box.innerHTML='Система открывания не добавляется в заказ.';return}
-  const sourceName=openingSystemPriceName(selected);
-  const meta=hardwareBasePriceMeta('Системы открывания',sourceName);
-  if(!meta){box.innerHTML='<span class="mini">Цена для этой системы пока не подключена.</span>';return}
-  if(meta.price===null||meta.suspicious){
-    box.innerHTML='<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходный BASE '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · требуется решение.</span>';return
-  }
-  box.innerHTML='<b>'+formatRub(meta.price)+'/шт.</b><span class="mini"> · BASE Bitrix24</span>';
+  box.innerHTML=hardwarePricePresentation('Системы открывания',openingSystemPriceName(selected),1);
 }
-
 function hardwareCategoryPriceSummary(category,items){
   const metas=(items||[]).map(name=>hardwareBasePriceMeta(category,name));
   const prices=metas.filter(x=>x&&!x.suspicious).map(x=>x.price).filter(x=>Number.isFinite(Number(x))&&Number(x)>0).map(Number);
@@ -9636,14 +9705,14 @@ function hardwareCategoryPriceSummary(category,items){
 function renderHardwareCategoryPriceSummary(category,items){
   const box=$('hardwarePriceSummary');if(!box)return;
   if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры','Скрытый порог','Доводчики','Системы открывания'].includes(category)){box.classList.add('hidden');box.innerHTML='';return}
-  const s=hardwareCategoryPriceSummary(category,items);
+  const summary=hardwareCategoryPriceSummary(category,items);
+  const opt2Count=(items||[]).filter(name=>hardwarePartnerOpt2Eligible(category,name)).length;
   box.classList.remove('hidden');
   box.className='hinge-price-summary';
-  box.innerHTML='<div><b>BASE Bitrix24</b> · '+s.priced+' из '+s.total+' позиций с рабочей ценой'+
-    (s.min!==null?' · диапазон <b>'+formatRub(s.min)+' — '+formatRub(s.max)+'</b>':'')+'</div>'+
-    ((s.unresolved||s.missing||s.overrides)
-      ?'<div class="mini">Контроль: требуют решения — '+s.unresolved+' · ручных корректировок — '+s.overrides+(s.missing?' · без привязки — '+s.missing:'')+'</div>'
-      :'<div class="mini">Все позиции текущей выборки имеют обычную BASE-цену.</div>');
+  box.innerHTML='<div><b>Розничные цены</b> · '+summary.priced+' из '+summary.total+' позиций с рабочей ценой'+
+    (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
+    (opt2Count?'<div class="mini">Опт 2 −33% подключён для '+opt2Count+' позиций этой выборки.</div>':
+      '<div class="mini">Для этой выборки отдельная Опт 2 цена пока не задана — действует розница.</div>');
 }
 function renderHardwareSelectedPrice(){
   const box=$('hardwareSelectedPrice');if(!box)return;
@@ -9653,26 +9722,27 @@ function renderHardwareSelectedPrice(){
   if(!['Петли','Замки','Ручки','Завертки','Цилиндровые механизмы','Стопоры','Скрытый порог','Доводчики','Системы открывания'].includes(category)){
     box.classList.add('hidden');box.innerHTML='';return;
   }
-  const meta=hardwareBasePriceMeta(category,item);
+  const meta=hardwareSalesPriceMeta(category,item,activeSalesPriceType());
   box.classList.remove('hidden');
   if(!meta){
     box.className='status warn';
-    box.innerHTML='<b>Цена пока не подключена.</b><br>Для этой позиции не найдено точного соответствия в импортированном BASE Bitrix24.';
-    return;
-  }
-  if(meta.priceOverride){
-    box.className='status info';
-    box.innerHTML='<b>Временная цена: '+formatRub(meta.price)+'/шт.</b><br><span class="mini">Исходный BASE Bitrix24: '+formatRub(meta.sourceBase)+' · ручная корректировка согласована до пересмотра логики цен.</span>';
+    box.innerHTML='<b>Цена пока не подключена.</b><br>Для этой позиции нет точного соответствия в текущем каталоге цен.';
     return;
   }
   if(meta.price===null||meta.suspicious){
     box.className='status warn';
-    box.innerHTML='<b>Цена по запросу / проверить BASE.</b><br><span class="mini">Исходный BASE Bitrix24: '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+' · Parent ID '+escapeHtml(meta.parentId)+'</span>';
+    box.innerHTML='<b>Цена по запросу / проверить источник.</b><br><span class="mini">Исходная цена: '+(meta.sourceBase===null?'не заполнена':formatRub(meta.sourceBase))+' · Parent ID '+escapeHtml(meta.parentId)+'</span>';
     return;
   }
   box.className='status ok';
-  box.innerHTML='<b>BASE: '+formatRub(meta.price)+'/шт.</b><br><span class="mini">Цена импортирована из Bitrix24 · Parent ID '+escapeHtml(meta.parentId)+(meta.offerId?' · Offer ID '+escapeHtml(meta.offerId):'')+'</span>';
+  if(meta.opt2Eligible){
+    box.innerHTML='<b>'+(meta.priceType==='wholesale2'?'Опт 2':'Розница')+': '+formatRub(meta.price)+'/шт.</b><br>'+
+      '<span class="mini">Розница '+formatRub(meta.retailPrice)+' · Опт 2 '+formatRub(meta.opt2Price)+' · скидка 33%. Остальные уровни фурнитуры пока не настроены.</span>';
+  }else{
+    box.innerHTML='<b>Розница: '+formatRub(meta.retailPrice)+'/шт.</b><br><span class="mini">Отдельная Опт 2 цена для этой позиции пока не задана.</span>';
+  }
 }
+
 function recommendedHingeItem(){
   const family=recommendedHingeFamily();
   const all=catalogValues('Петли');
@@ -10197,12 +10267,12 @@ function renderHingeCatalogCards(){
   }
   const priceSummary=hingeCatalogPriceSummary(items);
   const priceBanner=items.length
-    ?'<div class="hinge-price-summary"><div><b>BASE Bitrix24</b> · '+priceSummary.priced+' из '+items.length+' позиций с рабочей ценой'+
+    ?'<div class="hinge-price-summary"><div><b>Розничные цены</b> · '+priceSummary.priced+' из '+items.length+' позиций с рабочей ценой'+
       (priceSummary.min!==null?' · диапазон <b>'+formatRub(priceSummary.min)+' — '+formatRub(priceSummary.max)+'</b>':'')+
       '</div>'+
       ((priceSummary.unresolved||priceSummary.missing||priceSummary.suspicious||priceSummary.overrides)
         ?'<div class="mini">Контроль: проверить BASE — '+(priceSummary.unresolved+priceSummary.suspicious)+' · ручных корректировок — '+priceSummary.overrides+(priceSummary.missing?' · без привязки — '+priceSummary.missing:'')+'</div>'
-        :'<div class="mini">Все позиции текущей выборки имеют обычную BASE-цену.</div>')+
+        :'<div class="mini">Все позиции текущей выборки имеют рабочую розничную цену.</div>')+
       '</div>'
     :'';
   const banner=(strict?'<div class="krona-review-banner"><b>Эталонная ревизия Krona Koblenz / KUBICA → Скрытые.</b><br>Здесь запрещены приблизительные фотографии другого цвета. Карточка получает изображение только если подтверждён конкретный вариант отделки; иначе показывается честный placeholder. Код производителя и спорные места вынесены прямо в карточку.</div>':'')+priceBanner;
@@ -10222,7 +10292,7 @@ function renderHingeCatalogCards(){
     const priceFlagHtml=priceMeta?.priceOverride
       ?'<div class="hinge-price-flag override">Ручная цена · исходный BASE '+formatRub(priceMeta.sourceBase)+'</div>'
       :(priceMeta&&(priceMeta.price===null||priceMeta.suspicious)
-        ?'<div class="hinge-price-flag warning">Проверить BASE · '+(priceMeta.sourceBase===null?'не заполнен':formatRub(priceMeta.sourceBase))+'</div>'
+        ?'<div class="hinge-price-flag warning">Проверить цену · '+(priceMeta.sourceBase===null?'не заполнен':formatRub(priceMeta.sourceBase))+'</div>'
         :'');
     return `
       <button type="button" class="hinge-card ${item===selected?'active':''}" onclick="selectHingeCatalogCard(${i})" title="${escapeHtml(item)}">
@@ -10316,10 +10386,10 @@ function handleShortLabel(item){
   return name.length>92?name.slice(0,89)+'…':name;
 }
 function handlePriceText(item){
-  const meta=hardwareBasePriceMeta('Ручки',item);
+  const meta=hardwareSalesPriceMeta('Ручки',item,activeSalesPriceType());
   if(!meta)return 'Цена не подключена';
   if(meta.price===null||meta.suspicious)return 'Цена по запросу';
-  return 'BASE · '+formatRub(meta.price)+' / шт.';
+  return 'Розница · '+formatRub(meta.retailPrice)+' / шт.';
 }
 function renderHandleCatalogCards(){
   const wrap=$('handleCatalogWrap'),grid=$('handleCatalogGrid');
@@ -10331,11 +10401,11 @@ function renderHandleCatalogCards(){
   const items=handleCurrentItems();
   if($('handleCatalogCount'))$('handleCatalogCount').textContent=items.length+' позиций выбранного бренда/типа · 286 ручек в категории';
   const summary=hardwareCategoryPriceSummary('Ручки',items);
-  const banner='<div class="hinge-price-summary"><div><b>BASE Bitrix24</b> · '+summary.priced+' из '+items.length+' позиций с рабочей ценой'+
+  const banner='<div class="hinge-price-summary"><div><b>Розничные цены</b> · '+summary.priced+' из '+items.length+' позиций с рабочей ценой'+
     (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
     ((summary.unresolved||summary.missing||summary.overrides)
       ?'<div class="mini">Контроль: требуют решения — '+summary.unresolved+' · ручных корректировок — '+summary.overrides+(summary.missing?' · без привязки — '+summary.missing:'')+'</div>'
-      :'<div class="mini">Все позиции текущей выборки имеют обычную BASE-цену.</div>')+'</div>';
+      :'<div class="mini">Все позиции текущей выборки имеют рабочую розничную цену.</div>')+'</div>';
   grid.innerHTML=banner+items.map((item,i)=>{
     const meta=hardwareBasePriceMeta('Ручки',item);
     const problem=meta&&(meta.price===null||meta.suspicious);
@@ -10346,7 +10416,7 @@ function renderHandleCatalogCards(){
       </div>
       <div class="handle-price-name">${escapeHtml(handleShortLabel(item))}</div>
       <div class="hinge-card-price ${problem?'unpriced':''}">${escapeHtml(handlePriceText(item))}</div>
-      ${problem?'<div class="hinge-price-flag warning">Проверить BASE · '+(meta?.sourceBase===null?'не заполнен':formatRub(meta?.sourceBase))+'</div>':''}
+      ${problem?'<div class="hinge-price-flag warning">Проверить цену · '+(meta?.sourceBase===null?'не заполнен':formatRub(meta?.sourceBase))+'</div>':''}
     </button>`;
   }).join('');
 }
@@ -10406,11 +10476,17 @@ function hardwareCardPhotoMeta(category,item){
   };
 }
 function hardwareCardPriceText(category,item){
-  const meta=hardwareBasePriceMeta(category,item);
+  const meta=hardwareSalesPriceMeta(category,item,activeSalesPriceType());
   if(!meta)return 'Цена пока не подключена';
   if(meta.price===null||meta.suspicious)return 'Цена по запросу';
-  return 'BASE · '+formatRub(meta.price)+' / шт.';
+  if(meta.opt2Eligible){
+    return meta.priceType==='wholesale2'
+      ?'Опт 2 · '+formatRub(meta.price)+' / шт. · Розница '+formatRub(meta.retailPrice)
+      :'Розница · '+formatRub(meta.retailPrice)+' / шт. · Опт 2 −33%';
+  }
+  return 'Розница · '+formatRub(meta.retailPrice)+' / шт.';
 }
+
 function renderHardwareCatalogCards(){
   const wrap=$('hardwareCatalogWrap'),grid=$('hardwareCatalogGrid');
   if(!wrap||!grid)return;
@@ -10427,11 +10503,13 @@ function renderHardwareCatalogCards(){
   if($('hardwareCatalogCount'))$('hardwareCatalogCount').textContent=
     items.length+' карточек · '+(type==='Все позиции'?'все типы':type)+' · '+(brand==='Не определено'?'без бренда / проверить':brand);
   const summary=hardwareCategoryPriceSummary(sourceCategory,items);
-  const banner=items.length?'<div class="hinge-price-summary"><div><b>BASE Bitrix24</b> · '+summary.priced+' из '+items.length+' позиций с рабочей ценой'+
+  const opt2Count=items.filter(item=>hardwarePartnerOpt2Eligible(sourceCategory,item)).length;
+  const banner=items.length?'<div class="hinge-price-summary"><div><b>Розничные цены</b> · '+summary.priced+' из '+items.length+' позиций с рабочей ценой'+
     (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
     ((summary.unresolved||summary.missing||summary.overrides)
       ?'<div class="mini">Контроль: требуют решения — '+summary.unresolved+' · ручных корректировок — '+summary.overrides+(summary.missing?' · без привязки — '+summary.missing:'')+'</div>'
-      :'<div class="mini">Все позиции текущей выборки имеют обычную BASE-цену.</div>')+'</div>':'';
+      :'<div class="mini">Все позиции текущей выборки имеют рабочую розничную цену.</div>')+
+    (opt2Count?'<div class="mini">Опт 2 −33% подключён: '+opt2Count+' поз.</div>':'')+'</div>':'';
   grid.innerHTML=banner+items.map((item,i)=>{
     const photo=hardwareCardPhotoMeta(uiCategory,item);
     const meta=hardwareBasePriceMeta(sourceCategory,item);
@@ -10444,7 +10522,7 @@ function renderHardwareCatalogCards(){
         '<div class="hardware-card-topline"><span class="handle-brand">'+escapeHtml(brandName==='Не определено'?'Без бренда / проверить':brandName)+'</span><span class="hinge-type-tag">'+escapeHtml(typeName)+'</span></div>'+
         '<div class="hinge-card-model hardware-card-title">'+escapeHtml(hardwareCardShortLabel(item))+'</div>'+
         '<div class="hinge-card-price '+(problem?'unpriced':meta?.priceOverride?'override':'')+'">'+escapeHtml(hardwareCardPriceText(sourceCategory,item))+'</div>'+
-        (problem?'<div class="hinge-price-flag warning">Проверить BASE · '+(meta?.sourceBase===null?'не заполнен':formatRub(meta?.sourceBase))+'</div>':'')+
+        (problem?'<div class="hinge-price-flag warning">Проверить цену · '+(meta?.sourceBase===null?'не заполнен':formatRub(meta?.sourceBase))+'</div>':'')+
         '<div class="hinge-card-meta"><span class="hinge-photo-status '+(photo.status==='manual'?'':'pending')+'">'+(photo.status==='manual'?'Загружено вручную':'Фото из Bitrix: подключение следующим слоем')+'</span></div>'+
         '<div class="hinge-card-name">'+escapeHtml(item)+'</div>'+
         '<div class="hinge-card-source">'+escapeHtml(photo.source)+'</div>'+
@@ -10483,7 +10561,7 @@ function updateHardwareDatalist(resetBrand=false,resetType=false){
   const sourceCategory=HARDWARE_MAP[c.value]||c.value;
   const list=$('catalogItemList'); if(list)list.innerHTML=vals.map(v=>{
     const meta=hardwareBasePriceMeta(sourceCategory,v);
-    const label=meta?(meta.price===null||meta.suspicious?'Цена по запросу':'BASE '+formatRub(meta.price)):'';
+    const label=meta?(meta.price===null||meta.suspicious?'Цена по запросу':'Розница '+formatRub(meta.price)):'';
     return `<option value="${escapeHtml(v)}"${label?` label="${escapeHtml(label)}"`:''}></option>`;
   }).join('');
   if($('catalogItem') && !vals.includes($('catalogItem').value)) $('catalogItem').value=vals[0]||'';
@@ -10550,7 +10628,7 @@ function renderHardware(){
              <div id="hardwareCatalogTitle" class="hinge-pilot-title">Каталог фурнитуры</div>
              <div id="hardwareCatalogCount" class="mini"></div>
            </div>
-           <div class="hinge-pilot-note">Карточка связана с реальной номенклатурой и рабочей BASE-ценой. Там, где публичное фото ещё не подключено, показывается нейтральный placeholder — без подмены товара похожей картинкой.</div>
+           <div class="hinge-pilot-note">Карточка связана с реальной номенклатурой и рабочей розничной ценой. Там, где публичное фото ещё не подключено, показывается нейтральный placeholder — без подмены товара похожей картинкой.</div>
          </div>
          <div id="hardwareCatalogGrid" class="hinge-card-grid"></div>
        </div>`
@@ -10563,27 +10641,27 @@ function renderOpeningSystemPrice(){
   const summary=hardwareCategoryPriceSummary('Системы открывания',vals);
   const summaryBox=$('openingSystemPriceSummary');
   if(summaryBox){
-    summaryBox.innerHTML='<div><b>BASE Bitrix24</b> · '+summary.priced+' из '+summary.total+' позиций с рабочей ценой'+
+    summaryBox.innerHTML='<div><b>Розничные цены</b> · '+summary.priced+' из '+summary.total+' позиций с рабочей ценой'+
       (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
       ((summary.unresolved||summary.missing)
         ?'<div class="mini">Требуют решения — '+summary.unresolved+(summary.missing?' · без привязки — '+summary.missing:'')+'</div>'
-        :'<div class="mini">Все системы текущего каталога имеют рабочую BASE-цену.</div>');
+        :'<div class="mini">Все системы текущего каталога имеют рабочую розничную цену.</div>');
   }
   const box=$('openingSystemSelectedPrice');if(!box)return;
   const name=$('catalogItem')?.value||'';
   const meta=hardwareBasePriceMeta('Системы открывания',name);
   if(!meta){
     box.className='status warn';
-    box.innerHTML='<b>Цена пока не подключена.</b><br>Для этой системы не найдено точного соответствия в импортированном BASE Bitrix24.';
+    box.innerHTML='<b>Цена пока не подключена.</b><br>Для этой системы не найдено точного соответствия в текущем каталоге цен.';
     return;
   }
   if(meta.price===null||meta.suspicious){
     box.className='status warn';
-    box.innerHTML='<b>Цена по запросу / проверить BASE.</b><br><span class="mini">Исходный BASE Bitrix24: '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+'</span>';
+    box.innerHTML='<b>Цена по запросу / проверить цену.</b><br><span class="mini">Исходная цена Bitrix24: '+(meta.sourceBase===null?'не заполнен':formatRub(meta.sourceBase))+'</span>';
     return;
   }
   box.className='status ok';
-  box.innerHTML='<b>BASE: '+formatRub(meta.price)+'/шт.</b><br><span class="mini">Цена импортирована из Bitrix24 · Parent ID '+escapeHtml(meta.parentId)+(meta.offerId?' · Offer ID '+escapeHtml(meta.offerId):'')+'</span>';
+  box.innerHTML='<b>Розница: '+formatRub(meta.price)+'/шт.</b><br><span class="mini">Источник цены: Bitrix24 · Parent ID '+escapeHtml(meta.parentId)+(meta.offerId?' · Offer ID '+escapeHtml(meta.offerId):'')+'</span>';
 }
 function openingSystemAllItems(){
   return catalogValues('Системы открывания');
@@ -10696,7 +10774,7 @@ function renderOpeningSystemCards(){
   const summary=hardwareCategoryPriceSummary('Системы открывания',items);
   if($('openingSystemCardCount'))$('openingSystemCardCount').textContent=
     items.length+' карточек · '+type+' · '+($('openingSystemBrand')?.value||'');
-  const banner=items.length?'<div class="hinge-price-summary"><div><b>BASE Bitrix24</b> · '+summary.priced+' из '+items.length+' позиций с рабочей ценой'+
+  const banner=items.length?'<div class="hinge-price-summary"><div><b>Розничные цены</b> · '+summary.priced+' из '+items.length+' позиций с рабочей ценой'+
     (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
     '<div class="mini">Иллюстрация показывает тип механики и не подменяет точное фото SKU. Точные фото будем подключать по мере ревизии.</div></div>':'';
   grid.innerHTML=banner+items.map((item,i)=>{
