@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v102 · Розница +50% для 36 мм</title>
+<title>Hidden Doors — Личный кабинет · Прототип v103 · единая модель цен 36/42/59</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1475,7 +1475,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
-<!-- v102-36-retail-50-pricing -->
+<!-- v103-door-tier-policy-36-42-59 -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1490,7 +1490,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v102 · Розница +50%</div>
+        <div class="version-chip"><span>HD</span> v103 · Цены 36/42/59</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2068,6 +2068,18 @@ const SALES_PRICE_TYPES=Object.freeze([
 const DEFAULT_SALES_PRICE_TYPE='wholesale2';
 const SALES_PRICE_TYPE_STORE='hd_v76_sales_price_type';
 
+const DOOR_SALES_TIER_POLICY=Object.freeze({
+  door36:Object.freeze({label:'36 мм',wholesale1Markup:0.125,retailMarkup:0.50}),
+  door42:Object.freeze({label:'42 мм',wholesale1Markup:0.125,retailMarkup:0.50}),
+  door59:Object.freeze({label:'59 мм',wholesale1Markup:0.125,retailMarkup:0.50})
+});
+function doorSalesTierPolicy(group){
+  return DOOR_SALES_TIER_POLICY[String(group||'')]||null;
+}
+// Important: this policy is intentionally limited to door nomenclature groups 36/42/59.
+// Hardware, wall panels and other catalog groups must use their own separately approved pricing math.
+
+
 function normalizeSalesPriceType(value){
   const id=String(value||'');
   return SALES_PRICE_TYPES.some(x=>x.id===id)?id:DEFAULT_SALES_PRICE_TYPE;
@@ -2194,10 +2206,10 @@ function exactSalesPriceMatch(required,actual){
 const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 / Опт 1 / Розница · +12,5% / +50% от Опт 2'}),
   Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Три уровня цены подключены: Опт 2 / Опт 1 / Розница'}),
-  Object.freeze({block:'42 мм',area:'Полотно · фанера 1700–2200 / AL 1700–2300 · грунт · серый/чёрный анод',status:'connected',note:'Опт 2 · база 2000 + утверждённые коэффициенты высоты/ширины'}),
-  Object.freeze({block:'42 мм',area:'Короб / комплект / sales-tier фурнитуры',status:'pending',note:'Коммерческая логика состава утверждена, ценовые строки подключаются следующим блоком'}),
-  Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Прайс проанализирован, расчёт ещё не подключён'}),
-  Object.freeze({block:'Фурнитура',area:'Петли / замки / ручки / прочее',status:'external',note:'Сейчас BASE Bitrix24, sales-tier ещё не связан'}),
+  Object.freeze({block:'42 мм',area:'Полотно · фанера 1700–2200 / AL 1700–2300 · грунт · серый/чёрный анод',status:'connected',note:'Опт 2 + Опт 1 (+12,5%) + Розница (+50%); коэффициенты считаются от базы Опт 2'}),
+  Object.freeze({block:'42 мм',area:'Короб / комплект',status:'pending',note:'Уровни цены зафиксированы: Опт 1 +12,5%, Розница +50% от Опт 2; базовые строки короба подключаем следующим блоком'}),
+  Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Модель уровней зафиксирована: Опт 1 = Опт 2 +12,5%, Розница = Опт 2 +50%; базовые строки Опт 2 ещё подключаются'}),
+  Object.freeze({block:'Фурнитура',area:'Петли / замки / ручки / прочее',status:'external',note:'Сейчас BASE Bitrix24. Проценты дверей 36/42/59 к фурнитуре не применяются; для неё будет отдельная математика'}),
   Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL / ПВХ',status:'pending',note:'Цены источника зафиксированы, автоматические правила ещё не подключены'}),
   Object.freeze({block:'Себестоимость',area:'36 мм · полотно ПВХ + короб',status:'connected',note:'Полотно и покупной короб считаются отдельными объектами по схеме закупка → списание → норма → тех. отход → факт → отклонение'})
 ]);
@@ -2270,10 +2282,10 @@ function renderPricingOverview(){
     '<div class="pricing-category-grid">'+
       [
         ['door36','36 мм','Полотно и погонаж: Опт 2 / Опт 1 / Розница','ok'],
-        ['door42','42 мм','База и коэффициенты управляются вручную','ok'],
-        ['door59','59 мм','Источник проанализирован, правила ещё не включены','warn'],
+        ['door42','42 мм','Опт 2 + Опт 1 (+12,5%) + Розница (+50%); база и коэффициенты управляются','ok'],
+        ['door59','59 мм','Уровни цен зафиксированы (+12,5% / +50%); базовые строки Опт 2 ещё подключаются','warn'],
         ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
-        ['hardware','Фурнитура','Пока BASE Bitrix24; sales-tier ещё не подключён','info'],
+        ['hardware','Фурнитура','Отдельная математика: проценты дверей не наследуются','info'],
         ['extras','Доп. работы','Цены источника собраны, автоматизация впереди','warn'],
         ['cost','Себестоимость','36 мм: полотно и короб уже считаются отдельными объектами себестоимости','ok']
       ].map(([id,title,desc,status])=>'<button class="pricing-category-card" onclick="setPricingAdminSection(\''+id+'\')">'+
@@ -2327,21 +2339,21 @@ function renderPricing36Admin(){
     '</tbody></table></div><div class="mini pricing-table-note">Опт 1 и Розница не хранят отдельные копии цен: обе цены автоматически пересчитываются при изменении Опт 2. Внутренний расчёт хранится до копеек; интерфейс отображает цену в рублях.</div></div>';
 }
 function renderPricing42Admin(){
-  return pricingAdminSectionHeader('Двери 42 · Опт 2','Рабочая модель цены: база 2000 мм + управляемые коэффициенты.','Редактируется')+
+  return pricingAdminSectionHeader('Двери 42 · три уровня цены','Опт 2 — база; Опт 1 = +12,5%; Розница = +50%. Коэффициенты высоты/ширины считаются от Опт 2.','Модель зафиксирована')+
     renderPricing42RuleEditor()+
     '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Следующий уровень 42 мм</div>'+
     '<div class="pricing-roadmap-lines">'+
-      '<div><b>Полотно</b><span class="pricing-status ok">Подключено</span><small>База, высота, ширина, реверс</small></div>'+
-      '<div><b>Комплект короба</b><span class="pricing-status warn">Следующий блок</span><small>Коммерческая строка + производственная детализация</small></div>'+
-      '<div><b>K8060 / Vantage</b><span class="pricing-status info">Отдельный sales-tier</span><small>Не смешиваем с BASE Bitrix24</small></div>'+
+      '<div><b>Полотно</b><span class="pricing-status ok">Подключено</span><small>Опт 2 + Опт 1 (+12,5%) + Розница (+50%); база, высота, ширина, реверс</small></div>'+
+      '<div><b>Комплект короба</b><span class="pricing-status warn">Следующий блок</span><small>Сначала фиксируем Опт 2; Опт 1 и Розница затем считаются автоматически</small></div>'+
+      '<div><b>K8060 / Vantage</b><span class="pricing-status info">Отдельная математика</span><small>К фурнитуре +12,5% / +50% дверей не применяем</small></div>'+
       '<div><b>Итог комплекта</b><span class="pricing-status warn">Следующий блок</span><small>Контроль против прайса 19 090 / 20 815</small></div>'+
     '</div></div>';
 }
 function renderPricingSimpleSection(id){
   const map={
-    door59:['Двери 59','Прайс разобран. Пока правила расчёта и исключения не включены, чтобы не переносить противоречия источника в рабочую цену.','В работе'],
+    door59:['Двери 59','Модель уровней зафиксирована: Опт 1 = Опт 2 +12,5%, Розница = Опт 2 +50%. Сейчас нужно последовательно подключить базовые цены Опт 2 и исключения 59 мм.','Модель зафиксирована'],
     trim:['Погонаж','36 мм уже подключён. Для 42/59 здесь будут отдельные цены полного короба, стоек, поперечин и продажа отдельных деталей.','Расширяем'],
-    hardware:['Фурнитура','Сейчас каталог показывает BASE Bitrix24. В этой панели появятся отдельные Розница / Опт 1 / Опт 2, чтобы фурнитура считалась в том же sales-price контуре.','Отдельный price tier'],
+    hardware:['Фурнитура','Сейчас каталог показывает BASE Bitrix24. Для фурнитуры позже согласуем собственные проценты и правила; модель дверей +12,5% / +50% здесь не применяется.','Отдельная математика'],
     extras:['Дополнительные работы','Сюда войдут фрезеровки, скрытый стопор, автопорог, стекло/зеркало, ПВХ, RAL, откатная система и другие работы.','В работе'],
     cost:['Себестоимость','Нормативная и фактическая себестоимость будет жить отдельно от продажной цены: материалы + операции + фурнитура + расходники + упаковка.','Отдельный слой']
   };
@@ -2914,10 +2926,46 @@ const SALES_PRICE_42_STANDARD=Object.freeze({
   })
 });
 
+const PRICE42_WHOLESALE1_MARKUP=0.125;
+const PRICE42_RETAIL_MARKUP=0.50;
+
+function price42TierMarkup(priceType='wholesale2'){
+  const type=normalizeSalesPriceType(priceType);
+  if(type==='wholesale1')return PRICE42_WHOLESALE1_MARKUP;
+  if(type==='retail')return PRICE42_RETAIL_MARKUP;
+  return 0;
+}
+function price42TierFormula(priceType='wholesale2'){
+  const type=normalizeSalesPriceType(priceType);
+  if(type==='wholesale1')return 'Опт 2 + 12,5%';
+  if(type==='retail')return 'Опт 2 + 50%';
+  return '';
+}
+function price42ApplySalesTier(value,priceType='wholesale2'){
+  const n=Number(value);
+  if(!Number.isFinite(n))return null;
+  return Math.round(n*(1+price42TierMarkup(priceType))*100)/100;
+}
+function price42BookWithTierMeta(base,priceType='wholesale2'){
+  if(!base)return null;
+  const type=normalizeSalesPriceType(priceType);
+  if(type==='wholesale2')return base;
+  return {
+    ...base,
+    priceType:type,
+    priceTypeLabel:salesPriceTypeLabel(type),
+    priceBookId:type==='wholesale1'?'partner-2026-v1-wholesale1':'partner-2026-v1-retail',
+    source:'Расчёт от «Партнёрский прайс Hidden Doors 2026»',
+    derivedFromPriceType:'wholesale2',
+    derivedFormula:price42TierFormula(type),
+    markupRate:price42TierMarkup(type)
+  };
+}
+
 const PRICE42_MANUAL_RULE_STORE='hd_v82_price42_manual_rules';
 
 function price42ApprovedBook(priceType=activeSalesPriceType()){
-  return SALES_PRICE_42_STANDARD[normalizeSalesPriceType(priceType)]||null;
+  return price42BookWithTierMeta(SALES_PRICE_42_STANDARD.wholesale2,priceType);
 }
 function price42ManualOverrides(){
   if(typeof getStore!=='function')return null;
@@ -2930,35 +2978,38 @@ function price42SafePositiveNumber(value,fallback){
 }
 function price42Book(priceType=activeSalesPriceType()){
   const type=normalizeSalesPriceType(priceType);
-  const approved=price42ApprovedBook(type);
-  if(!approved||type!=='wholesale2')return approved;
+  const approved=SALES_PRICE_42_STANDARD.wholesale2;
+  if(!approved)return null;
   const manual=price42ManualOverrides();
-  if(!manual)return approved;
-  const approvedBase=approved.base||{};
-  const approvedRules=approved.heightRules||[];
-  return {
-    ...approved,
-    manualOverride:true,
-    manualUpdatedAt:manual.updatedAt||'',
-    base:{
-      plywood:{
-        gray:price42SafePositiveNumber(manual.base?.plywood?.gray,approvedBase.plywood?.gray),
-        black:price42SafePositiveNumber(manual.base?.plywood?.black,approvedBase.plywood?.black)
+  let effectiveOpt2=approved;
+  if(manual){
+    const approvedBase=approved.base||{};
+    const approvedRules=approved.heightRules||[];
+    effectiveOpt2={
+      ...approved,
+      manualOverride:true,
+      manualUpdatedAt:manual.updatedAt||'',
+      base:{
+        plywood:{
+          gray:price42SafePositiveNumber(manual.base?.plywood?.gray,approvedBase.plywood?.gray),
+          black:price42SafePositiveNumber(manual.base?.plywood?.black,approvedBase.plywood?.black)
+        },
+        aluminum:{
+          gray:price42SafePositiveNumber(manual.base?.aluminum?.gray,approvedBase.aluminum?.gray),
+          black:price42SafePositiveNumber(manual.base?.aluminum?.black,approvedBase.aluminum?.black)
+        }
       },
-      aluminum:{
-        gray:price42SafePositiveNumber(manual.base?.aluminum?.gray,approvedBase.aluminum?.gray),
-        black:price42SafePositiveNumber(manual.base?.aluminum?.black,approvedBase.aluminum?.black)
+      heightRules:approvedRules.map((rule,index)=>({
+        ...rule,
+        factor:price42SafePositiveNumber(manual.heightFactors?.[index],rule.factor)
+      })),
+      widthRule:{
+        above:price42SafePositiveNumber(manual.widthRule?.above,approved.widthRule?.above||900),
+        factor:price42SafePositiveNumber(manual.widthRule?.factor,approved.widthRule?.factor||1.2)
       }
-    },
-    heightRules:approvedRules.map((rule,index)=>({
-      ...rule,
-      factor:price42SafePositiveNumber(manual.heightFactors?.[index],rule.factor)
-    })),
-    widthRule:{
-      above:price42SafePositiveNumber(manual.widthRule?.above,approved.widthRule?.above||900),
-      factor:price42SafePositiveNumber(manual.widthRule?.factor,approved.widthRule?.factor||1.2)
-    }
-  };
+    };
+  }
+  return price42BookWithTierMeta(effectiveOpt2,type);
 }
 function price42AdminRuleValues(){
   const book=price42Book('wholesale2');
@@ -3010,20 +3061,30 @@ function resetPrice42AdminRules(){
 }
 function price42HasManualRules(){return !!price42ManualOverrides()}
 function price42RuleCalculation({height,width,frameKey,edgeKey},priceType='wholesale2'){
-  const book=price42Book(priceType);
+  const type=normalizeSalesPriceType(priceType);
+  const book=price42Book(type);
+  const opt2Book=price42Book('wholesale2');
   const h=Number(height),w=Number(width);
-  if(!book)return {ok:false,reason:'Нет активного прайса.'};
-  const limits=book.limits?.[frameKey];
+  if(!book||!opt2Book)return {ok:false,reason:'Нет активного прайса.'};
+  const limits=opt2Book.limits?.[frameKey];
   if(!limits)return {ok:false,reason:'Неизвестный тип каркаса.'};
   if(!Number.isFinite(h)||h<limits.minHeight||h>limits.maxHeight)return {ok:false,reason:'Высота вне допустимого диапазона.'};
-  if(!Number.isFinite(w)||w<book.limits.minWidth||w>book.limits.maxWidth)return {ok:false,reason:'Ширина вне допустимого диапазона.'};
-  const basePrice=Number(book.base?.[frameKey]?.[edgeKey]);
-  if(!Number.isFinite(basePrice))return {ok:false,reason:'Базовая цена не найдена.'};
-  const heightFactor=price42HeightFactor(h,book);
-  const widthFactor=price42WidthFactor(w,book);
+  if(!Number.isFinite(w)||w<opt2Book.limits.minWidth||w>opt2Book.limits.maxWidth)return {ok:false,reason:'Ширина вне допустимого диапазона.'};
+  const opt2BasePrice=Number(opt2Book.base?.[frameKey]?.[edgeKey]);
+  if(!Number.isFinite(opt2BasePrice))return {ok:false,reason:'Базовая цена не найдена.'};
+  const heightFactor=price42HeightFactor(h,opt2Book);
+  const widthFactor=price42WidthFactor(w,opt2Book);
   if(heightFactor===null||widthFactor===null)return {ok:false,reason:'Не найден коэффициент.'};
-  const price=Math.round(basePrice*heightFactor*widthFactor);
-  return {ok:true,price,basePrice,heightFactor,widthFactor,height:h,width:w,frameKey,edgeKey,manualOverride:!!book.manualOverride};
+  const opt2Price=Math.round(opt2BasePrice*heightFactor*widthFactor);
+  const price=price42ApplySalesTier(opt2Price,type);
+  const basePrice=price42ApplySalesTier(opt2BasePrice,type);
+  return {
+    ok:true,price,basePrice,opt2Price,opt2BasePrice,
+    heightFactor,widthFactor,height:h,width:w,frameKey,edgeKey,
+    priceType:type,markupRate:price42TierMarkup(type),
+    derivedFormula:price42TierFormula(type),
+    manualOverride:!!opt2Book.manualOverride
+  };
 }
 function price42TypeLabel(priceType=activeSalesPriceType()){
   return salesPriceTypeLabel(priceType);
@@ -3082,7 +3143,7 @@ function price42Calculation(priceType=activeSalesPriceType()){
 }
 function price42SourceNote(book){
   if(!book)return '';
-  return book.source+' · price book '+(book.priceBookId||'—')+' · тип цены '+price42TypeLabel(book.priceType)+' · источник обновлён '+book.updated+(book.manualOverride?' · активны ручные настройки ЛК':'');
+  return book.source+' · price book '+(book.priceBookId||'—')+' · тип цены '+price42TypeLabel(book.priceType)+' · источник обновлён '+book.updated+(book.derivedFormula?' · формула '+book.derivedFormula:'')+(book.manualOverride?' · активны ручные настройки ЛК':'');
 }
 function price42StandardSnapshot(){
   if(product()!=='single42')return {visible:false};
@@ -3145,10 +3206,10 @@ function price42EdgeKeyFromName(name){
 }
 function cart42StandardFallbackUnitPrice(item,priceType=item?.priceType||activeSalesPriceType()){
   if(!is42StandardLeafCatalogItem(item))return null;
-  const book=price42Book(priceType);
-  if(!book)return null;
-  const price=book.base?.plywood?.[price42EdgeKeyFromName(item.name)];
-  return Number.isFinite(Number(price))?Number(price):null;
+  const opt2Book=price42Book('wholesale2');
+  if(!opt2Book)return null;
+  const opt2Price=opt2Book.base?.plywood?.[price42EdgeKeyFromName(item.name)];
+  return Number.isFinite(Number(opt2Price))?price42ApplySalesTier(Number(opt2Price),priceType):null;
 }
 
 // --- data/packaging-cost.js ---
