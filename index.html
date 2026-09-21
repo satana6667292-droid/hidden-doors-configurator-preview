@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v104 · Погонаж 42 под полотно</title>
+<title>Hidden Doors — Личный кабинет · Прототип v105 · Покрытия 42</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1496,7 +1496,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
-<!-- v104-trim42-door-linked-ui -->
+<!-- v105-price42-finishes -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1511,7 +1511,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v104 · Погонаж 42</div>
+        <div class="version-chip"><span>HD</span> v105 · Покрытия 42</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2227,11 +2227,11 @@ function exactSalesPriceMatch(required,actual){
 const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 / Опт 1 / Розница · +12,5% / +50% от Опт 2'}),
   Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Три уровня цены подключены: Опт 2 / Опт 1 / Розница'}),
-  Object.freeze({block:'42 мм',area:'Полотно · фанера 1700–2200 / AL 1700–2300 · грунт · серый/чёрный анод',status:'connected',note:'Опт 2 + Опт 1 (+12,5%) + Розница (+50%); коэффициенты считаются от базы Опт 2'}),
+  Object.freeze({block:'42 мм',area:'Полотно · грунт / ПВХ / эмаль · фанера 1700–2200 / AL 1700–2300',status:'connected',note:'База и ПВХ следуют уровням Опт 2 / Опт 1 / Розница; эмаль 4 000 ₽/м² одинакова для всех уровней; шпон/HPL — после согласования'}),
   Object.freeze({block:'42 мм',area:'Короб / комплект',status:'pending',note:'Уровни цены зафиксированы: Опт 1 +12,5%, Розница +50% от Опт 2; базовые строки короба подключаем следующим блоком'}),
   Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Модель уровней зафиксирована: Опт 1 = Опт 2 +12,5%, Розница = Опт 2 +50%; базовые строки Опт 2 ещё подключаются'}),
   Object.freeze({block:'Фурнитура',area:'Петли / замки / ручки / прочее',status:'external',note:'Сейчас BASE Bitrix24. Проценты дверей 36/42/59 к фурнитуре не применяются; для неё будет отдельная математика'}),
-  Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL / ПВХ',status:'pending',note:'Цены источника зафиксированы, автоматические правила ещё не подключены'}),
+  Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL короба и прочее',status:'pending',note:'ПВХ и эмаль полотна 42 уже подключены в блоке двери; остальные дополнительные работы подключаются отдельно'}),
   Object.freeze({block:'Себестоимость',area:'36 мм · полотно ПВХ + короб',status:'connected',note:'Полотно и покупной короб считаются отдельными объектами по схеме закупка → списание → норма → тех. отход → факт → отклонение'})
 ]);
 
@@ -2303,7 +2303,7 @@ function renderPricingOverview(){
     '<div class="pricing-category-grid">'+
       [
         ['door36','36 мм','Полотно и погонаж: Опт 2 / Опт 1 / Розница','ok'],
-        ['door42','42 мм','Опт 2 + Опт 1 (+12,5%) + Розница (+50%); база и коэффициенты управляются','ok'],
+        ['door42','42 мм','Три уровня цены + покрытия: ПВХ, общий каталог, эмаль; шпон/HPL по согласованию','ok'],
         ['door59','59 мм','Уровни цен зафиксированы (+12,5% / +50%); базовые строки Опт 2 ещё подключаются','warn'],
         ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
         ['hardware','Фурнитура','Отдельная математика: проценты дверей не наследуются','info'],
@@ -2360,11 +2360,18 @@ function renderPricing36Admin(){
     '</tbody></table></div><div class="mini pricing-table-note">Опт 1 и Розница не хранят отдельные копии цен: обе цены автоматически пересчитываются при изменении Опт 2. Внутренний расчёт хранится до копеек; интерфейс отображает цену в рублях.</div></div>';
 }
 function renderPricing42Admin(){
-  return pricingAdminSectionHeader('Двери 42 · три уровня цены','Опт 2 — база; Опт 1 = +12,5%; Розница = +50%. Коэффициенты высоты/ширины считаются от Опт 2.','Модель зафиксирована')+
+  return pricingAdminSectionHeader('Двери 42 · три уровня цены','Опт 2 — база; Опт 1 = +12,5%; Розница = +50%. Подключены правила ПВХ и эмали полотна.','Покрытия подключены')+
     renderPricing42RuleEditor()+
+    '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Покрытия полотна 42 мм</div>'+
+      '<div class="pricing-roadmap-lines">'+
+        '<div><b>ПВХ · каждая сторона</b><span class="pricing-status ok">1 725 ₽/м высоты</span><small>Ширина не влияет. Каталог Hidden Doors — без отдельной доплаты.</small></div>'+
+        '<div><b>Общий каталог ПВХ</b><span class="pricing-status ok">+2 300 ₽ / дверь</span><small>Один раз, если хотя бы одна сторона выбрана из общего каталога; не удваивается при двух сторонах.</small></div>'+
+        '<div><b>Эмаль</b><span class="pricing-status ok">4 000 ₽/м² / сторона</span><small>H × W × 4 000 × число сторон. Ставка одинаковая для Опт 2 / Опт 1 / Розницы; любой RAL без доплаты.</small></div>'+
+        '<div><b>Шпон / HPL</b><span class="pricing-status info">После согласования</span><small>Финальная цена автоматически не рассчитывается.</small></div>'+
+      '</div></div>'+
     '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Следующий уровень 42 мм</div>'+
     '<div class="pricing-roadmap-lines">'+
-      '<div><b>Полотно</b><span class="pricing-status ok">Подключено</span><small>Опт 2 + Опт 1 (+12,5%) + Розница (+50%); база, высота, ширина, реверс</small></div>'+
+      '<div><b>Полотно</b><span class="pricing-status ok">Подключено</span><small>База, высота, ширина, реверс + ПВХ / общий каталог / эмаль; шпон и HPL — после согласования</small></div>'+
       '<div><b>Комплект короба</b><span class="pricing-status warn">Следующий блок</span><small>Сначала фиксируем Опт 2; Опт 1 и Розница затем считаются автоматически</small></div>'+
       '<div><b>K8060 / Vantage</b><span class="pricing-status info">Отдельная математика</span><small>К фурнитуре +12,5% / +50% дверей не применяем</small></div>'+
       '<div><b>Итог комплекта</b><span class="pricing-status warn">Следующий блок</span><small>Контроль против прайса 19 090 / 20 815</small></div>'+
@@ -2950,6 +2957,17 @@ const SALES_PRICE_42_STANDARD=Object.freeze({
 const PRICE42_WHOLESALE1_MARKUP=0.125;
 const PRICE42_RETAIL_MARKUP=0.50;
 
+const PRICE42_PVC_RATE_PER_HEIGHT_M_PER_SIDE=1725;
+const PRICE42_GENERAL_FILM_SURCHARGE_PER_DOOR=2300;
+const PRICE42_ENAMEL_RATE_PER_SQM_PER_SIDE=4000;
+const PRICE42_AUTO_FINISH_TYPES=Object.freeze(['Грунт под покраску','ПВХ-пленка','Эмаль']);
+const PRICE42_QUOTE_FINISH_TYPES=Object.freeze(['Шпон','HPL']);
+
+function price42RoundMoney(value){
+  const n=Number(value);
+  return Number.isFinite(n)?Math.round(n*100)/100:null;
+}
+
 function price42TierMarkup(priceType='wholesale2'){
   const type=normalizeSalesPriceType(priceType);
   if(type==='wholesale1')return PRICE42_WHOLESALE1_MARKUP;
@@ -3133,6 +3151,69 @@ function price42WidthFactor(width,book=price42Book()){
   if(!Number.isFinite(w))return null;
   return w>Number(book?.widthRule?.above||900)?Number(book?.widthRule?.factor||1.2):1;
 }
+
+function price42FinishCalculation(config={},priceType='wholesale2'){
+  const type=normalizeSalesPriceType(priceType);
+  const h=Number(config.height),w=Number(config.width);
+  const side1Type=String(config.side1Type||'Грунт под покраску');
+  const side2Type=String(config.side2Type||'Грунт под покраску');
+  const types=[side1Type,side2Type];
+  const quoteTypes=[...new Set(types.filter(x=>PRICE42_QUOTE_FINISH_TYPES.includes(x)))];
+  const unsupported=[...new Set(types.filter(x=>!PRICE42_AUTO_FINISH_TYPES.includes(x)&&!PRICE42_QUOTE_FINISH_TYPES.includes(x)))];
+
+  if(quoteTypes.length){
+    return {
+      ok:true,priceOnRequest:true,quoteTypes,
+      reason:quoteTypes.join(' / ')+' — цена после согласования.'
+    };
+  }
+  if(unsupported.length){
+    return {
+      ok:true,priceOnRequest:true,quoteTypes:[],
+      reason:'Для покрытия «'+unsupported.join(' / ')+'» автоматическая цена пока не согласована.'
+    };
+  }
+  if(!Number.isFinite(h)||h<=0||!Number.isFinite(w)||w<=0){
+    return {ok:false,priceOnRequest:false,reason:'Некорректный размер полотна для расчёта покрытия.'};
+  }
+
+  const pvcSides=types.filter(x=>x==='ПВХ-пленка').length;
+  const side1Catalog=String(config.side1Catalog||'Hidden Doors');
+  const side2Catalog=String(config.side2Catalog||'Hidden Doors');
+  const generalCatalogSelected=
+    (side1Type==='ПВХ-пленка'&&side1Catalog==='Общий каталог')||
+    (side2Type==='ПВХ-пленка'&&side2Catalog==='Общий каталог');
+
+  const pvcOpt2=price42RoundMoney((h/1000)*PRICE42_PVC_RATE_PER_HEIGHT_M_PER_SIDE*pvcSides)||0;
+  const generalCatalogOpt2=generalCatalogSelected?PRICE42_GENERAL_FILM_SURCHARGE_PER_DOOR:0;
+  const pvcPrice=price42ApplySalesTier(pvcOpt2,type)||0;
+  const generalCatalogPrice=price42ApplySalesTier(generalCatalogOpt2,type)||0;
+
+  const enamelSides=types.filter(x=>x==='Эмаль').length;
+  const areaPerSide=price42RoundMoney((h/1000)*(w/1000))||0;
+  const enamelPrice=price42RoundMoney(areaPerSide*PRICE42_ENAMEL_RATE_PER_SQM_PER_SIDE*enamelSides)||0;
+
+  return {
+    ok:true,priceOnRequest:false,quoteTypes:[],
+    pvcSides,pvcOpt2,pvcPrice,
+    generalCatalogSelected,generalCatalogOpt2,generalCatalogPrice,
+    enamelSides,areaPerSide,enamelPrice,
+    opt2Price:price42RoundMoney(pvcOpt2+generalCatalogOpt2+enamelPrice)||0,
+    price:price42RoundMoney(pvcPrice+generalCatalogPrice+enamelPrice)||0,
+    priceType:type
+  };
+}
+function price42CurrentFinishConfig(){
+  return {
+    height:currentHeight(),
+    width:currentWidth(),
+    side1Type:$('SingleSide1Type')?.value||'Грунт под покраску',
+    side2Type:$('SingleSide2Type')?.value||'Грунт под покраску',
+    side1Catalog:$('SingleSide1FilmCatalog')?.value||'Hidden Doors',
+    side2Catalog:$('SingleSide2FilmCatalog')?.value||'Hidden Doors'
+  };
+}
+
 function standard42PriceEligibility(priceType=activeSalesPriceType()){
   if(product()!=='single42')return {eligible:false,reason:'not42'};
   const book=price42Book(priceType);
@@ -3140,6 +3221,7 @@ function standard42PriceEligibility(priceType=activeSalesPriceType()){
   const frame=$('frame')?.value||'',frameKey=price42FrameKey(frame);
   const side1=$('SingleSide1Type')?.value||'',side2=$('SingleSide2Type')?.value||'';
   const edge=$('SingleEdgeColor')?.value||'',edgeKey=price42EdgeKey(edge);
+  const finish=price42FinishCalculation(price42CurrentFinishConfig(),priceType);
   const reasons=[];
   if(!book)reasons.push('для выбранного типа цены нет активной книги цен');
   if(!frameKey)reasons.push('неизвестная конструкция полотна');
@@ -3147,21 +3229,37 @@ function standard42PriceEligibility(priceType=activeSalesPriceType()){
   if(limits&&(height<limits.minHeight||height>limits.maxHeight))reasons.push('высота вне диапазона '+limits.minHeight+'–'+limits.maxHeight+' мм для выбранного каркаса');
   if(!limits)reasons.push('для выбранного каркаса не задан диапазон высот');
   if(width<Number(book?.limits?.minWidth||450)||width>Number(book?.limits?.maxWidth||1000))reasons.push('ширина вне утверждённого диапазона 450–1000 мм');
-  if(side1!=='Грунт под покраску'||side2!=='Грунт под покраску')reasons.push('обе стороны должны быть «Грунт под покраску»');
   if(!edgeKey)reasons.push('торец должен быть серый или чёрный анод');
   const heightFactor=price42HeightFactor(height,book);
   if(heightFactor===null)reasons.push('для этой высоты нет утверждённого коэффициента');
   const widthFactor=price42WidthFactor(width,book);
-  return {eligible:reasons.length===0,reasons,height,width,frame,frameKey,side1,side2,edge,edgeKey,heightFactor,widthFactor};
+  if(!finish.ok||finish.priceOnRequest)reasons.push(finish.reason||'покрытие требует согласования цены');
+  return {
+    eligible:reasons.length===0,reasons,height,width,frame,frameKey,side1,side2,edge,edgeKey,heightFactor,widthFactor,
+    finish,priceOnRequest:!!finish.priceOnRequest
+  };
 }
+
 function price42Calculation(priceType=activeSalesPriceType()){
-  const book=price42Book(priceType);
-  const e=standard42PriceEligibility(priceType);
-  if(!book||!e.eligible)return {...e,price:null,basePrice:null,priceType};
-  const ruleCalc=price42RuleCalculation({height:e.height,width:e.width,frameKey:e.frameKey,edgeKey:e.edgeKey},priceType);
-  if(!ruleCalc.ok)return {...e,eligible:false,reasons:[...(e.reasons||[]),ruleCalc.reason||'цена не рассчитана'],price:null,basePrice:null,priceType};
-  return {...e,...ruleCalc,priceType};
+  const type=normalizeSalesPriceType(priceType);
+  const book=price42Book(type);
+  const e=standard42PriceEligibility(type);
+  if(!book||!e.eligible)return {...e,price:null,basePrice:null,priceType:type};
+  const ruleCalc=price42RuleCalculation({height:e.height,width:e.width,frameKey:e.frameKey,edgeKey:e.edgeKey},type);
+  if(!ruleCalc.ok)return {...e,eligible:false,reasons:[...(e.reasons||[]),ruleCalc.reason||'цена не рассчитана'],price:null,basePrice:null,priceType:type};
+  const finish=e.finish||price42FinishCalculation(price42CurrentFinishConfig(),type);
+  if(!finish.ok||finish.priceOnRequest)return {...e,eligible:false,priceOnRequest:!!finish.priceOnRequest,price:null,basePrice:null,priceType:type,finish};
+  const leafPrice=Number(ruleCalc.price);
+  const opt2LeafPrice=Number(ruleCalc.opt2Price);
+  const price=price42RoundMoney(leafPrice+Number(finish.price||0));
+  const opt2Price=price42RoundMoney(opt2LeafPrice+Number(finish.opt2Price||0));
+  return {
+    ...e,...ruleCalc,
+    leafPrice,opt2LeafPrice,finish,finishPrice:Number(finish.price||0),
+    price,opt2Price,priceType:type
+  };
 }
+
 function price42SourceNote(book){
   if(!book)return '';
   return book.source+' · price book '+(book.priceBookId||'—')+' · тип цены '+price42TypeLabel(book.priceType)+' · источник обновлён '+book.updated+(book.derivedFormula?' · формула '+book.derivedFormula:'')+(book.manualOverride?' · активны ручные настройки ЛК':'');
@@ -3174,25 +3272,49 @@ function price42StandardSnapshot(){
     note:'Тип цены «'+typeLabel+'» создан, но цена полотна 42 мм для него пока не заполнена.'
   };
   const calc=price42Calculation(type);
-  if(!calc.eligible||calc.price===null)return {
-    visible:true,available:false,title:'Цена по запросу',priceType:type,
-    note:'Для «'+typeLabel+'» цена 42 мм рассчитывается только по утверждённым правилам: '+(calc.reasons||[]).join('; ')+'.'
-  };
+  if(!calc.eligible||calc.price===null){
+    const quote=!!calc.priceOnRequest;
+    return {
+      visible:true,available:false,title:quote?'Цена после согласования':'Цена по запросу',priceType:type,
+      html:quote?'<div><b>Покрытие:</b> '+escapeHtml(finishText('Single',1))+' / '+escapeHtml(finishText('Single',2))+'</div>':'',
+      note:quote
+        ?((calc.finish?.reason||'Для выбранного покрытия требуется индивидуальное согласование цены.')+' Базовая конфигурация полотна сохраняется, финальная цена автоматически не рассчитывается.')
+        :'Для «'+typeLabel+'» цена 42 мм рассчитывается только по утверждённым правилам: '+(calc.reasons||[]).join('; ')+'.'
+    };
+  }
   const edgeLabel=calc.edgeKey==='black'?'чёрный анод':'серый анод';
   const factors=[];
   if(calc.heightFactor!==1)factors.push('высота ×'+String(calc.heightFactor).replace('.',','));
   if(calc.widthFactor!==1)factors.push('ширина >'+String(book?.widthRule?.above||900)+' ×'+String(calc.widthFactor).replace('.',','));
-  const formula=factors.length
-    ?'<div>База 2000: '+formatRub(calc.basePrice)+' · '+factors.join(' · ')+'</div>'
-    :'<div>База 2000 без коэффициентов</div>';
+  const baseFormula=factors.length
+    ?'<div>База 2000: '+formatRub(calc.basePrice)+' · '+factors.join(' · ')+' → базовое полотно '+formatRub(calc.leafPrice)+'</div>'
+    :'<div>Базовое полотно: '+formatRub(calc.leafPrice)+'</div>';
+  const f=calc.finish||{};
+  const finishLines=[];
+  if(f.pvcSides){
+    const opt2Text=formatRub(f.pvcOpt2);
+    const activeText=type==='wholesale2'?'':(' → '+formatRub(f.pvcPrice)+' для '+typeLabel);
+    finishLines.push('<div>ПВХ: '+f.pvcSides+' стор. × '+String(calc.height/1000).replace('.',',')+' м × '+formatRub(PRICE42_PVC_RATE_PER_HEIGHT_M_PER_SIDE)+' = '+opt2Text+' по Опт 2'+activeText+'</div>');
+  }
+  if(f.generalCatalogSelected){
+    const activeText=type==='wholesale2'?'':(' → '+formatRub(f.generalCatalogPrice)+' для '+typeLabel);
+    finishLines.push('<div>Общий каталог ПВХ: +'+formatRub(PRICE42_GENERAL_FILM_SURCHARGE_PER_DOOR)+' один раз на дверь'+activeText+'</div>');
+  }
+  if(f.enamelSides){
+    finishLines.push('<div>Эмаль: '+String(f.areaPerSide).replace('.',',')+' м² × '+formatRub(PRICE42_ENAMEL_RATE_PER_SQM_PER_SIDE)+' × '+f.enamelSides+' стор. = '+formatRub(f.enamelPrice)+'</div>');
+  }
   return {
     visible:true,available:true,title:formatRub(calc.price),priceType:type,
     html:'<div><b>Полотно 42 мм:</b> '+formatRub(calc.price)+'</div>'+
       '<div>'+calc.height+'×'+calc.width+' · '+escapeHtml($('opening')?.value||'')+' · '+price42FrameLabel(calc.frameKey)+' · '+edgeLabel+'</div>'+
-      formula,
-    note:price42SourceNote(book)+' · реверс цену не меняет · коэффициенты высоты: '+(book.heightRules||[]).map(x=>x.label+' ×'+String(x.factor).replace('.',',')).join('; ')+' · ширина свыше '+String(book.widthRule?.above||900)+' мм ×'+String(book.widthRule?.factor||1.2).replace('.',',')+'.'
+      baseFormula+finishLines.join(''),
+    note:price42SourceNote(book)+
+      ' · ПВХ: '+formatRub(PRICE42_PVC_RATE_PER_HEIGHT_M_PER_SIDE)+'/м высоты за каждую сторону, ширина не влияет; общий каталог +'+formatRub(PRICE42_GENERAL_FILM_SURCHARGE_PER_DOOR)+' один раз на дверь'+
+      ' · эмаль: '+formatRub(PRICE42_ENAMEL_RATE_PER_SQM_PER_SIDE)+'/м² за каждую сторону, ставка одинакова для Опт 2 / Опт 1 / Розницы, любой RAL без доплаты'+
+      ' · шпон и HPL: цена после согласования.'
   };
 }
+
 function renderSalesPrice42(){
   const wrap=$('price42ResultWrap'),caption=$('price42Caption'),value=$('price42Result'),details=$('price42Details'),note=$('price42Note');
   if(!wrap||!value||!details||!note)return;
@@ -3207,6 +3329,11 @@ function renderSalesPrice42(){
 function configured42StandardUnitPrice(priceType=activeSalesPriceType()){
   const calc=price42Calculation(priceType);
   return calc.eligible&&Number.isFinite(Number(calc.price))?Number(calc.price):null;
+}
+function configured42PriceNote(priceType=activeSalesPriceType()){
+  if(product()!=='single42')return '';
+  const calc=price42Calculation(priceType);
+  return calc.priceOnRequest&&calc.finish?.quoteTypes?.length?'Цена после согласования':'';
 }
 function is42StandardLeafCatalogItem(item){
   if(!item)return false;
@@ -9196,11 +9323,17 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('catalogImageSea
 
 // --- door-ui.js ---
 function finishSide(id,label,covers,filmMode){
+  const dualPvcCatalog=product()==='single42'&&filmMode==='42';
   return `
   <div>
     <label>${label}</label>
     <select id="${id}Type">${options(covers,'Грунт под покраску')}</select>
+    ${dualPvcCatalog?`<div id="${id}FilmCatalogWrap" class="hidden" style="margin-top:7px">
+      <label>Каталог ПВХ</label>
+      <select id="${id}FilmCatalog">${options(['Hidden Doors','Общий каталог'],'Hidden Doors')}</select>
+    </div>`:''}
     <div id="${id}DetailWrap" class="hidden" style="margin-top:7px">
+      <label id="${id}DetailLabel">Покрытие</label>
       <div class="inline">
         <select id="${id}Detail"></select>
         ${plusButton(`addDictionaryFor("${id}Type","${id}Detail","${filmMode}")`)}
@@ -9208,6 +9341,7 @@ function finishSide(id,label,covers,filmMode){
     </div>
   </div>`;
 }
+
 
 function edgeControls(prefix,is59=false){
   const colors=is59?['Черный анод','Серый анод','Золотой анод','Полимерно-порошковая покраска']:
@@ -11108,7 +11242,8 @@ function renderSingle42(){
     ))+
     section('Покрытие полотна',
       `<div class="note">Сторона 1 — лицевая сторона скрытой двери, заподлицо со стеной со стороны коридора. Для реверсной двери четверть профиля находится со стороны 1.</div>`+
-      `<div style="margin-top:12px">${finishPane('', 'Single', COVER_BASE,'42',false)}</div>`
+      `<div style="margin-top:12px">${finishPane('', 'Single', COVER_BASE,'42',false)}</div>`+
+      `<div class="catalog-note" style="margin-top:10px"><b>Цена покрытия 42 мм</b><br>ПВХ считается по высоте отдельно для каждой стороны; для ПВХ доступны каталоги Hidden Doors и Общий. Общий каталог даёт одну доплату на дверь. Эмаль считается по площади каждой стороны. Шпон и HPL — цена после согласования.</div>`
     )+
     section('Комплектация двери',
       boxOption(true)+boxMiter45Option()+
@@ -12010,20 +12145,32 @@ function refreshDynamicDetails(){
 function updateFinishDetail(typeId){
   const type=$(typeId); if(!type)return;
   const detailId=typeId.replace('Type','Detail');
+  const catalogId=typeId.replace('Type','FilmCatalog');
   const wrap=$(detailId+'Wrap'), sel=$(detailId);
+  const catalogWrap=$(catalogId+'Wrap'), catalog=$(catalogId);
+  const detailLabel=$(detailId+'Label');
   if(!wrap||!sel)return;
   if(type.value==='ПВХ-пленка'){
+    catalogWrap?.classList.remove('hidden');
     wrap.classList.remove('hidden');
-    const old=sel.value, vals=getFilms42();
+    if(detailLabel)detailLabel.textContent='ПВХ-плёнка';
+    const old=sel.value;
+    const vals=catalog
+      ?(catalog.value==='Общий каталог'?getFilmsGeneral():getFilms36())
+      :getFilms42();
     sel.innerHTML=options(vals,vals.includes(old)?old:vals[0]);
   } else if(type.value==='Эмаль'){
+    catalogWrap?.classList.add('hidden');
     wrap.classList.remove('hidden');
+    if(detailLabel)detailLabel.textContent='RAL';
     const old=sel.value, vals=getRals();
     sel.innerHTML=options(vals,vals.includes(old)?old:vals[0]);
   } else {
+    catalogWrap?.classList.add('hidden');
     wrap.classList.add('hidden');
   }
 }
+
 
 function updateEdgeRal(colorId){
   const color=$(colorId); if(!color)return;
@@ -12098,10 +12245,14 @@ function addDictionaryFor(typeId,detailId,mode){
   const type=$(typeId)?.value;
   if(type==='Эмаль'){addRal(detailId);return}
   if(type!=='ПВХ-пленка')return;
-  const scope=mode==='42'?'general':'36';
+  const catalog=$(typeId.replace('Type','FilmCatalog'))?.value||'';
+  const scope=catalog
+    ?(catalog==='Hidden Doors'?'36':'general')
+    :(mode==='42'?'general':'36');
   addFilm(scope,detailId);
   updateFinishDetail(typeId);
 }
+
 
 function copyLeftToRight(){
   ['Side1Type','Side2Type','EdgeColor'].forEach(suffix=>{
@@ -12138,8 +12289,15 @@ function doubleWidth(side){
 function finishText(prefix,side){
   const type=$(prefix+'Side'+side+'Type')?.value||'';
   const detail=$(prefix+'Side'+side+'Detail')?.value||'';
-  return ['ПВХ-пленка','Эмаль'].includes(type)?`${type}: ${detail}`:type;
+  if(type==='ПВХ-пленка'){
+    const catalog=$(prefix+'Side'+side+'FilmCatalog')?.value||'';
+    return catalog?`${type} (${catalog}): ${detail}`:`${type}: ${detail}`;
+  }
+  if(type==='Эмаль')return `${type}: ${detail}`;
+  return type;
 }
+
+
 function edgeText(prefix){
   const c=$(prefix+'EdgeColor')?.value||'';
   return c==='Полимерно-порошковая покраска'?`${c} ${$(prefix+'EdgeRal')?.value||''}`:c;
@@ -13331,13 +13489,16 @@ function addConfiguredToCart(){
   const stock=match?match.qty:null;
   const configuredUnitPrice=configuredCatalogUnitPrice();
   const configuredPriceType=typeof configuredSalesPriceType==='function'?configuredSalesPriceType():null;
+  const configuredPriceNote=typeof configured42PriceNote==='function'?configured42PriceNote(configuredPriceType||activeSalesPriceType()):'';
   if(existing){
     existing.qty=Number(existing.qty||0)+1;
     existing.productionMeta=doorProductionMeta();
+    existing.priceNote=configuredPriceNote||'';
     if(configuredUnitPrice!==null)existing.unitPrice=configuredUnitPrice;
+    else if(configuredPriceNote)existing.unitPrice=null;
     if(configuredPriceType)existing.priceType=configuredPriceType;
   }
-  else cart.push({sku,lineKey,name:longName(),category:categoryLabel(),stock,unit:'шт.',qty:1,step:1,source:match?'stock':'production',extras:selectedOrderExtras(),productionMeta:doorProductionMeta(),unitPrice:configuredUnitPrice,priceType:configuredPriceType});
+  else cart.push({sku,lineKey,name:longName(),category:categoryLabel(),stock,unit:'шт.',qty:1,step:1,source:match?'stock':'production',extras:selectedOrderExtras(),productionMeta:doorProductionMeta(),unitPrice:configuredUnitPrice,priceType:configuredPriceType,priceNote:configuredPriceNote});
 
   const parent=cart.find(i=>cartKeyOf(i)===lineKey);
   const parentQty=Number(parent?.qty||1);
@@ -13384,7 +13545,7 @@ function renderCart(){
       <td><b>${escapeHtml(x.sku)}</b></td>
       <td>${escapeHtml(x.name)}${x.extras?.length?`<div class="mini">${x.extras.map(e=>escapeHtml(e[0]+': '+e[1])).join(' · ')}</div>`:''}</td>
       <td>${x.stock==null?'<span class="stock-badge">Под заказ</span>':x.stock+' '+escapeHtml(x.unit)}</td>
-      <td>${unitPrice===null?'<span class="mini">По запросу</span>':'<b>'+formatRub(unitPrice)+'</b>'}${cartStoredPriceType(x)?'<div class="price-tier-inline">'+escapeHtml(salesPriceTypeLabel(cartStoredPriceType(x)))+'</div>':''}</td>
+      <td>${unitPrice===null?'<span class="mini">'+escapeHtml(x.priceNote||'По запросу')+'</span>':'<b>'+formatRub(unitPrice)+'</b>'}${cartStoredPriceType(x)?'<div class="price-tier-inline">'+escapeHtml(salesPriceTypeLabel(cartStoredPriceType(x)))+'</div>':''}</td>
       <td><input type="number" min="0" step="${x.step||1}" ${x.stock==null?'':`max="${x.stock}"`} value="${x.qty}" onchange="changeCartQty('${cartKeyOf(x)}',this.value)"></td>
       <td>${lineTotal===null?'<span class="mini">—</span>':'<b>'+formatRub(lineTotal)+'</b>'}</td>
       <td><button class="ghost" onclick="removeCartItem('${cartKeyOf(x)}')">Удалить</button></td>
