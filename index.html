@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v100 · Опт 1 для 36 мм</title>
+<title>Hidden Doors — Личный кабинет · Прототип v101 · Опт 1 +12,5% для 36 мм</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1475,7 +1475,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
-<!-- v100-36-opt1-pricing -->
+<!-- v101-36-opt1-12-5-pricing -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1490,7 +1490,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v100 · Опт 1 для 36 мм</div>
+        <div class="version-chip"><span>HD</span> v101 · Опт 1 +12,5%</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2136,7 +2136,7 @@ const SALES_PRICE_BOOKS=Object.freeze([
     approvedAt:'21.09.2026',
     lookupPolicy:'exact-or-approved-formula',
     derivedFrom:'partner-2026-v1',
-    derivedFormula:'Опт 2 + 12%'
+    derivedFormula:'Опт 2 + 12,5%'
   })
 ]);
 const ACTIVE_SALES_PRICE_BOOK_BY_TYPE=Object.freeze({
@@ -2176,8 +2176,8 @@ function exactSalesPriceMatch(required,actual){
 }
 
 const SALES_PRICE_COVERAGE=Object.freeze([
-  Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 + Опт 1 · Опт 1 = Опт 2 + 12%'}),
-  Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Опт 2 + Опт 1 · все позиции Опт 1 считаются +12%'}),
+  Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 + Опт 1 · Опт 1 = Опт 2 + 12,5%'}),
+  Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Опт 2 + Опт 1 · все позиции Опт 1 считаются +12,5%'}),
   Object.freeze({block:'42 мм',area:'Полотно · фанера 1700–2200 / AL 1700–2300 · грунт · серый/чёрный анод',status:'connected',note:'Опт 2 · база 2000 + утверждённые коэффициенты высоты/ширины'}),
   Object.freeze({block:'42 мм',area:'Короб / комплект / sales-tier фурнитуры',status:'pending',note:'Коммерческая логика состава утверждена, ценовые строки подключаются следующим блоком'}),
   Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Прайс проанализирован, расчёт ещё не подключён'}),
@@ -2253,7 +2253,7 @@ function renderPricingOverview(){
     '</div>'+
     '<div class="pricing-category-grid">'+
       [
-        ['door36','36 мм','Полотно и погонаж: Опт 2 + Опт 1 (+12%)','ok'],
+        ['door36','36 мм','Полотно и погонаж: Опт 2 + Опт 1 (+12,5%)','ok'],
         ['door42','42 мм','База и коэффициенты управляются вручную','ok'],
         ['door59','59 мм','Источник проанализирован, правила ещё не включены','warn'],
         ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
@@ -2292,9 +2292,9 @@ function renderPricing36Admin(){
     ['Притворная планка',opt2.trim?.rebate,opt1.trim?.rebate,'шт.'],
     ['Соединительная планка',opt2.trim?.connector,opt1.trim?.connector,'шт.']
   ];
-  return pricingAdminSectionHeader('Двери 36 · Опт 2 → Опт 1','Опт 1 рассчитывается автоматически от действующего Опт 2. Формула единая для полотна, комплекта и всего погонажа 36 мм. Розница пока не заполнена.','Опт 1 = +12%')+
+  return pricingAdminSectionHeader('Двери 36 · Опт 2 → Опт 1','Опт 1 рассчитывается автоматически от действующего Опт 2. Формула единая для полотна, комплекта и всего погонажа 36 мм. Розница пока не заполнена.','Опт 1 = +12,5%')+
     '<div class="pricing-admin-card pricing-wide-card"><div class="table-wrap"><table><thead><tr><th>Позиция</th><th>Опт 2</th><th>Опт 1</th><th>Изменение</th><th>Ед.</th></tr></thead><tbody>'+
-    rows.map(r=>'<tr><td><b>'+escapeHtml(r[0])+'</b></td><td>'+formatRub(r[1])+'</td><td><b>'+formatRub(r[2])+'</b></td><td><span class="pricing-status ok">+12%</span></td><td>'+escapeHtml(r[3])+'</td></tr>').join('')+
+    rows.map(r=>'<tr><td><b>'+escapeHtml(r[0])+'</b></td><td>'+formatRub(r[1])+'</td><td><b>'+formatRub(r[2])+'</b></td><td><span class="pricing-status ok">+12,5%</span></td><td>'+escapeHtml(r[3])+'</td></tr>').join('')+
     '</tbody></table></div><div class="mini pricing-table-note">Опт 1 не хранит отдельную копию цен: при изменении Опт 2 он пересчитывается автоматически. Расчёт ведётся с точностью до копеек, отображение — до целого рубля.</div></div>';
 }
 function renderPricing42Admin(){
@@ -2573,8 +2573,8 @@ function renderPricingAdmin(){
 // --- data/prices36.js ---
 // 36 mm sales prices.
 // Approved Opt 2 source: «Партнёрский прайс Hidden Doors 2026».
-// Opt 1 business rule approved 21.09.2026: every Opt 2 price + 12%.
-const PRICE36_WHOLESALE1_MARKUP=0.12;
+// Opt 1 business rule approved 21.09.2026: every Opt 2 price + 12.5%.
+const PRICE36_WHOLESALE1_MARKUP=0.125;
 
 function price36ApplyMarkup(value,markup=PRICE36_WHOLESALE1_MARKUP){
   const n=Number(value);
@@ -2608,7 +2608,7 @@ function buildPrice36Wholesale1(base=SALES_PRICE_36_OPT2){
     priceTypeLabel:'Опт 1',
     priceBookId:'partner-2026-v1-wholesale1',
     derivedFromPriceType:'wholesale2',
-    derivedFormula:'Опт 2 + 12%',
+    derivedFormula:'Опт 2 + 12,5%',
     markupRate:PRICE36_WHOLESALE1_MARKUP,
     doorLeaf:marked(base.doorLeaf),
     doorKit:marked(base.doorKit),
