@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v101 · Опт 1 +12,5% для 36 мм</title>
+<title>Hidden Doors — Личный кабинет · Прототип v102 · Розница +50% для 36 мм</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1475,7 +1475,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
-<!-- v101-36-opt1-12-5-pricing -->
+<!-- v102-36-retail-50-pricing -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1490,7 +1490,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v101 · Опт 1 +12,5%</div>
+        <div class="version-chip"><span>HD</span> v102 · Розница +50%</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2137,9 +2137,25 @@ const SALES_PRICE_BOOKS=Object.freeze([
     lookupPolicy:'exact-or-approved-formula',
     derivedFrom:'partner-2026-v1',
     derivedFormula:'Опт 2 + 12,5%'
+  }),
+  Object.freeze({
+    id:'partner-2026-v1-retail',
+    name:'Розница Hidden Doors 2026',
+    version:'2026.1-retail',
+    priceType:'retail',
+    priceTypeLabel:'Розница',
+    status:'active',
+    source:'Расчёт от «Партнёрский прайс Hidden Doors 2026»',
+    sourceFileId:'10fH0RYUWVd5UWXJT6t7U8Iu1gJbI4LPpQWGPeQMF7mc',
+    sourceUpdated:'22.01.2026',
+    approvedAt:'21.09.2026',
+    lookupPolicy:'exact-or-approved-formula',
+    derivedFrom:'partner-2026-v1',
+    derivedFormula:'Опт 2 + 50%'
   })
 ]);
 const ACTIVE_SALES_PRICE_BOOK_BY_TYPE=Object.freeze({
+  retail:'partner-2026-v1-retail',
   wholesale1:'partner-2026-v1-wholesale1',
   wholesale2:'partner-2026-v1'
 });
@@ -2176,8 +2192,8 @@ function exactSalesPriceMatch(required,actual){
 }
 
 const SALES_PRICE_COVERAGE=Object.freeze([
-  Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 + Опт 1 · Опт 1 = Опт 2 + 12,5%'}),
-  Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Опт 2 + Опт 1 · все позиции Опт 1 считаются +12,5%'}),
+  Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 / Опт 1 / Розница · +12,5% / +50% от Опт 2'}),
+  Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Три уровня цены подключены: Опт 2 / Опт 1 / Розница'}),
   Object.freeze({block:'42 мм',area:'Полотно · фанера 1700–2200 / AL 1700–2300 · грунт · серый/чёрный анод',status:'connected',note:'Опт 2 · база 2000 + утверждённые коэффициенты высоты/ширины'}),
   Object.freeze({block:'42 мм',area:'Короб / комплект / sales-tier фурнитуры',status:'pending',note:'Коммерческая логика состава утверждена, ценовые строки подключаются следующим блоком'}),
   Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Прайс проанализирован, расчёт ещё не подключён'}),
@@ -2253,7 +2269,7 @@ function renderPricingOverview(){
     '</div>'+
     '<div class="pricing-category-grid">'+
       [
-        ['door36','36 мм','Полотно и погонаж: Опт 2 + Опт 1 (+12,5%)','ok'],
+        ['door36','36 мм','Полотно и погонаж: Опт 2 / Опт 1 / Розница','ok'],
         ['door42','42 мм','База и коэффициенты управляются вручную','ok'],
         ['door59','59 мм','Источник проанализирован, правила ещё не включены','warn'],
         ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
@@ -2280,22 +2296,35 @@ function renderPricingOverview(){
 function renderPricing36Admin(){
   const opt2=typeof price36Book==='function'?price36Book('wholesale2'):null;
   const opt1=typeof price36Book==='function'?price36Book('wholesale1'):null;
-  if(!opt2||!opt1)return pricingAdminSectionHeader('Двери 36','Опт 2 / Опт 1 пока не подключены полностью','Не подключено');
+  const retail=typeof price36Book==='function'?price36Book('retail'):null;
+  if(!opt2||!opt1||!retail)return pricingAdminSectionHeader('Двери 36','Ценовые уровни пока не подключены полностью','Не подключено');
   const rows=[
-    ['Полотно ПВХ 36 мм',opt2.doorLeaf,opt1.doorLeaf,'шт.'],
-    ['Базовый комплект',opt2.doorKit,opt1.doorKit,'компл.'],
-    ['Короб телескопический',opt2.trim?.box,opt1.trim?.box,'шт.'],
-    ['Наличник телескопический',opt2.trim?.casing,opt1.trim?.casing,'шт.'],
-    ['Добор 100',opt2.trim?.dobor100,opt1.trim?.dobor100,'шт.'],
-    ['Добор 150',opt2.trim?.dobor150,opt1.trim?.dobor150,'шт.'],
-    ['Добор 200',opt2.trim?.dobor200,opt1.trim?.dobor200,'шт.'],
-    ['Притворная планка',opt2.trim?.rebate,opt1.trim?.rebate,'шт.'],
-    ['Соединительная планка',opt2.trim?.connector,opt1.trim?.connector,'шт.']
+    ['Полотно ПВХ 36 мм',opt2.doorLeaf,opt1.doorLeaf,retail.doorLeaf,'шт.'],
+    ['Базовый комплект',opt2.doorKit,opt1.doorKit,retail.doorKit,'компл.'],
+    ['Короб телескопический',opt2.trim?.box,opt1.trim?.box,retail.trim?.box,'шт.'],
+    ['Наличник телескопический',opt2.trim?.casing,opt1.trim?.casing,retail.trim?.casing,'шт.'],
+    ['Добор 100',opt2.trim?.dobor100,opt1.trim?.dobor100,retail.trim?.dobor100,'шт.'],
+    ['Добор 150',opt2.trim?.dobor150,opt1.trim?.dobor150,retail.trim?.dobor150,'шт.'],
+    ['Добор 200',opt2.trim?.dobor200,opt1.trim?.dobor200,retail.trim?.dobor200,'шт.'],
+    ['Притворная планка',opt2.trim?.rebate,opt1.trim?.rebate,retail.trim?.rebate,'шт.'],
+    ['Соединительная планка',opt2.trim?.connector,opt1.trim?.connector,retail.trim?.connector,'шт.']
   ];
-  return pricingAdminSectionHeader('Двери 36 · Опт 2 → Опт 1','Опт 1 рассчитывается автоматически от действующего Опт 2. Формула единая для полотна, комплекта и всего погонажа 36 мм. Розница пока не заполнена.','Опт 1 = +12,5%')+
-    '<div class="pricing-admin-card pricing-wide-card"><div class="table-wrap"><table><thead><tr><th>Позиция</th><th>Опт 2</th><th>Опт 1</th><th>Изменение</th><th>Ед.</th></tr></thead><tbody>'+
-    rows.map(r=>'<tr><td><b>'+escapeHtml(r[0])+'</b></td><td>'+formatRub(r[1])+'</td><td><b>'+formatRub(r[2])+'</b></td><td><span class="pricing-status ok">+12,5%</span></td><td>'+escapeHtml(r[3])+'</td></tr>').join('')+
-    '</tbody></table></div><div class="mini pricing-table-note">Опт 1 не хранит отдельную копию цен: при изменении Опт 2 он пересчитывается автоматически. Расчёт ведётся с точностью до копеек, отображение — до целого рубля.</div></div>';
+  const kpi=(title,formula,leaf,kit,cls='')=>
+    '<div class="pricing-admin-card '+cls+'">'+
+      '<div class="pricing-admin-kicker">'+escapeHtml(title)+'</div>'+
+      '<div class="pricing-admin-big">'+formatRub(leaf)+'</div>'+
+      '<div class="mini">Полотно 36 мм · комплект <b>'+formatRub(kit)+'</b></div>'+
+      '<div class="pricing-admin-policy">'+escapeHtml(formula)+'</div>'+
+    '</div>';
+  return pricingAdminSectionHeader('Двери 36 · уровни продажных цен','Все три уровня считаются от одной базы Опт 2. Опт 1 = +12,5%; Розница = +50%.','3 уровня подключены')+
+    '<div class="pricing-admin-grid">'+
+      kpi('Опт 2','Базовая утверждённая цена',opt2.doorLeaf,opt2.doorKit,'primary')+
+      kpi('Опт 1','Опт 2 + 12,5%',opt1.doorLeaf,opt1.doorKit)+
+      kpi('Розница','Опт 2 + 50%',retail.doorLeaf,retail.doorKit)+
+    '</div>'+
+    '<div class="pricing-admin-card pricing-wide-card"><div class="table-wrap"><table><thead><tr><th>Позиция</th><th>Опт 2</th><th>Опт 1</th><th>Розница</th><th>Ед.</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td><b>'+escapeHtml(r[0])+'</b></td><td>'+formatRub(r[1])+'</td><td>'+formatRub(r[2])+' <span class="pricing-status ok">+12,5%</span></td><td><b>'+formatRub(r[3])+'</b> <span class="pricing-status ok">+50%</span></td><td>'+escapeHtml(r[4])+'</td></tr>').join('')+
+    '</tbody></table></div><div class="mini pricing-table-note">Опт 1 и Розница не хранят отдельные копии цен: обе цены автоматически пересчитываются при изменении Опт 2. Внутренний расчёт хранится до копеек; интерфейс отображает цену в рублях.</div></div>';
 }
 function renderPricing42Admin(){
   return pricingAdminSectionHeader('Двери 42 · Опт 2','Рабочая модель цены: база 2000 мм + управляемые коэффициенты.','Редактируется')+
@@ -2575,6 +2604,7 @@ function renderPricingAdmin(){
 // Approved Opt 2 source: «Партнёрский прайс Hidden Doors 2026».
 // Opt 1 business rule approved 21.09.2026: every Opt 2 price + 12.5%.
 const PRICE36_WHOLESALE1_MARKUP=0.125;
+const PRICE36_RETAIL_MARKUP=0.50;
 
 function price36ApplyMarkup(value,markup=PRICE36_WHOLESALE1_MARKUP){
   const n=Number(value);
@@ -2600,16 +2630,16 @@ const SALES_PRICE_36_OPT2=Object.freeze({
   })
 });
 
-function buildPrice36Wholesale1(base=SALES_PRICE_36_OPT2){
-  const marked=value=>price36ApplyMarkup(value);
+function buildPrice36DerivedTier(base,{priceType,priceTypeLabel,priceBookId,markupRate,derivedFormula}){
+  const marked=value=>price36ApplyMarkup(value,markupRate);
   return Object.freeze({
     ...base,
-    priceType:'wholesale1',
-    priceTypeLabel:'Опт 1',
-    priceBookId:'partner-2026-v1-wholesale1',
+    priceType,
+    priceTypeLabel,
+    priceBookId,
     derivedFromPriceType:'wholesale2',
-    derivedFormula:'Опт 2 + 12,5%',
-    markupRate:PRICE36_WHOLESALE1_MARKUP,
+    derivedFormula,
+    markupRate,
     doorLeaf:marked(base.doorLeaf),
     doorKit:marked(base.doorKit),
     trim:Object.freeze({
@@ -2623,9 +2653,27 @@ function buildPrice36Wholesale1(base=SALES_PRICE_36_OPT2){
     })
   });
 }
+function buildPrice36Wholesale1(base=SALES_PRICE_36_OPT2){
+  return buildPrice36DerivedTier(base,{
+    priceType:'wholesale1',
+    priceTypeLabel:'Опт 1',
+    priceBookId:'partner-2026-v1-wholesale1',
+    markupRate:PRICE36_WHOLESALE1_MARKUP,
+    derivedFormula:'Опт 2 + 12,5%'
+  });
+}
+function buildPrice36Retail(base=SALES_PRICE_36_OPT2){
+  return buildPrice36DerivedTier(base,{
+    priceType:'retail',
+    priceTypeLabel:'Розница',
+    priceBookId:'partner-2026-v1-retail',
+    markupRate:PRICE36_RETAIL_MARKUP,
+    derivedFormula:'Опт 2 + 50%'
+  });
+}
 
 const SALES_PRICE_36=Object.freeze({
-  retail:null,
+  retail:buildPrice36Retail(),
   wholesale1:buildPrice36Wholesale1(),
   wholesale2:SALES_PRICE_36_OPT2
 });
