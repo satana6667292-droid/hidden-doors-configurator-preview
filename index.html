@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v106 · Фурнитура Опт 2</title>
+<title>Hidden Doors — Личный кабинет · Прототип v107 · Короб 42</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1496,7 +1496,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
 </style>
 </head>
 <body>
-<!-- v106-hardware-opt2 -->
+<!-- v107-box42-fixed-price -->
 <div class="wrap">
   <div class="top brand-header">
     <div class="brand-lockup">
@@ -1511,7 +1511,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v106 · Фурнитура Опт 2</div>
+        <div class="version-chip"><span>HD</span> v107 · Короб 42</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2228,7 +2228,7 @@ const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'36 мм',area:'Полотно ПВХ',status:'connected',note:'Опт 2 / Опт 1 / Розница · +12,5% / +50% от Опт 2'}),
   Object.freeze({block:'36 мм',area:'Комплект / погонаж',status:'connected',note:'Три уровня цены подключены: Опт 2 / Опт 1 / Розница'}),
   Object.freeze({block:'42 мм',area:'Полотно · грунт / ПВХ / эмаль · фанера 1700–2200 / AL 1700–2300',status:'connected',note:'База и ПВХ следуют уровням Опт 2 / Опт 1 / Розница; эмаль 4 000 ₽/м² одинакова для всех уровней; шпон/HPL — после согласования'}),
-  Object.freeze({block:'42 мм',area:'Короб / комплект',status:'pending',note:'Уровни цены зафиксированы: Опт 1 +12,5%, Розница +50% от Опт 2; базовые строки короба подключаем следующим блоком'}),
+  Object.freeze({block:'42 мм',area:'Комплект короба · H2000 · W600/700/800/900',status:'connected',note:'Опт 2: серый 5 594 ₽, чёрный 6 514 ₽; Опт 1 +12,5%, Розница +50%. Цена самостоятельная, не остаток от полного комплекта'}),
   Object.freeze({block:'59 мм',area:'Полотна / короб / комплект',status:'pending',note:'Модель уровней зафиксирована: Опт 1 = Опт 2 +12,5%, Розница = Опт 2 +50%; базовые строки Опт 2 ещё подключаются'}),
   Object.freeze({block:'Фурнитура',area:'K8060 + Vantage магнитные серый/чёрный',status:'connected',note:'Все текущие цены фурнитуры считаются розничными. Только K8060 во всех цветах и Vantage магнитные в сером/чёрном имеют Опт 2 = Розница −33%; остальная фурнитура пока остаётся по рознице'}),
   Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL короба и прочее',status:'pending',note:'ПВХ и эмаль полотна 42 уже подключены в блоке двери; остальные дополнительные работы подключаются отдельно'}),
@@ -2362,6 +2362,12 @@ function renderPricing36Admin(){
 function renderPricing42Admin(){
   return pricingAdminSectionHeader('Двери 42 · три уровня цены','Опт 2 — база; Опт 1 = +12,5%; Розница = +50%. Подключены правила ПВХ и эмали полотна.','Покрытия подключены')+
     renderPricing42RuleEditor()+
+    '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Комплект короба 42 · фиксированная цена</div>'+
+      '<div class="table-wrap"><table><thead><tr><th>Цвет</th><th>Опт 2</th><th>Опт 1</th><th>Розница</th><th>Область</th></tr></thead><tbody>'+
+        '<tr><td><b>Серый / анод</b></td><td>'+formatRub(SALES_PRICE_42_BOX_OPT2.gray)+'</td><td>'+formatRub(price42ApplySalesTier(SALES_PRICE_42_BOX_OPT2.gray,'wholesale1'))+'</td><td>'+formatRub(price42ApplySalesTier(SALES_PRICE_42_BOX_OPT2.gray,'retail'))+'</td><td>H2000 · W600/700/800/900</td></tr>'+
+        '<tr><td><b>Чёрный / анод</b></td><td>'+formatRub(SALES_PRICE_42_BOX_OPT2.black)+'</td><td>'+formatRub(price42ApplySalesTier(SALES_PRICE_42_BOX_OPT2.black,'wholesale1'))+'</td><td>'+formatRub(price42ApplySalesTier(SALES_PRICE_42_BOX_OPT2.black,'retail'))+'</td><td>H2000 · W600/700/800/900</td></tr>'+
+      '</tbody></table></div>'+
+      '<div class="mini pricing-table-note">Короб — самостоятельная ценовая позиция. Он не рассчитывается как остаток между ценой полного комплекта, полотном и фурнитурой.</div></div>'+
     '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Покрытия полотна 42 мм</div>'+
       '<div class="pricing-roadmap-lines">'+
         '<div><b>ПВХ · каждая сторона</b><span class="pricing-status ok">1 725 ₽/м высоты</span><small>Ширина не влияет. Каталог Hidden Doors — без отдельной доплаты.</small></div>'+
@@ -2372,7 +2378,7 @@ function renderPricing42Admin(){
     '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Следующий уровень 42 мм</div>'+
     '<div class="pricing-roadmap-lines">'+
       '<div><b>Полотно</b><span class="pricing-status ok">Подключено</span><small>База, высота, ширина, реверс + ПВХ / общий каталог / эмаль; шпон и HPL — после согласования</small></div>'+
-      '<div><b>Комплект короба</b><span class="pricing-status warn">Следующий блок</span><small>Сначала фиксируем Опт 2; Опт 1 и Розница затем считаются автоматически</small></div>'+
+      '<div><b>Комплект короба</b><span class="pricing-status ok">Подключено</span><small>H2000 · W600/700/800/900 · Опт 2: серый 5 594 ₽ / чёрный 6 514 ₽; Опт 1 +12,5%, Розница +50%</small></div>'+
       '<div><b>K8060 / Vantage</b><span class="pricing-status info">Отдельная математика</span><small>К фурнитуре +12,5% / +50% дверей не применяем</small></div>'+
       '<div><b>Итог комплекта</b><span class="pricing-status warn">Следующий блок</span><small>Контроль против прайса 19 090 / 20 815</small></div>'+
     '</div></div>';
@@ -2908,6 +2914,7 @@ function configuredSalesPriceType(){
 function companionSalesPriceType(item){
   const key=String(item?.baseKey||item?.key||'');
   if(/^BUNDLE-P36-/.test(key))return activeSalesPriceType();
+  if(key==='BUNDLE-P42-BOX')return activeSalesPriceType();
   if(typeof hardwareSalesPriceType==='function'){
     const category=String(item?.priceCategory||'');
     if(category)return hardwareSalesPriceType(category,item?.name||'',activeSalesPriceType());
@@ -2998,6 +3005,53 @@ const SALES_PRICE_42_STANDARD=Object.freeze({
 
 const PRICE42_WHOLESALE1_MARKUP=0.125;
 const PRICE42_RETAIL_MARKUP=0.50;
+
+const SALES_PRICE_42_BOX_OPT2=Object.freeze({
+  standardHeight:2000,
+  standardWidths:Object.freeze([600,700,800,900]),
+  gray:5594,
+  black:6514,
+  source:'Hidden doors Партнерский Прайс продуктовой линейки',
+  updated:'22.01.2026'
+});
+
+function price42BoxColorKey(color=''){
+  const s=String(color||'');
+  if(/ч[её]рн/i.test(s))return 'black';
+  if(/сер|хром/i.test(s))return 'gray';
+  return '';
+}
+function price42BoxCalculation({height,width,colorKey,color}={},priceType=activeSalesPriceType()){
+  const h=Number(height),w=Number(width);
+  const key=colorKey||price42BoxColorKey(color);
+  if(!['gray','black'].includes(key))return {ok:false,reason:'Для выбранного цвета короба цена пока не зафиксирована.'};
+  if(h!==SALES_PRICE_42_BOX_OPT2.standardHeight||!SALES_PRICE_42_BOX_OPT2.standardWidths.includes(w)){
+    return {ok:false,reason:'Фиксированная цена короба сейчас утверждена для H=2000 мм и ширин 600/700/800/900 мм.'};
+  }
+  const opt2Price=Number(SALES_PRICE_42_BOX_OPT2[key]);
+  const type=normalizeSalesPriceType(priceType);
+  return {
+    ok:true,
+    priceType:type,
+    colorKey:key,
+    height:h,
+    width:w,
+    opt2Price,
+    price:price42ApplySalesTier(opt2Price,type),
+    formula:type==='wholesale2'?'Фиксированная цена Опт 2':price42TierFormula(type)
+  };
+}
+function price42BoxCompanionUnitPrice(item,priceType=activeSalesPriceType()){
+  const key=String(item?.baseKey||item?.key||'');
+  if(key!=='BUNDLE-P42-BOX')return null;
+  const calc=price42BoxCalculation({
+    height:item?.boxHeight,
+    width:item?.boxWidth,
+    colorKey:item?.boxColorKey,
+    color:item?.boxColor
+  },priceType);
+  return calc.ok?calc.price:null;
+}
 
 const PRICE42_PVC_RATE_PER_HEIGHT_M_PER_SIDE=1725;
 const PRICE42_GENERAL_FILM_SURCHARGE_PER_DOOR=2300;
@@ -9039,7 +9093,9 @@ function configuredCatalogUnitPrice(){
 }
 function companionItemUnitPrice(item){
   const key=String(item?.key||'');
+  const baseKey=String(item?.baseKey||key);
   const type=activeSalesPriceType();
+  if(baseKey==='BUNDLE-P42-BOX'&&typeof price42BoxCompanionUnitPrice==='function')return price42BoxCompanionUnitPrice(item,type);
   if(key==='DOOR-HINGE')return hardwareSalesPrice('Петли',item?.name||'',type);
   if(key==='DOOR-LOCK')return hardwareSalesPrice('Замки',item?.name||'',type);
   if(key==='DOOR-HANDLE'||key==='SLIDE42-HANDLE')return hardwareSalesPrice('Ручки',item?.name||'',type);
@@ -11699,11 +11755,22 @@ function companionItems(){
     const v=boxPartLengthVertical(),t=boxPartLengthTop();
     const miter=boxMiter45Selected(),miterKey=boxMiter45Suffix(),miterName=boxMiter45NameSuffix();
     if(system==='42'){
-      items.push(
-        {key:'BUNDLE-P42-HINGE'+(miterKey?'-'+miterKey:''),baseKey:'BUNDLE-P42-HINGE',type:'Погонаж 42',qty:1,unit:'шт.',step:1,kind:'box-part',boxPart:'HINGE',boxMiter45:miter,name:`Профиль дверного короба 42 / Петлевая стойка / ${v} мм / ${color}${miterName}`},
-        {key:'BUNDLE-P42-STRIKE'+(miterKey?'-'+miterKey:''),baseKey:'BUNDLE-P42-STRIKE',type:'Погонаж 42',qty:1,unit:'шт.',step:1,kind:'box-part',boxPart:'STRIKE',boxMiter45:miter,name:`Профиль дверного короба 42 / Ответная стойка / ${v} мм / ${color}${miterName}`},
-        {key:'BUNDLE-P42-TOP'+(miterKey?'-'+miterKey:''),baseKey:'BUNDLE-P42-TOP',type:'Погонаж 42',qty:1,unit:'шт.',step:1,kind:'box-part',boxPart:'TOP',boxMiter45:miter,name:`Профиль дверного короба 42 / Верхняя перемычка / ${t} мм / ${color}${miterName}`}
-      );
+      items.push({
+        key:'BUNDLE-P42-BOX'+(miterKey?'-'+miterKey:''),
+        baseKey:'BUNDLE-P42-BOX',
+        type:'Погонаж 42',
+        qty:1,
+        unit:'комплект',
+        step:1,
+        kind:'box-kit',
+        boxMiter45:miter,
+        boxHeight:currentHeight(),
+        boxWidth:currentWidth(),
+        boxColor:color,
+        boxColorKey:price42BoxColorKey(color),
+        boxParts:{hinge:v,strike:v,top:t},
+        name:`Комплект дверного короба 42 / под полотно ${currentHeight()}×${currentWidth()} / петлевая ${v} мм / ответная ${v} мм / верх ${t} мм / ${color}${miterName}`
+      });
     }else{
       items.push(
         {key:'BUNDLE-P59-HINGE'+(miterKey?'-'+miterKey:''),baseKey:'BUNDLE-P59-HINGE',type:'Погонаж 59',qty:1,unit:'шт.',step:1,kind:'box-part',boxPart:'HINGE',boxMiter45:miter,name:`Профиль дверного короба 59 / Петлевая стойка / ${v} мм / ${color}${miterName}`},
