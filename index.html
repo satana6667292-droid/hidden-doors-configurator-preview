@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v107 · Короб 42</title>
+<title>Hidden Doors — Личный кабинет · Прототип v108 · Размеры 42</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1511,7 +1511,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v107 · Короб 42</div>
+        <div class="version-chip"><span>HD</span> v108 · Размеры 42</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2994,12 +2994,26 @@ const SALES_PRICE_42_STANDARD=Object.freeze({
       maxWidth:1000
     }),
     heightRules:Object.freeze([
-      Object.freeze({min:1700,max:1999,factor:1.2,label:'1700–1999'}),
-      Object.freeze({min:2000,max:2000,factor:1,label:'2000'}),
-      Object.freeze({min:2001,max:2200,factor:1.2,label:'2001–2200'}),
-      Object.freeze({min:2201,max:2300,factor:1.3,label:'2201–2300'})
+      Object.freeze({min:1700,max:1995,factor:1.2,label:'1700–1995 · нестандарт вниз'}),
+      Object.freeze({min:2000,max:2000,factor:1,label:'2000 · база'}),
+      Object.freeze({min:2005,max:2050,factor:1.05,label:'2005–2050 → цена 2050'}),
+      Object.freeze({min:2055,max:2100,factor:1.10,label:'2055–2100 → цена 2100'}),
+      Object.freeze({min:2105,max:2150,factor:1.15,label:'2105–2150 → цена 2150'}),
+      Object.freeze({min:2155,max:2200,factor:1.20,label:'2155–2200 → цена 2200'}),
+      Object.freeze({min:2205,max:2250,factor:1.25,label:'2205–2250 → цена 2250'}),
+      Object.freeze({min:2255,max:2300,factor:1.30,label:'2255–2300 → цена 2300'})
     ]),
-    widthRule:Object.freeze({above:900,factor:1.2})
+    widthRule:Object.freeze({above:900,factor:1.2}),
+    heightAnchors:Object.freeze({
+      plywood:Object.freeze({
+        gray:Object.freeze({2000:9856,2100:10842,2200:11827}),
+        black:Object.freeze({2000:10293,2100:11322,2200:12352})
+      }),
+      aluminum:Object.freeze({
+        gray:Object.freeze({2000:14916,2300:19391}),
+        black:Object.freeze({2000:15353,2300:19959})
+      })
+    })
   })
 });
 
@@ -3079,7 +3093,7 @@ function price42TierFormula(priceType='wholesale2'){
 function price42ApplySalesTier(value,priceType='wholesale2'){
   const n=Number(value);
   if(!Number.isFinite(n))return null;
-  return Math.round(n*(1+price42TierMarkup(priceType))*100)/100;
+  return Math.ceil(n*(1+price42TierMarkup(priceType)));
 }
 function price42BookWithTierMeta(base,priceType='wholesale2'){
   if(!base)return null;
@@ -3205,17 +3219,22 @@ function price42RuleCalculation({height,width,frameKey,edgeKey},priceType='whole
   if(!limits)return {ok:false,reason:'Неизвестный тип каркаса.'};
   if(!Number.isFinite(h)||h<limits.minHeight||h>limits.maxHeight)return {ok:false,reason:'Высота вне допустимого диапазона.'};
   if(!Number.isFinite(w)||w<opt2Book.limits.minWidth||w>opt2Book.limits.maxWidth)return {ok:false,reason:'Ширина вне допустимого диапазона.'};
+  if(h%5!==0||w%5!==0)return {ok:false,reason:'Высота и ширина должны быть кратны 5 мм.'};
   const opt2BasePrice=Number(opt2Book.base?.[frameKey]?.[edgeKey]);
   if(!Number.isFinite(opt2BasePrice))return {ok:false,reason:'Базовая цена не найдена.'};
   const heightFactor=price42HeightFactor(h,opt2Book);
   const widthFactor=price42WidthFactor(w,opt2Book);
   if(heightFactor===null||widthFactor===null)return {ok:false,reason:'Не найден коэффициент.'};
-  const opt2Price=Math.round(opt2BasePrice*heightFactor*widthFactor);
+  const appliedFactor=Math.max(Number(heightFactor)||1,Number(widthFactor)||1);
+  const priceHeight=price42PriceHeight(h);
+  const anchoredOpt2=(appliedFactor===heightFactor)?price42HeightAnchor(priceHeight,frameKey,edgeKey,opt2Book):null;
+  const opt2Price=anchoredOpt2!==null?anchoredOpt2:Math.ceil(opt2BasePrice*appliedFactor);
   const price=price42ApplySalesTier(opt2Price,type);
   const basePrice=price42ApplySalesTier(opt2BasePrice,type);
   return {
     ok:true,price,basePrice,opt2Price,opt2BasePrice,
-    heightFactor,widthFactor,height:h,width:w,frameKey,edgeKey,
+    heightFactor,widthFactor,appliedFactor,priceHeight,
+    height:h,width:w,frameKey,edgeKey,
     priceType:type,markupRate:price42TierMarkup(type),
     derivedFormula:price42TierFormula(type),
     manualOverride:!!opt2Book.manualOverride
@@ -3246,6 +3265,16 @@ function price42WidthFactor(width,book=price42Book()){
   const w=Number(width);
   if(!Number.isFinite(w))return null;
   return w>Number(book?.widthRule?.above||900)?Number(book?.widthRule?.factor||1.2):1;
+}
+function price42PriceHeight(height){
+  const h=Number(height);
+  if(!Number.isFinite(h)||h<=2000)return h===2000?2000:null;
+  return Math.ceil(h/50)*50;
+}
+function price42HeightAnchor(priceHeight,frameKey,edgeKey,book=price42Book('wholesale2')){
+  if(!priceHeight||book?.manualOverride)return null;
+  const value=Number(book?.heightAnchors?.[frameKey]?.[edgeKey]?.[priceHeight]);
+  return Number.isFinite(value)?value:null;
 }
 
 function price42FinishCalculation(config={},priceType='wholesale2'){
@@ -3325,6 +3354,8 @@ function standard42PriceEligibility(priceType=activeSalesPriceType()){
   if(limits&&(height<limits.minHeight||height>limits.maxHeight))reasons.push('высота вне диапазона '+limits.minHeight+'–'+limits.maxHeight+' мм для выбранного каркаса');
   if(!limits)reasons.push('для выбранного каркаса не задан диапазон высот');
   if(width<Number(book?.limits?.minWidth||450)||width>Number(book?.limits?.maxWidth||1000))reasons.push('ширина вне утверждённого диапазона 450–1000 мм');
+  if(Number.isFinite(height)&&height%5!==0)reasons.push('высота должна быть кратна 5 мм');
+  if(Number.isFinite(width)&&width%5!==0)reasons.push('ширина должна быть кратна 5 мм');
   if(!edgeKey)reasons.push('торец должен быть серый или чёрный анод');
   const heightFactor=price42HeightFactor(height,book);
   if(heightFactor===null)reasons.push('для этой высоты нет утверждённого коэффициента');
@@ -3347,8 +3378,8 @@ function price42Calculation(priceType=activeSalesPriceType()){
   if(!finish.ok||finish.priceOnRequest)return {...e,eligible:false,priceOnRequest:!!finish.priceOnRequest,price:null,basePrice:null,priceType:type,finish};
   const leafPrice=Number(ruleCalc.price);
   const opt2LeafPrice=Number(ruleCalc.opt2Price);
-  const price=price42RoundMoney(leafPrice+Number(finish.price||0));
-  const opt2Price=price42RoundMoney(opt2LeafPrice+Number(finish.opt2Price||0));
+  const price=Math.ceil(leafPrice+Number(finish.price||0));
+  const opt2Price=Math.ceil(opt2LeafPrice+Number(finish.opt2Price||0));
   return {
     ...e,...ruleCalc,
     leafPrice,opt2LeafPrice,finish,finishPrice:Number(finish.price||0),
@@ -3380,10 +3411,12 @@ function price42StandardSnapshot(){
   }
   const edgeLabel=calc.edgeKey==='black'?'чёрный анод':'серый анод';
   const factors=[];
-  if(calc.heightFactor!==1)factors.push('высота ×'+String(calc.heightFactor).replace('.',','));
-  if(calc.widthFactor!==1)factors.push('ширина >'+String(book?.widthRule?.above||900)+' ×'+String(calc.widthFactor).replace('.',','));
+  if(calc.height<2000)factors.push('нестандарт вниз ×1,2');
+  else if(calc.priceHeight&&calc.priceHeight!==2000)factors.push('ценовая высота '+calc.priceHeight+' мм');
+  if(calc.widthFactor!==1)factors.push('ширина >'+String(book?.widthRule?.above||900)+' мм ×'+String(calc.widthFactor).replace('.',','));
+  const oneFactor='единый коэффициент ×'+String(calc.appliedFactor||1).replace('.',',')+' (не перемножается)';
   const baseFormula=factors.length
-    ?'<div>База 2000: '+formatRub(calc.basePrice)+' · '+factors.join(' · ')+' → базовое полотно '+formatRub(calc.leafPrice)+'</div>'
+    ?'<div>База 2000: '+formatRub(calc.basePrice)+' · '+factors.join(' · ')+' · '+oneFactor+' → базовое полотно '+formatRub(calc.leafPrice)+'</div>'
     :'<div>Базовое полотно: '+formatRub(calc.leafPrice)+'</div>';
   const f=calc.finish||{};
   const finishLines=[];
@@ -9268,6 +9301,7 @@ const DOOR36_IMAGE_IDS={
 const $=id=>document.getElementById(id);
 const role=()=>$('role').value;
 const elevated=()=>['supply','admin','elena'].includes(role());
+const dimensionCustomAllowed=()=>['manager','supply','admin','elena'].includes(role());
 const catalogWriteAllowed=()=>elevated();
 const product=()=>$('productType').value;
 
@@ -9287,6 +9321,7 @@ function field(label,body,cls=''){return `<div class="${cls}"><label>${label}</l
 function selectEl(id,vals,sel){return `<select id="${id}">${options(vals,sel)}</select>`}
 function inputEl(id,val,type='text',extra=''){return `<input id="${id}" type="${type}" value="${escapeHtml(val??'')}" ${extra}>`}
 function plusButton(action){return elevated()?`<button class="plus" type="button" onclick="${action}">+</button>`:''}
+function dimensionPlusButton(action){return dimensionCustomAllowed()?`<button class="plus" type="button" onclick="${action}" title="Ввести размер с шагом 5 мм">+</button>`:''}
 function section(title,content){return `<div class="section"><div class="section-title">${title}</div>${content}</div>`}
 function fields(content){return `<div class="fields">${content}</div>`}
 
@@ -11369,8 +11404,8 @@ function renderSingle42(){
       field('Конструкция полотна',selectEl('frame',['Каркас из фанеры','Алюминиевый каркас'],'Каркас из фанеры'),'full')
     ))+
     section('Размер полотна',fields(
-      field('Высота, мм',`<div class="inline">${selectEl('height',range(1700,2200,50),2000)}${plusButton(`toggleCustom("height")`)}</div><input id="customHeight" class="hidden" type="number" min="1" step="1">`)+
-      field('Ширина, мм',`<div class="inline">${selectEl('width',range(450,1000,50),800)}${plusButton(`toggleCustom("width")`)}</div><input id="customWidth" class="hidden" type="number" min="1" step="1">`)+
+      field('Высота, мм',`<div class="inline">${selectEl('height',range(1700,2200,50),2000)}${dimensionPlusButton(`toggleCustom("height")`)}</div><input id="customHeight" class="hidden" type="number" min="1" step="5">`)+
+      field('Ширина, мм',`<div class="inline">${selectEl('width',range(450,1000,50),800)}${dimensionPlusButton(`toggleCustom("width")`)}</div><input id="customWidth" class="hidden" type="number" min="1" step="5">`)+
       field('Признак цены',inputEl('standardFlag','Стандарт','text','disabled'))+
       field('Открывание',selectEl('opening',['Левое на себя','Правое на себя','Левый реверс','Правый реверс'],'Левое на себя'))
     ))+
@@ -12325,7 +12360,7 @@ function updateEdgeRal(colorId){
 
 function toggleCustom(which){
   const sel=$(which), inp=$('custom'+which[0].toUpperCase()+which.slice(1));
-  if(!sel||!inp||!elevated())return;
+  if(!sel||!inp||!dimensionCustomAllowed())return;
   const open=inp.classList.contains('hidden');
   inp.classList.toggle('hidden',!open); sel.classList.toggle('hidden',open);
   if(open){inp.value=sel.value;inp.focus()}
@@ -12477,8 +12512,10 @@ function validate(){
   }
   if(product()==='single42'){
     const h=currentHeight(),w=currentWidth(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2300;
-    if(h<1700||h>maxH)errs.push(`Высота должна быть 1700–${maxH} мм для выбранного каркаса.`);
+    if(!Number.isFinite(h)||h<1700||h>maxH)errs.push(`Высота должна быть 1700–${maxH} мм для выбранного каркаса.`);
+    if(Number.isFinite(h)&&h%5!==0)errs.push('Высота полотна 42 мм задаётся с шагом 5 мм.');
     if(!Number.isFinite(w)||w<=0)errs.push('Некорректная ширина.');
+    if(Number.isFinite(w)&&w%5!==0)errs.push('Ширина полотна 42 мм задаётся с шагом 5 мм.');
     if(w<450||w>1000)warns.push('Ширина вне базовой сетки 450–1000 мм. Жёсткий технический предел для обычной 42 пока не утверждён.');
     checkFinishes(['Single'],errs,ply);
     if(!$('doorHinges')?.value?.trim())errs.push('Выберите петлю.');
@@ -12548,6 +12585,7 @@ function checkFinishes(prefixes,errs,plywood){
 function standardFlag(){
   if(product()==='wallPanel') return 'Не применяется';
   if(['hardware','openingSystem','additionalElement','installation','plinth','trim42','trim59'].includes(product())) return 'Каталожная позиция';
+  if(product()==='single42') return currentHeight()===2000&&[600,700,800,900].includes(currentWidth())?'Стандарт':'Нестандарт';
   if(product()==='leaf36') return Number($('height36')?.value)>2000?'Нестандарт':'Стандарт';
   if(product()==='trim36'){
     if($('trimType')?.value==='Добор телескопический') return [100,150,200].includes(doborWidth())?'Стандарт':'Нестандарт';
