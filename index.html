@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v109 · Контраст цены</title>
+<title>Hidden Doors — Личный кабинет · Прототип v110 · Контраст цены</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -394,12 +394,6 @@ button.ghost{background:#f6f1ea;color:#4d463f;border-color:#d7ccbf;box-shadow:no
 }
 .result .cap,.cap{color:#8a8075;letter-spacing:.09em;font-size:9px;font-weight:750}
 .result .val,.val{color:#211d19;font-weight:650}
-#price36ResultWrap{
-  background:linear-gradient(135deg,#211e1a 0%,#2d2822 100%);
-  border-color:#211e1a;color:#fff;box-shadow:0 10px 24px rgba(40,32,24,.13)
-}
-#price36ResultWrap .cap,#price36ResultWrap .mini{color:rgba(255,255,255,.62)}
-#price36ResultWrap .val{color:#fff;font-size:22px;font-weight:800}
 
 .status{border-radius:14px}
 .status.ok{background:#eef5f0;border-color:#cfe1d5;color:#28553e}
@@ -815,11 +809,20 @@ th,td{border-color:#ece5dc;padding:10px 11px}
   display:inline-flex;margin-top:5px;padding:3px 7px;border-radius:999px;
   background:#f4e7d2;color:#73532f;font-size:9px;font-weight:850
 }
-#price36ResultWrap{border-color:#dbc7a4;background:#fffaf1;color:#2f271f}
+#price36ResultWrap{
+  background:#fffaf1;
+  border-color:#dbc7a4;
+  color:#2f271f;
+  box-shadow:0 8px 20px rgba(73,55,34,.07)
+}
 #price36ResultWrap .cap{color:#85633b;font-weight:850}
 #price36ResultWrap .val{font-size:22px;font-weight:800;color:#2f271f}
-#price36ResultWrap .mini{color:#6e604f}
-#price36ResultWrap #price36Details{color:#2f271f}
+#price36ResultWrap .mini,
+#price36ResultWrap #price36Details,
+#price36ResultWrap #price36Details *,
+#price36ResultWrap #price36Note,
+#price36ResultWrap #price36Note *{color:#6e604f}
+#price36ResultWrap #price36Details b{color:#2f271f}
 @media(max-width:760px){
   .brand-header .price-typebox{width:100%}
   .brand-header .price-typebox select{min-width:0}
@@ -1514,7 +1517,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v109 · Контраст цены</div>
+        <div class="version-chip"><span>HD</span> v110 · Контраст цены</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
