@@ -160,7 +160,7 @@ function updateDouble42Frame(){
   ['LeftSide1Type','LeftSide2Type','RightSide1Type','RightSide2Type'].forEach(id=>refillFinishType(id,covers));
   updateBundleDouble42();
 }
-function double42BoxTopLength(){return doubleWidth('left')+doubleWidth('right')+100}
+function double42BoxTopLength(){return doubleWidth('left')+doubleWidth('right')+10}
 function doubleBundleColorFromDoor(){
   const edge=$('LeftEdgeColor')?.value||'Серый анод';
   if(edge==='Черный анод')return 'Чёрный';
