@@ -506,10 +506,18 @@ function companionItems(){
     appendSelectedDoorProcessingItems(items);
     if(!includeBox())return items;
     const color=bundleBoxColorText('42'),v=boxPartLengthVertical(),t=double42BoxTopLength();
+    const boxMeta={
+      kind:'box-part',
+      boxHeight:currentHeight(),
+      leftWidth:doubleWidth('left'),
+      rightWidth:doubleWidth('right'),
+      boxColor:color,
+      boxColorKey:price42BoxColorKey(color)
+    };
     items.push(
-      {key:'BUNDLE-P42-DOUBLE-LEFT',type:'Погонаж 42',qty:1,unit:'шт.',step:1,name:`Профиль дверного короба 42 / Левая петлевая стойка / ${v} мм / ${color}`},
-      {key:'BUNDLE-P42-DOUBLE-RIGHT',type:'Погонаж 42',qty:1,unit:'шт.',step:1,name:`Профиль дверного короба 42 / Правая петлевая стойка / ${v} мм / ${color}`},
-      {key:'BUNDLE-P42-DOUBLE-TOP',type:'Погонаж 42',qty:1,unit:'шт.',step:1,name:`Профиль дверного короба 42 / Верхняя перемычка / ${t} мм / ${color}`}
+      {key:'BUNDLE-P42-DOUBLE-LEFT',baseKey:'BUNDLE-P42-DOUBLE-LEFT',type:'Погонаж 42',qty:1,unit:'шт.',step:1,boxPart:'left',...boxMeta,name:`Профиль дверного короба 42 / Левая петлевая стойка / ${v} мм / ${color}`},
+      {key:'BUNDLE-P42-DOUBLE-RIGHT',baseKey:'BUNDLE-P42-DOUBLE-RIGHT',type:'Погонаж 42',qty:1,unit:'шт.',step:1,boxPart:'right',...boxMeta,name:`Профиль дверного короба 42 / Правая петлевая стойка / ${v} мм / ${color}`},
+      {key:'BUNDLE-P42-DOUBLE-TOP',baseKey:'BUNDLE-P42-DOUBLE-TOP',type:'Погонаж 42',qty:1,unit:'шт.',step:1,boxPart:'top',boxLength:t,...boxMeta,name:`Профиль дверного короба 42 / Верхняя перемычка / ${t} мм / ${color}`}
     );
     return items;
   }
