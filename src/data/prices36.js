@@ -237,7 +237,7 @@ function is36SalesCatalogItem(item){
     /^BUNDLE-P36-/.test(baseKey)||/телескопический 36|планка.*36/i.test(name);
 }
 function configuredSalesPriceType(){
-  if(['leaf36','trim36','single42','single59'].includes(product()))return activeSalesPriceType();
+  if(['leaf36','trim36','single42','sliding42','single59'].includes(product()))return activeSalesPriceType();
   if(product()==='hardware'&&typeof hardwareSalesPriceType==='function'){
     const uiCategory=$('hardwareCategory')?.value||'';
     const category=(typeof HARDWARE_MAP!=='undefined'?(HARDWARE_MAP[uiCategory]||uiCategory):uiCategory);
@@ -250,7 +250,7 @@ function companionSalesPriceType(item){
   const key=String(item?.baseKey||item?.key||'');
   if(/^BUNDLE-P36-/.test(key))return activeSalesPriceType();
   if(key==='BUNDLE-P42-BOX'||key==='BUNDLE-P59-BOX')return activeSalesPriceType();
-  if(key==='POWDER-COAT-42')return activeSalesPriceType();
+  if(key==='POWDER-COAT-42'||key==='POWDER-COAT-59')return activeSalesPriceType();
   if(/^BOX-MITER45-/.test(key))return activeSalesPriceType();
   if(/^PROCESS-/.test(key))return activeSalesPriceType();
   if(typeof hardwareSalesPriceType==='function'){
