@@ -314,7 +314,7 @@ function renderHardwareCategoryPriceSummary(category,items){
   box.className='hinge-price-summary';
   box.innerHTML='<div><b>Розничные цены</b> · '+summary.priced+' из '+summary.total+' позиций с рабочей ценой'+
     (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
-    (opt2Count?'<div class="mini">Опт 2 / Опт 1 / Розница подключены для '+opt2Count+' позиций K8060 / K6360/38 / K2760.</div>':
+    (opt2Count?'<div class="mini">Опт 2 / Опт 1 / Розница подключены для '+opt2Count+' согласованных позиций K8060 / K6360/38 / K2760 / Vantage.</div>':
       '<div class="mini">Для этой выборки отдельная Опт 2 цена пока не задана — действует розница.</div>');
 }
 function renderHardwareSelectedPrice(){
@@ -340,7 +340,7 @@ function renderHardwareSelectedPrice(){
   box.className='status ok';
   if(meta.opt2Eligible){
     box.innerHTML='<b>'+salesPriceTypeLabel(meta.priceType)+': '+formatRub(meta.price)+'/шт.</b><br>'+
-      '<span class="mini">Опт 2 '+formatRub(meta.opt2Price)+' · Опт 1 '+formatRub(meta.opt1Price)+' · Розница '+formatRub(meta.retailPrice)+'. Три типа цены действуют только для K8060 / K6360/38 / K2760.</span>';
+      '<span class="mini">Опт 2 '+formatRub(meta.opt2Price)+' · Опт 1 '+formatRub(meta.opt1Price)+' · Розница '+formatRub(meta.retailPrice)+'. Три типа цены действуют для K8060 / K6360/38 / K2760 и магнитных Vantage.</span>';
   }else{
     box.innerHTML='<b>Розница: '+formatRub(meta.retailPrice)+'/шт.</b><br><span class="mini">Отдельная Опт 2 цена для этой позиции пока не задана.</span>';
   }
