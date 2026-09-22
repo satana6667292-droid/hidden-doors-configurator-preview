@@ -117,7 +117,7 @@ function renderDouble42(){
     section('Комплектация двери',
       boxOption(true)+
       `<div id="bundleDouble42Details" style="margin-top:10px">
-        <div class="catalog-note"><b>Короб 42 для двухстворчатой двери</b><br>Две вертикальные детали — петлевые стойки по высоте полотна +100 мм. Ответной стойки короба нет. Верхняя перемычка = ширина левой створки + ширина правой створки +100 мм.</div>
+        <div class="catalog-note"><b>Короб 42 для двухстворчатой двери</b><br>Две вертикальные детали — петлевые стойки по высоте полотна +100 мм. Ответной стойки короба нет. Верхняя перемычка = ширина левой створки + ширина правой створки +10 мм.</div>
         <div class="fields" style="margin-top:10px">
           ${field('Цвет короба',
             selectEl('bundle42Color',['Серый','Чёрный','Полимерно-порошковая покраска'],'Серый')+
@@ -145,6 +145,7 @@ function renderDouble42(){
     section('Особенности заказа',field('Комментарий / операции, не входящие в SKU',`<textarea id="comment" placeholder="Замок, петли, фрезеровки, ригели и прочие операции заказа"></textarea>`,'full'));
   updateDouble42Frame();
   syncDouble42BundleColorFromDoor();
+  syncRecommendedDoorHinge(true,true);
   updateDouble42Hardware();
 }
 
