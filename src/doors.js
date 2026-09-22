@@ -417,6 +417,10 @@ function companionItems(){
       const powderItem=price42CurrentPowderCoatItem();
       if(powderItem)items.push(powderItem);
     }
+    if(system==='59'&&typeof price59CurrentPowderCoatItem==='function'){
+      const powderItem=price59CurrentPowderCoatItem();
+      if(powderItem)items.push(powderItem);
+    }
     if(!includeBox())return items;
     const color=bundleBoxColorText(system);
     const v=boxPartLengthVertical(),t=boxPartLengthTop();
@@ -472,6 +476,8 @@ function companionItems(){
   }
   if(product()==='sliding42'){
     const items=[];
+    const powderItem=typeof price42CurrentPowderCoatItem==='function'?price42CurrentPowderCoatItem():null;
+    if(powderItem)items.push(powderItem);
     const handle=$('slidingHandle')?.value||'Без ручки';
     const system=$('slidingSystem')?.value||'';
     if(handle!=='Без ручки')items.push({key:'SLIDE42-HANDLE',type:'Фурнитура / Ручки',priceCategory:'Ручки',qty:1,unit:'шт.',step:1,name:handle});
