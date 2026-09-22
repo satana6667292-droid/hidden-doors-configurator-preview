@@ -150,7 +150,7 @@ const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'42 мм',area:'Полотно · грунт / ПВХ / эмаль · фанера 1700–2200 / AL 1700–2300',status:'connected',note:'База и ПВХ следуют уровням Опт 2 / Опт 1 / Розница; эмаль 4 000 ₽/м² одинакова для всех уровней; шпон/HPL — после согласования'}),
   Object.freeze({block:'42 мм',area:'Комплект короба · H2000 · W600/700/800/900',status:'connected',note:'Опт 2: серый 5 594 ₽, чёрный 6 514 ₽; Опт 1 +12,5%, Розница +50%. Цена самостоятельная, не остаток от полного комплекта'}),
   Object.freeze({block:'59 мм',area:'Полотно / короб / стекло-зеркало',status:'connected',note:'Опт 2 подключён: полотно 19 863 / 20 539 ₽, короб 7 971 / 8 776 ₽; H≤2000 без уменьшения, выше — высотная шкала; полотно W≤900 ×1, W>900 ×W/900; Опт 1 +12,5%, Розница +50%'}),
-  Object.freeze({block:'Фурнитура',area:'K8060 + Vantage магнитные серый/чёрный',status:'connected',note:'Все текущие цены фурнитуры считаются розничными. Только K8060 во всех цветах и Vantage магнитные в сером/чёрном имеют Опт 2 = Розница −33%; остальная фурнитура пока остаётся по рознице'}),
+  Object.freeze({block:'Фурнитура',area:'K8060 / K6360/38 / K2760',status:'connected',note:'Весь каталог фурнитуры по рознице. Для трёх согласованных семейств петель действует лестница: Опт 2 = Розница /1,50; Опт 1 = Опт 2 +12,5%; Розница = каталог. Остальная фурнитура — только розница'}),
   Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL короба и прочее',status:'pending',note:'ПВХ и эмаль полотна 42 уже подключены в блоке двери; остальные дополнительные работы подключаются отдельно'}),
   Object.freeze({block:'Себестоимость',area:'36 мм · полотно ПВХ + короб',status:'connected',note:'Полотно и покупной короб считаются отдельными объектами по схеме закупка → списание → норма → тех. отход → факт → отклонение'})
 ]);
@@ -226,7 +226,7 @@ function renderPricingOverview(){
         ['door42','42 мм','Три уровня цены + покрытия: ПВХ, общий каталог, эмаль; шпон/HPL по согласованию','ok'],
         ['door59','59 мм','Опт 2 подключён: полотно, короб и стекло/зеркало; Опт 1 +12,5%, Розница +50%','ok'],
         ['trim','Погонаж','36 мм подключён; 42/59 будут добавляться отдельно','info'],
-        ['hardware','Фурнитура','Розница для всего каталога; Опт 2 −33% только K8060 и Vantage серый/чёрный','ok'],
+        ['hardware','Фурнитура','Розница для всего каталога; Опт 2 / Опт 1 / Розница только K8060, K6360/38 и K2760','ok'],
         ['extras','Доп. работы','Цены источника собраны, автоматизация впереди','warn'],
         ['cost','Себестоимость','36 мм: полотно и короб уже считаются отдельными объектами себестоимости','ok']
       ].map(([id,title,desc,status])=>'<button class="pricing-category-card" onclick="setPricingAdminSection(\''+id+'\')">'+
@@ -299,26 +299,25 @@ function renderPricing42Admin(){
     '<div class="pricing-roadmap-lines">'+
       '<div><b>Полотно</b><span class="pricing-status ok">Подключено</span><small>База, высота, ширина, реверс + ПВХ / общий каталог / эмаль; шпон и HPL — после согласования</small></div>'+
       '<div><b>Комплект короба</b><span class="pricing-status ok">Подключено</span><small>H2000 · W600/700/800/900 · Опт 2: серый 5 594 ₽ / чёрный 6 514 ₽; Опт 1 +12,5%, Розница +50%</small></div>'+
-      '<div><b>K8060 / Vantage</b><span class="pricing-status info">Отдельная математика</span><small>К фурнитуре +12,5% / +50% дверей не применяем</small></div>'+
+      '<div><b>K8060 / K6360/38 / K2760</b><span class="pricing-status ok">Три типа цены</span><small>Опт 2 = Розница /1,50; Опт 1 = Опт 2 +12,5%; остальная фурнитура остаётся по рознице</small></div>'+
       '<div><b>Итог комплекта</b><span class="pricing-status warn">Следующий блок</span><small>Контроль против прайса 19 090 / 20 815</small></div>'+
     '</div></div>';
 }
 function renderPricingHardwareAdmin(){
   const rows=typeof hardwarePartnerOpt2Rows==='function'?hardwarePartnerOpt2Rows():[];
   const body=rows.length?rows.map(row=>
-    '<tr><td><b>'+escapeHtml(row.category)+'</b></td><td>'+escapeHtml(row.name)+'</td><td>'+formatRub(row.retailPrice)+'</td><td><b>'+formatRub(row.opt2Price)+'</b></td><td><span class="pricing-status ok">−33%</span></td></tr>'
-  ).join(''):'<tr><td colspan="5" class="mini">Правила загрузятся вместе с каталогом фурнитуры.</td></tr>';
-  return pricingAdminSectionHeader('Фурнитура · розница и Опт 2','Базой считаются текущие цены каталога фурнитуры — это Розница. Отдельная партнёрская цена пока подключена только к согласованным семействам.','Опт 2 частично подключён')+
+    '<tr><td><b>'+escapeHtml(row.category)+'</b></td><td>'+escapeHtml(row.name)+'</td><td><b>'+formatRub(row.opt2Price)+'</b></td><td>'+formatRub(row.opt1Price)+'</td><td>'+formatRub(row.retailPrice)+'</td><td><span class="pricing-status ok">Лестница</span></td></tr>'
+  ).join(''):'<tr><td colspan="6" class="mini">Правила загрузятся вместе с каталогом фурнитуры.</td></tr>';
+  return pricingAdminSectionHeader('Фурнитура · типы цен','Весь каталог фурнитуры хранит розничные цены. Только K8060, K6360/38 и K2760 получают полноценную лестницу Опт 2 → Опт 1 → Розница.','Три семейства подключены')+
     '<div class="pricing-admin-grid">'+
-      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">База фурнитуры</div><div class="pricing-admin-title">Розничная цена</div><div class="mini">Все текущие рабочие цены каталога считаются розничными.</div></div>'+
-      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">K8060</div><div class="pricing-admin-big">−33%</div><div class="mini">Все цвета петли K8060; колпачки не входят.</div></div>'+
-      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Vantage</div><div class="pricing-admin-big">−33%</div><div class="mini">Магнитные замки в чёрном и сером / матовом хроме.</div></div>'+
+      '<div class="pricing-admin-card primary"><div class="pricing-admin-kicker">Вся прочая фурнитура</div><div class="pricing-admin-title">Розница</div><div class="mini">Оптовые типы для остальных позиций пока не рассчитываются.</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Согласованные петли</div><div class="pricing-admin-big">3 семьи</div><div class="mini">K8060 · K6360/38 · K2760; колпачки не входят.</div></div>'+
+      '<div class="pricing-admin-card"><div class="pricing-admin-kicker">Логика</div><div class="pricing-admin-big">+12,5% / +50%</div><div class="mini">от Опт 2 до Опт 1 / Розницы.</div></div>'+
     '</div>'+
-    '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Позиции с Опт 2</div>'+
-      '<div class="table-wrap"><table><thead><tr><th>Категория</th><th>Позиция</th><th>Розница</th><th>Опт 2</th><th>Правило</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
-      '<div class="mini pricing-table-note">Опт 1 для фурнитуры пока отдельно не согласован. Для всех остальных позиций фурнитуры, включая другие семейства петель и замков, используется розничная цена.</div></div>';
+    '<div class="pricing-admin-card pricing-wide-card"><div class="pricing-rule-block-title">Петли с тремя типами цены</div>'+
+      '<div class="table-wrap"><table><thead><tr><th>Категория</th><th>Позиция</th><th>Опт 2</th><th>Опт 1</th><th>Розница</th><th>Правило</th></tr></thead><tbody>'+body+'</tbody></table></div>'+
+      '<div class="mini pricing-table-note">Опт 2 восстанавливается из текущей розничной цены как Розница / 1,50; Опт 1 = Опт 2 +12,5%. Вся остальная фурнитура, включая замки Vantage, пока остаётся по розничной цене.</div></div>';
 }
-
 function renderPricing59Admin(){
   if(typeof SALES_PRICE_59==='undefined')return renderPricingSimpleSection('door59');
   const tiers=[
@@ -352,6 +351,8 @@ function renderPricing59Admin(){
       '<div class="pricing-rule-static"><b>H > 2000:</b> +10% на каждые 100 мм по шкале 2100 ×1,10 · 2200 ×1,20 · 2300 ×1,30 · …</div>'+
       '<div class="pricing-rule-static"><b>Стекло/зеркало:</b> 14 950 ₽ за 1 сторону / 26 450 ₽ за 2 стороны при H≤2000; выше — та же высотная шкала; затем +12,5% / +50%.</div>'+
       '<div class="pricing-rule-static"><b>Ширина полотна:</b> W ≤ 900 → ×1; W > 900 → ×(W/900). Ширины 450–595 остаются нестандартными, но отдельной скидки по ширине нет. Стекло/зеркало от ширины не меняется.</div>'+
+      '<div class="pricing-rule-static"><b>Короб:</b> ширина 450–1000 мм не влияет на цену, как у короба 42 мм.</div>'+
+      '<div class="pricing-rule-static"><b>Золото / RAL:</b> золотой профиль использует базу чёрного; RAL использует базу серого + 460 ₽/м.п. с 10% техзапасом.</div>'+
     '</div>'+
   '</div>';
 }
@@ -608,7 +609,7 @@ function renderPricingAdmin(){
 
 
 // v111: one transparent price card for configured door assemblies.
-const CONFIGURED_PRICE_CARD_PRODUCTS=Object.freeze(['leaf36','single42','single59','double42']);
+const CONFIGURED_PRICE_CARD_PRODUCTS=Object.freeze(['leaf36','single42','sliding42','single59','double42']);
 
 function configuredPriceRound(value){
   const n=Number(value);
@@ -642,7 +643,7 @@ function configuredPriceCompanionLabel(item){
   if(key==='BUNDLE-P36-TRIM')return 'Наличник';
   if(key==='BUNDLE-P42-BOX')return 'Комплект короба 42';
   if(key==='BUNDLE-P59-BOX')return 'Комплект короба 59';
-  if(key==='POWDER-COAT-42')return 'Полимерно-порошковая покраска RAL';
+  if(key==='POWDER-COAT-42'||key==='POWDER-COAT-59')return 'Полимерно-порошковая покраска RAL';
   if(key==='DOOR-HINGE')return name?'Петли · '+name:'Петли';
   if(key==='DOOR-LOCK')return name?'Замок · '+name:'Замок';
   if(key==='DOOR-HANDLE')return name?'Ручка · '+name:'Ручка';
@@ -747,10 +748,10 @@ function configuredPriceBreakdown(){
     sourceNote=book?price36SourceNote(book):sourceNote;
   }
 
-  if(productKey==='single42'){
+  if(['single42','sliding42'].includes(productKey)){
     const calc=price42Calculation(requestedType);
     lines.push(configuredPriceLine({
-      key:'door-leaf-42',label:'Полотно 42 мм',qty:1,unit:'шт.',
+      key:'door-leaf-42',label:productKey==='sliding42'?'Откатное полотно 42 мм':'Полотно 42 мм',qty:1,unit:'шт.',
       unitPrice:calc?.eligible&&calc?.price!==null?calc.price:null,
       priceKnown:!!calc?.eligible&&calc?.price!==null,
       actualPriceType:requestedType,
@@ -759,7 +760,7 @@ function configuredPriceBreakdown(){
     const companions=companionItems();
     for(const item of companions)lines.push(configuredPriceLineFromCompanion(item,requestedType));
     lines.push(...configuredPriceUnknownSelectedExtras());
-    sourceNote=price42SourceNote(price42Book(requestedType));
+    sourceNote=price42SourceNote(price42Book(requestedType))+(productKey==='sliding42'?' · Откатное исполнение не имеет отдельной наценки за конструктив.':'');
   }
 
   if(productKey==='single59'){
