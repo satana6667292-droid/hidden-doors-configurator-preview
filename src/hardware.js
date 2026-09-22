@@ -38,7 +38,7 @@ function simpleSelectWithNone(id,cat){
   return selectEl(id,vals,'Не требуется');
 }
 function doorHingeQtyField(){
-  if(!['single42','single59'].includes(product()))return '';
+  if(!['single42','single59','double42'].includes(product()))return '';
   return field('Количество петель',
     `<input id="doorHingeQty" type="number" min="1" step="1">
      <div id="doorHingeQtyHint" class="mini"></div>`);
@@ -154,14 +154,20 @@ function single59GlassSidesCount(){
   return ['SingleSide1Type','SingleSide2Type'].filter(id=>$(id)?.value==='Стекло/зеркало').length;
 }
 function recommendedHingeFamily(){
-  if(product()==='single42')return 'K8060';
+  if(['single42','double42'].includes(product()))return 'K8060';
   if(product()==='single59')return single59GlassSidesCount()>0?'K2760':'K6360/38';
   return '';
 }
+function recommended42HingeQtyPerLeaf(height=currentHeight()){
+  const h=Number(height);
+  return Number.isFinite(h)&&h<=2300?2:null;
+}
 function recommendedHingeQty(){
   const h=currentHeight();
-  if(product()==='single42'){
-    return h<=2300?2:null;
+  if(product()==='single42')return recommended42HingeQtyPerLeaf(h);
+  if(product()==='double42'){
+    const perLeaf=recommended42HingeQtyPerLeaf(h);
+    return perLeaf==null?null:perLeaf*2;
   }
   if(product()==='single59'){
     const glass=single59GlassSidesCount();
@@ -172,7 +178,9 @@ function recommendedHingeQty(){
   return null;
 }
 function recommendedHingeColorTerms(){
-  const edge=$('SingleEdgeColor')?.value||'';
+  const edge=product()==='double42'
+    ?($('LeftEdgeColor')?.value||'')
+    :($('SingleEdgeColor')?.value||'');
   const family=recommendedHingeFamily();
   if(edge==='Черный анод'){
     if(family==='K6360/38')return ['цвет - черный','цвет черный',' nr'];
@@ -361,7 +369,7 @@ function recommendedHingeItem(){
   return familyItems[0]||'';
 }
 function syncRecommendedDoorHinge(forceItem=true,forceQty=true){
-  if(!['single42','single59'].includes(product()))return;
+  if(!['single42','single59','double42'].includes(product()))return;
   const hinge=$('doorHinges'),qty=$('doorHingeQty'),hint=$('doorHingeQtyHint');
   if(hinge&&forceItem){
     const rec=recommendedHingeItem();
@@ -374,8 +382,11 @@ function syncRecommendedDoorHinge(forceItem=true,forceQty=true){
   if(hint){
     const family=recommendedHingeFamily();
     const q=recommendedHingeQty();
-    if(product()==='single42' && q==null){
+    if(['single42','double42'].includes(product()) && q==null){
       hint.textContent=`Рекомендация: ${family}. Для выбранной высоты количество не задано.`;
+    }else if(product()==='double42'){
+      const perLeaf=recommended42HingeQtyPerLeaf();
+      hint.textContent=`Рекомендация: ${family}; ${perLeaf||'—'} шт. на створку, всего ${q||'—'} шт.`;
     }else{
       hint.textContent=`Рекомендация: ${family}; количество по утверждённой таблице — ${q||'—'} шт.`;
     }
