@@ -22,6 +22,8 @@ const SALES_PRICE_59=Object.freeze({
 const PRICE59_PVC_RATE_PER_HEIGHT_M_PER_SIDE=1725;
 const PRICE59_ENAMEL_RATE_PER_SQM_PER_SIDE=4000;
 const PRICE59_GENERAL_FILM_SURCHARGE_PER_DOOR=2300;
+const PRICE59_POWDER_COAT_RATE_PER_M=460;
+const PRICE59_POWDER_COAT_RESERVE_FACTOR=1.10;
 
 function price59TypeLabel(priceType){return salesPriceTypeLabel(priceType)}
 function price59ApplySalesTier(opt2Value,priceType=activeSalesPriceType()){
@@ -40,8 +42,8 @@ function price59HeightFactor(height){
 }
 function price59EdgeKey(value=''){
   const s=String(value||'');
-  if(/ч[её]рн/i.test(s))return 'black';
-  if(/сер|хром/i.test(s))return 'gray';
+  if(/ч[её]рн|золот/i.test(s))return 'black';
+  if(/сер|хром|полимер|порош/i.test(s))return 'gray';
   return '';
 }
 function price59AnchorOrFormula(kind,edgeKey,height){
@@ -172,7 +174,7 @@ function configured59PriceNote(priceType=activeSalesPriceType()){
 function price59BoxCalculation({height,width,color}={},priceType=activeSalesPriceType()){
   const h=Number(height),w=Number(width),edgeKey=price59EdgeKey(color);
   if(!Number.isFinite(h)||h<SALES_PRICE_59.minHeight||h>SALES_PRICE_59.maxHeight)return {ok:false,reason:'Высота короба 59 вне утверждённого диапазона.'};
-  if(!Number.isFinite(w)||w<600||w>900)return {ok:false,reason:'Автоматическая цена короба 59 сейчас утверждена для ширины 600–900 мм.'};
+  if(!Number.isFinite(w)||w<450||w>1000)return {ok:false,reason:'Ширина короба 59 должна быть 450–1000 мм.'};
   if(!edgeKey)return {ok:false,reason:'Автоматическая цена короба 59 сейчас утверждена для серого и чёрного анода.'};
   const opt2Price=price59AnchorOrFormula('box',edgeKey,h);
   if(opt2Price===null)return {ok:false,reason:'Не удалось рассчитать цену короба 59.'};
@@ -187,5 +189,70 @@ function price59BoxCompanionUnitPrice(item,priceType=activeSalesPriceType()){
   return calc.ok?calc.price:null;
 }
 function price59SourceNote(){
-  return SALES_PRICE_59.source+' · 59 мм: H≤2000 без уменьшения; выше 2000 рост +10% на каждые 100 мм. Ширина W≤900 → ×1; W>900 → W/900. Стекло/зеркало от ширины не меняется.';
+  return SALES_PRICE_59.source+' · 59 мм: H≤2000 без уменьшения; выше 2000 рост +10% на каждые 100 мм. Полотно: W≤900 → ×1, W>900 → W/900. Короб: ширина 450–1000 мм без доплаты. Золотой профиль считается по базе чёрного; RAL — по базе серого + отдельная покраска. Стекло/зеркало от ширины не меняется.';
+}
+
+
+function price59IsPowderColor(value=''){
+  return /полимер|порош/i.test(String(value||''));
+}
+function price59RoundLength(value){
+  const n=Number(value);
+  return Number.isFinite(n)?Math.round(n*10000)/10000:null;
+}
+function price59PowderCoatCalculation({height,width,edgeColor,boxColor,includeBox:withBox=false}={}){
+  const h=Number(height),w=Number(width);
+  if(!Number.isFinite(h)||h<=0||!Number.isFinite(w)||w<=0){
+    return {active:false,edgeMeters:0,boxMeters:0,rawMeters:0,billableMeters:0,total:0};
+  }
+  const edgePainted=price59IsPowderColor(edgeColor);
+  const boxPainted=!!withBox&&price59IsPowderColor(boxColor);
+  // 59 мм: физически 5 деталей кромки — 2 вертикали + 3 горизонтали.
+  const edgeMm=edgePainted?(2*(h+20)+3*(w+20)):0;
+  const boxMm=boxPainted?(2*(h+100)+(w+100)):0;
+  const rawMeters=price59RoundLength((edgeMm+boxMm)/1000)||0;
+  const billableMeters=price59RoundLength(rawMeters*PRICE59_POWDER_COAT_RESERVE_FACTOR)||0;
+  return {
+    active:edgePainted||boxPainted,
+    edgePainted,boxPainted,
+    edgeMeters:price59RoundLength(edgeMm/1000)||0,
+    boxMeters:price59RoundLength(boxMm/1000)||0,
+    rawMeters,billableMeters,
+    ratePerMeter:PRICE59_POWDER_COAT_RATE_PER_M,
+    reservePercent:10,
+    total:Math.ceil(billableMeters*PRICE59_POWDER_COAT_RATE_PER_M)
+  };
+}
+function price59CurrentPowderCoatItem(){
+  if(product()!=='single59')return null;
+  const edgeColor=$('SingleEdgeColor')?.value||'';
+  const boxColor=$('bundle59Color')?.value||'';
+  const calc=price59PowderCoatCalculation({
+    height:currentHeight(),
+    width:currentWidth(),
+    edgeColor,
+    boxColor,
+    includeBox:includeBox()
+  });
+  if(!calc.active||calc.billableMeters<=0)return null;
+  const edgeRal=$('SingleEdgeRal')?.value||'';
+  const boxRal=$('bundle59Ral')?.value||'';
+  const ralParts=[];
+  if(calc.edgePainted)ralParts.push('торец '+(edgeRal||'RAL'));
+  if(calc.boxPainted)ralParts.push('короб '+(boxRal||edgeRal||'RAL'));
+  const noteParts=[];
+  if(calc.boxPainted)noteParts.push('короб '+String(calc.boxMeters).replace('.',',')+' м');
+  if(calc.edgePainted)noteParts.push('алюминиевая кромка '+String(calc.edgeMeters).replace('.',',')+' м');
+  return {
+    key:'POWDER-COAT-59',
+    baseKey:'POWDER-COAT-59',
+    type:'Услуги / Полимерно-порошковая покраска',
+    qty:calc.billableMeters,
+    unit:'м.п.',
+    step:0.0005,
+    kind:'service',
+    fixedUnitPrice:PRICE59_POWDER_COAT_RATE_PER_M,
+    priceNote:noteParts.join(' + ')+' = '+String(calc.rawMeters).replace('.',',')+' м; +10% запас = '+String(calc.billableMeters).replace('.',',')+' м.',
+    name:'Полимерно-порошковая покраска профиля 59 / '+ralParts.join(' / ')+' / '+String(calc.billableMeters).replace('.',',')+' м.п. × '+PRICE59_POWDER_COAT_RATE_PER_M+' ₽'
+  };
 }
