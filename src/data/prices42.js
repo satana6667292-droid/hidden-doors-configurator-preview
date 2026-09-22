@@ -224,6 +224,63 @@ function price42PowderCoatCalculation({height,width,edgeColor,boxColor,includeBo
     total:Math.ceil(billableMeters*PRICE42_POWDER_COAT_RATE_PER_M)
   };
 }
+function price42DoubleEdgePowderCoatCalculation({height,leftWidth,rightWidth,leftEdgeColor,rightEdgeColor}={}){
+  const h=Number(height),lw=Number(leftWidth),rw=Number(rightWidth);
+  if(!Number.isFinite(h)||h<=0||!Number.isFinite(lw)||lw<=0||!Number.isFinite(rw)||rw<=0){
+    return {active:false,leftEdgeMeters:0,rightEdgeMeters:0,rawMeters:0,billableMeters:0,total:0};
+  }
+  const leftPainted=price42IsPowderColor(leftEdgeColor);
+  const rightPainted=price42IsPowderColor(rightEdgeColor);
+  const leftEdgeMm=leftPainted?(2*(h+20)+2*(lw+20)):0;
+  const rightEdgeMm=rightPainted?(2*(h+20)+2*(rw+20)):0;
+  const leftEdgeMeters=price42RoundLength(leftEdgeMm/1000)||0;
+  const rightEdgeMeters=price42RoundLength(rightEdgeMm/1000)||0;
+  const rawMeters=price42RoundLength(leftEdgeMeters+rightEdgeMeters)||0;
+  const billableMeters=price42RoundLength(rawMeters*PRICE42_POWDER_COAT_RESERVE_FACTOR)||0;
+  return {
+    active:leftPainted||rightPainted,
+    leftPainted,rightPainted,leftEdgeMeters,rightEdgeMeters,rawMeters,billableMeters,
+    ratePerMeter:PRICE42_POWDER_COAT_RATE_PER_M,
+    reservePercent:10,
+    total:Math.ceil(billableMeters*PRICE42_POWDER_COAT_RATE_PER_M)
+  };
+}
+function price42DoubleEdgePowderCoatItem(){
+  if(product()!=='double42')return null;
+  const calc=price42DoubleEdgePowderCoatCalculation({
+    height:currentHeight(),
+    leftWidth:doubleWidth('left'),
+    rightWidth:doubleWidth('right'),
+    leftEdgeColor:$('LeftEdgeColor')?.value||'',
+    rightEdgeColor:$('RightEdgeColor')?.value||''
+  });
+  if(!calc.active||calc.billableMeters<=0)return null;
+  const leftRal=$('LeftEdgeRal')?.value||'';
+  const rightRal=$('RightEdgeRal')?.value||'';
+  const ralParts=[];
+  const noteParts=[];
+  if(calc.leftPainted){
+    ralParts.push('левая створка '+(leftRal||'RAL'));
+    noteParts.push('левая створка '+String(calc.leftEdgeMeters).replace('.',',')+' м');
+  }
+  if(calc.rightPainted){
+    ralParts.push('правая створка '+(rightRal||'RAL'));
+    noteParts.push('правая створка '+String(calc.rightEdgeMeters).replace('.',',')+' м');
+  }
+  return {
+    key:'POWDER-COAT-42-DOUBLE-EDGES',
+    baseKey:'POWDER-COAT-42',
+    type:'Услуги / Полимерно-порошковая покраска',
+    qty:calc.billableMeters,
+    unit:'м.п.',
+    step:0.0005,
+    kind:'service',
+    fixedUnitPrice:PRICE42_POWDER_COAT_RATE_PER_M,
+    priceNote:noteParts.join(' + ')+' = '+String(calc.rawMeters).replace('.',',')+' м; +10% технологический запас = '+String(calc.billableMeters).replace('.',',')+' м. Короб в этот расчёт не входит.',
+    name:'Полимерно-порошковая покраска торцов двустворчатой 42 / '+ralParts.join(' / ')+' / '+String(calc.billableMeters).replace('.',',')+' м.п. × '+PRICE42_POWDER_COAT_RATE_PER_M+' ₽'
+  };
+}
+
 function price42CurrentPowderCoatItem(){
   if(!['single42','sliding42'].includes(product()))return null;
   const edgeColor=$('SingleEdgeColor')?.value||'';
