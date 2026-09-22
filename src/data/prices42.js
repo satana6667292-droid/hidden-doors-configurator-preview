@@ -135,6 +135,62 @@ function price42BoxCompanionUnitPrice(item,priceType=activeSalesPriceType()){
   return calc.ok?calc.price:null;
 }
 
+const PRICE42_BOX_STANDARD_PROFILE_METERS=5.2;
+const PRICE42_BOX_STANDARD_TOP_METERS=1;
+const PRICE42_BOX_LINEAR_OPT2=Object.freeze({
+  gray:Math.ceil(SALES_PRICE_42_BOX_OPT2.base.gray/PRICE42_BOX_STANDARD_PROFILE_METERS),
+  black:Math.ceil(SALES_PRICE_42_BOX_OPT2.base.black/PRICE42_BOX_STANDARD_PROFILE_METERS)
+});
+
+function price42DoubleBoxCalculation({height,leftWidth,rightWidth,colorKey,color}={},priceType=activeSalesPriceType()){
+  const h=Number(height),left=Number(leftWidth),right=Number(rightWidth);
+  const key=colorKey||price42BoxColorKey(color);
+  if(!['gray','black'].includes(key))return {ok:false,reason:'Для выбранного цвета двустворчатого короба 42 цена пока не зафиксирована.'};
+  if(!Number.isFinite(left)||left<=0||!Number.isFinite(right)||right<=0)return {ok:false,reason:'Для двустворчатого короба нужны ширины обеих створок.'};
+
+  // Стоевые части сохраняют утверждённую высотную логику обычного короба 42.
+  // Из цены обычного комплекта вычитаем стандартный верх 1000 мм,
+  // затем добавляем двустворчатый верх по фактическому погонному метру.
+  const singleBoxOpt2=price42BoxOpt2AtHeight(h,key);
+  const ratePerMeterOpt2=Number(PRICE42_BOX_LINEAR_OPT2[key]);
+  if(!Number.isFinite(singleBoxOpt2)||!Number.isFinite(ratePerMeterOpt2))return {ok:false,reason:'Не удалось рассчитать базу двустворчатого короба 42.'};
+
+  const standardTopOpt2=Math.ceil(PRICE42_BOX_STANDARD_TOP_METERS*ratePerMeterOpt2);
+  const verticalPairOpt2=Math.max(0,Number(singleBoxOpt2)-standardTopOpt2);
+  const topLengthMm=left+right+10;
+  const topLengthM=topLengthMm/1000;
+  const topOpt2=Math.ceil(topLengthM*ratePerMeterOpt2);
+  const opt2Price=verticalPairOpt2+topOpt2;
+  const type=normalizeSalesPriceType(priceType);
+  const price=price42ApplySalesTier(opt2Price,type);
+  const topPrice=price42ApplySalesTier(topOpt2,type);
+  const verticalPairPrice=Math.max(0,price-topPrice);
+
+  return {
+    ok:true,priceType:type,colorKey:key,height:h,leftWidth:left,rightWidth:right,
+    ratePerMeterOpt2,standardTopOpt2,verticalPairOpt2,
+    topLengthMm,topLengthM,topOpt2,opt2Price,
+    topPrice,verticalPairPrice,price,
+    formula:'Стоевые части = короб 42 по высоте минус стандартный верх 1,0 м; верх = ('+left+' + '+right+' + 10) / 1000 × '+ratePerMeterOpt2+' ₽/м'
+  };
+}
+function price42DoubleBoxPartUnitPrice(item,priceType=activeSalesPriceType()){
+  const key=String(item?.baseKey||item?.key||'');
+  if(!/^BUNDLE-P42-DOUBLE-(LEFT|RIGHT|TOP)$/.test(key))return null;
+  const calc=price42DoubleBoxCalculation({
+    height:item?.boxHeight,
+    leftWidth:item?.leftWidth,
+    rightWidth:item?.rightWidth,
+    colorKey:item?.boxColorKey,
+    color:item?.boxColor
+  },priceType);
+  if(!calc.ok)return null;
+  if(key.endsWith('-TOP'))return calc.topPrice;
+  const leftPrice=Math.floor(calc.verticalPairPrice/2);
+  const rightPrice=calc.verticalPairPrice-leftPrice;
+  return key.endsWith('-LEFT')?leftPrice:rightPrice;
+}
+
 const PRICE42_POWDER_COAT_RATE_PER_M=460;
 const PRICE42_POWDER_COAT_RESERVE_FACTOR=1.10;
 const PRICE42_BOX_MITER45_FIXED_PRICE=1100;
