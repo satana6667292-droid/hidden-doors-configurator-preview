@@ -1708,25 +1708,18 @@ function hardwareBasePrice(category,name){
   return meta.price;
 }
 
-const HARDWARE_OPT2_PARTNER_DISCOUNT=0.33;
+const HARDWARE_SPECIAL_HINGE_RETAIL_MARKUP=0.50;
+const HARDWARE_SPECIAL_HINGE_OPT1_MARKUP=0.125;
 
 function hardwarePartnerOpt2Eligible(category,name){
   const c=String(category||'');
   const n=String(name||'');
-  if(c==='Петли'){
-    return /петл/i.test(n)&&!(/колпач/i.test(n))&&/(?:K8060|К8060)/i.test(n);
-  }
-  if(c==='Замки'){
-    if(!/замок магнитный/i.test(n)||!/Vantage/i.test(n))return false;
-    const black=/черн/i.test(n)||/MC\s*\d*BL\b/i.test(n);
-    const gray=/хром/i.test(n)||/MC\s*\d*\s*S[СC]/i.test(n)||/MC\d*S[СC]/i.test(n);
-    return black||gray;
-  }
-  return false;
+  if(c!=='Петли'||!/петл/i.test(n)||/колпач/i.test(n))return false;
+  return /(?:K8060|К8060|K6360\/38|К6360\/38|K2760|К2760)/i.test(n);
 }
 function hardwareSalesPriceType(category,name,requestedType=activeSalesPriceType()){
   const requested=normalizeSalesPriceType(requestedType);
-  return requested==='wholesale2'&&hardwarePartnerOpt2Eligible(category,name)?'wholesale2':'retail';
+  return hardwarePartnerOpt2Eligible(category,name)?requested:'retail';
 }
 function hardwareSalesPriceMeta(category,name,requestedType=activeSalesPriceType()){
   const base=hardwareBasePriceMeta(category,name);
@@ -1734,17 +1727,25 @@ function hardwareSalesPriceMeta(category,name,requestedType=activeSalesPriceType
   const retailPrice=(!base.suspicious&&Number.isFinite(Number(base.price))&&Number(base.price)>0)?Number(base.price):null;
   const priceType=hardwareSalesPriceType(category,name,requestedType);
   const eligible=hardwarePartnerOpt2Eligible(category,name);
+  const opt2Raw=eligible&&retailPrice!==null?retailPrice/(1+HARDWARE_SPECIAL_HINGE_RETAIL_MARKUP):null;
+  const opt2Price=opt2Raw===null?null:Math.ceil(opt2Raw);
+  const opt1Price=opt2Raw===null?null:Math.ceil(opt2Raw*(1+HARDWARE_SPECIAL_HINGE_OPT1_MARKUP));
   const price=retailPrice===null?null:
-    (priceType==='wholesale2'?Math.ceil(retailPrice*(1-HARDWARE_OPT2_PARTNER_DISCOUNT)):retailPrice);
+    (eligible
+      ?(priceType==='wholesale2'?opt2Price:priceType==='wholesale1'?opt1Price:retailPrice)
+      :retailPrice);
   return {
     ...base,
     retailPrice,
     priceType,
     price,
     opt2Eligible:eligible,
-    opt2Discount:eligible?HARDWARE_OPT2_PARTNER_DISCOUNT:0,
-    opt2Price:eligible&&retailPrice!==null?Math.ceil(retailPrice*(1-HARDWARE_OPT2_PARTNER_DISCOUNT)):null,
-    salesSource:eligible?'Розница каталога → Опт 2 −33%':'Розничная цена каталога'
+    opt2Discount:eligible&&retailPrice?1-(opt2Price/retailPrice):0,
+    opt2Price,
+    opt1Price,
+    salesSource:eligible
+      ?'Петли K8060 / K6360/38 / K2760: Опт 2 = Розница / 1,50; Опт 1 = Опт 2 +12,5%; Розница = исходная цена каталога'
+      :'Розничная цена каталога'
   };
 }
 function hardwareSalesPrice(category,name,requestedType=activeSalesPriceType()){
@@ -1759,7 +1760,7 @@ function hardwarePartnerOpt2Rows(){
     for(const item of map.values()){
       if(!hardwarePartnerOpt2Eligible(category,item.name))continue;
       const meta=hardwareSalesPriceMeta(category,item.name,'wholesale2');
-      if(meta)rows.push({category,name:item.name,retailPrice:meta.retailPrice,opt2Price:meta.opt2Price,discount:meta.opt2Discount});
+      if(meta)rows.push({category,name:item.name,retailPrice:meta.retailPrice,opt1Price:meta.opt1Price,opt2Price:meta.opt2Price,discount:meta.opt2Discount});
     }
   }
   return rows;
@@ -1771,7 +1772,7 @@ function configuredCatalogUnitPrice(){
     return hardwareSalesPrice(sourceCategory,$('catalogItem')?.value||'',activeSalesPriceType());
   }
   if(product()==='openingSystem')return hardwareSalesPrice('Системы открывания',$('catalogItem')?.value||'',activeSalesPriceType());
-  if(product()==='single42'&&typeof configured42StandardUnitPrice==='function')return configured42StandardUnitPrice();
+  if(['single42','sliding42'].includes(product())&&typeof configured42StandardUnitPrice==='function')return configured42StandardUnitPrice();
   if(product()==='single59'&&typeof configured59UnitPrice==='function')return configured59UnitPrice();
   return configured36CartUnitPrice();
 }
@@ -1782,6 +1783,7 @@ function companionItemUnitPrice(item){
   if(baseKey==='BUNDLE-P42-BOX'&&typeof price42BoxCompanionUnitPrice==='function')return price42BoxCompanionUnitPrice(item,type);
   if(baseKey==='BUNDLE-P59-BOX'&&typeof price59BoxCompanionUnitPrice==='function')return price59BoxCompanionUnitPrice(item,type);
   if(baseKey==='POWDER-COAT-42')return Number(item?.fixedUnitPrice||PRICE42_POWDER_COAT_RATE_PER_M||460);
+  if(baseKey==='POWDER-COAT-59')return Number(item?.fixedUnitPrice||PRICE59_POWDER_COAT_RATE_PER_M||460);
   if(/^BOX-MITER45-/.test(baseKey)||/^BOX-MITER45-/.test(key))return Number(item?.fixedUnitPrice||PRICE42_BOX_MITER45_FIXED_PRICE||1100);
   if(baseKey==='PROCESS-SKUD-LOCK-CUT'||key==='PROCESS-SKUD-LOCK-CUT')return null;
   if(/^PROCESS-/.test(baseKey)||/^PROCESS-/.test(key))return Number(item?.fixedUnitPrice||0)||null;
