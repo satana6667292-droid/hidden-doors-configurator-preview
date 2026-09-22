@@ -796,7 +796,9 @@ function addConfiguredToCart(){
   const configuredPriceType=typeof configuredSalesPriceType==='function'?configuredSalesPriceType():null;
   const configuredPriceNote=product()==='single59'&&typeof configured59PriceNote==='function'
     ?configured59PriceNote(configuredPriceType||activeSalesPriceType())
-    :(typeof configured42PriceNote==='function'?configured42PriceNote(configuredPriceType||activeSalesPriceType()):'');
+    :product()==='double42'&&typeof configuredDouble42PriceNote==='function'
+      ?configuredDouble42PriceNote(configuredPriceType||activeSalesPriceType())
+      :(typeof configured42PriceNote==='function'?configured42PriceNote(configuredPriceType||activeSalesPriceType()):'');
   if(existing){
     existing.qty=Number(existing.qty||0)+1;
     existing.productionMeta=doorProductionMeta();
