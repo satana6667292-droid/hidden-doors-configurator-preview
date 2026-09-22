@@ -58,17 +58,21 @@ function price59LeafBaseCalculation({height,width,edgeColor}={},priceType=active
   if(!Number.isFinite(h)||h<SALES_PRICE_59.minHeight||h>SALES_PRICE_59.maxHeight){
     return {ok:false,reason:'Высота 59 мм должна быть 1700–2950 мм.'};
   }
-  if(!Number.isFinite(w)||w<600||w>900){
-    return {ok:false,reason:'Автоматическая цена полотна 59 мм сейчас утверждена для ширины 600–900 мм. Ширину вне этого диапазона нужно согласовать отдельно.'};
+  if(!Number.isFinite(w)||w<450||w>1000){
+    return {ok:false,reason:'Ширина 59 мм должна быть 450–1000 мм.'};
   }
   if(!edgeKey){
     return {ok:false,reason:'Автоматическая база 59 мм сейчас утверждена для серого и чёрного анода.'};
   }
-  const opt2Price=price59AnchorOrFormula('leaf',edgeKey,h);
-  if(opt2Price===null)return {ok:false,reason:'Не удалось рассчитать базовую цену полотна 59 мм.'};
+  const heightOpt2Price=price59AnchorOrFormula('leaf',edgeKey,h);
+  if(heightOpt2Price===null)return {ok:false,reason:'Не удалось рассчитать базовую цену полотна 59 мм.'};
+  const widthFactor=w<=900?1:w/900;
+  const opt2Price=Math.ceil(heightOpt2Price*widthFactor);
   return {
     ok:true,height:h,width:w,edgeKey,
     heightFactor:price59HeightFactor(h),
+    widthFactor,
+    heightOpt2Price,
     opt2Price,
     price:price59ApplySalesTier(opt2Price,priceType),
     priceType:normalizeSalesPriceType(priceType)
@@ -183,5 +187,5 @@ function price59BoxCompanionUnitPrice(item,priceType=activeSalesPriceType()){
   return calc.ok?calc.price:null;
 }
 function price59SourceNote(){
-  return SALES_PRICE_59.source+' · 59 мм: H≤2000 без уменьшения; выше 2000 рост +10% на каждые 100 мм по утверждённой шкале. Ширина 600–900 мм не меняет базовую цену.';
+  return SALES_PRICE_59.source+' · 59 мм: H≤2000 без уменьшения; выше 2000 рост +10% на каждые 100 мм. Ширина W≤900 → ×1; W>900 → W/900. Стекло/зеркало от ширины не меняется.';
 }
