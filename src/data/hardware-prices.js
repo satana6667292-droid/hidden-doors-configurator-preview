@@ -1804,6 +1804,7 @@ function configuredCatalogUnitPrice(){
   }
   if(product()==='openingSystem')return hardwareSalesPrice('Системы открывания',$('catalogItem')?.value||'',activeSalesPriceType());
   if(['single42','sliding42'].includes(product())&&typeof configured42StandardUnitPrice==='function')return configured42StandardUnitPrice();
+  if(product()==='double42'&&typeof configuredDouble42LeafUnitPrice==='function')return configuredDouble42LeafUnitPrice();
   if(product()==='single59'&&typeof configured59UnitPrice==='function')return configured59UnitPrice();
   return configured36CartUnitPrice();
 }
