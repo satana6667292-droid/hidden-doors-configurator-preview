@@ -1708,14 +1708,27 @@ function hardwareBasePrice(category,name){
   return meta.price;
 }
 
-const HARDWARE_SPECIAL_HINGE_RETAIL_MARKUP=0.50;
-const HARDWARE_SPECIAL_HINGE_OPT1_MARKUP=0.125;
+const HARDWARE_SPECIAL_RETAIL_MARKUP=0.50;
+const HARDWARE_SPECIAL_OPT1_MARKUP=0.125;
+const VANTAGE_PARTNER_OPT2_STANDARD=603;
 
-function hardwarePartnerOpt2Eligible(category,name){
+function hardwareSpecialPriceFamily(category,name){
   const c=String(category||'');
   const n=String(name||'');
-  if(c!=='Петли'||!/петл/i.test(n)||/колпач/i.test(n))return false;
-  return /(?:K8060|К8060|K6360\/38|К6360\/38|K2760|К2760)/i.test(n);
+  if(c==='Петли'&&/петл/i.test(n)&&!/колпач/i.test(n)&&/(?:K8060|К8060|K6360\/38|К6360\/38|K2760|К2760)/i.test(n)){
+    return 'hinge';
+  }
+  if(c==='Замки'&&/Vantage/i.test(n)&&/магнитн/i.test(n)){
+    return 'vantage';
+  }
+  return '';
+}
+function vantagePartnerStandardColor(name){
+  const n=String(name||'');
+  return /черн|хром|матовый хром|мат хром|\bSC\b|\bBL\b/i.test(n);
+}
+function hardwarePartnerOpt2Eligible(category,name){
+  return !!hardwareSpecialPriceFamily(category,name);
 }
 function hardwareSalesPriceType(category,name,requestedType=activeSalesPriceType()){
   const requested=normalizeSalesPriceType(requestedType);
@@ -1724,28 +1737,46 @@ function hardwareSalesPriceType(category,name,requestedType=activeSalesPriceType
 function hardwareSalesPriceMeta(category,name,requestedType=activeSalesPriceType()){
   const base=hardwareBasePriceMeta(category,name);
   if(!base)return null;
-  const retailPrice=(!base.suspicious&&Number.isFinite(Number(base.price))&&Number(base.price)>0)?Number(base.price):null;
+  const retailSource=(!base.suspicious&&Number.isFinite(Number(base.price))&&Number(base.price)>0)?Number(base.price):null;
+  const family=hardwareSpecialPriceFamily(category,name);
+  const eligible=!!family;
   const priceType=hardwareSalesPriceType(category,name,requestedType);
-  const eligible=hardwarePartnerOpt2Eligible(category,name);
-  const opt2Raw=eligible&&retailPrice!==null?retailPrice/(1+HARDWARE_SPECIAL_HINGE_RETAIL_MARKUP):null;
+
+  let opt2Raw=null;
+  let pricingBasis='';
+  if(eligible&&retailSource!==null){
+    if(family==='vantage'&&vantagePartnerStandardColor(name)){
+      opt2Raw=VANTAGE_PARTNER_OPT2_STANDARD;
+      pricingBasis='Партнёрский прайс: Vantage чёрный/серый/хром = 603 ₽ Опт 2';
+    }else{
+      opt2Raw=retailSource/(1+HARDWARE_SPECIAL_RETAIL_MARKUP);
+      pricingBasis=(family==='vantage'
+        ?'Vantage: Опт 2 рассчитан от текущей розницы /1,50; для этого цвета нет отдельной строки партнёрского прайса'
+        :'Петли K8060 / K6360/38 / K2760: Опт 2 = Розница /1,50');
+    }
+  }
+
   const opt2Price=opt2Raw===null?null:Math.ceil(opt2Raw);
-  const opt1Price=opt2Raw===null?null:Math.ceil(opt2Raw*(1+HARDWARE_SPECIAL_HINGE_OPT1_MARKUP));
-  const price=retailPrice===null?null:
+  const opt1Price=opt2Raw===null?null:Math.ceil(opt2Raw*(1+HARDWARE_SPECIAL_OPT1_MARKUP));
+  const derivedRetail=opt2Raw===null?null:Math.ceil(opt2Raw*(1+HARDWARE_SPECIAL_RETAIL_MARKUP));
+  const price=retailSource===null?null:
     (eligible
-      ?(priceType==='wholesale2'?opt2Price:priceType==='wholesale1'?opt1Price:retailPrice)
-      :retailPrice);
+      ?(priceType==='wholesale2'?opt2Price:priceType==='wholesale1'?opt1Price:derivedRetail)
+      :retailSource);
+
   return {
     ...base,
-    retailPrice,
+    retailPrice:eligible?derivedRetail:retailSource,
+    retailSourcePrice:retailSource,
     priceType,
     price,
     opt2Eligible:eligible,
-    opt2Discount:eligible&&retailPrice?1-(opt2Price/retailPrice):0,
     opt2Price,
     opt1Price,
-    salesSource:eligible
-      ?'Петли K8060 / K6360/38 / K2760: Опт 2 = Розница / 1,50; Опт 1 = Опт 2 +12,5%; Розница = исходная цена каталога'
-      :'Розничная цена каталога'
+    derivedRetail,
+    pricingFamily:family,
+    pricingBasis,
+    salesSource:eligible?pricingBasis:'Розничная цена каталога'
   };
 }
 function hardwareSalesPrice(category,name,requestedType=activeSalesPriceType()){
