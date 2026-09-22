@@ -703,6 +703,21 @@ function configuredPrice42LeafLine(prefix,width,label,priceType=activeSalesPrice
     actualPriceType:priceType
   });
 }
+function configuredDouble42LeafUnitPrice(priceType=activeSalesPriceType()){
+  if(product()!=='double42')return null;
+  const left=configuredPrice42LeafLine('Left',doubleWidth('left'),'Левая створка',priceType);
+  const right=configuredPrice42LeafLine('Right',doubleWidth('right'),'Правая створка',priceType);
+  if(!left.priceKnown||!right.priceKnown)return null;
+  const total=Number(left.total||0)+Number(right.total||0);
+  return Number.isFinite(total)?Math.ceil(total):null;
+}
+function configuredDouble42PriceNote(priceType=activeSalesPriceType()){
+  if(product()!=='double42')return '';
+  const left=configuredPrice42LeafLine('Left',doubleWidth('left'),'Левая створка',priceType);
+  const right=configuredPrice42LeafLine('Right',doubleWidth('right'),'Правая створка',priceType);
+  return (!left.priceKnown||!right.priceKnown)?'Цена одной или обеих створок требует согласования':'';
+}
+
 function configuredPriceUnknownSelectedExtras(existingLabels=new Set()){
   if(typeof selectedOrderExtras!=='function')return [];
   const skip=new Set(['Створка с замком','Ответная часть замка']);
