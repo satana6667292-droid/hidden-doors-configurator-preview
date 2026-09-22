@@ -1,0 +1,21 @@
+$('role').addEventListener('change',renderForm);
+$('salesPriceType')?.addEventListener('change',e=>setActiveSalesPriceType(e.target.value));
+$('catalogSection').addEventListener('change',()=>syncTopCatalog(true));
+$('catalogSystem').addEventListener('change',()=>syncTopCatalog(true));
+$('doorExecution').addEventListener('change',()=>syncTopCatalog(true));
+initSalesPriceTypeUI();
+syncTopCatalog(false);
+renderForm();
+renderRegistry();
+initStockFilters();
+renderStock();
+updateStockNavCount();
+updateCartCount();
+loadProfile();
+renderOrderHistory();
+renderDictionaries();
+if(typeof renderPricingAdmin==='function')renderPricingAdmin();
+renderCatalogHeroNav();
+restoreCatalogHeroRoute();
+updateCartCount();
+// main validation marker: modular CI chain
