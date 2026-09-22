@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v112 · Нестандартный короб 42</title>
+<title>Hidden Doors — Личный кабинет · Прототип v113 · Полимерная покраска 42</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1558,7 +1558,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v112 · Нестандартный короб 42</div>
+        <div class="version-chip"><span>HD</span> v113 · Полимерная покраска 42</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -2752,6 +2752,7 @@ function configuredPriceCompanionLabel(item){
   if(key==='BUNDLE-P36-BOX')return 'Короб';
   if(key==='BUNDLE-P36-TRIM')return 'Наличник';
   if(key==='BUNDLE-P42-BOX')return 'Комплект короба 42';
+  if(key==='POWDER-COAT-42')return 'Полимерно-порошковая покраска RAL';
   if(key==='DOOR-HINGE')return name?'Петли · '+name:'Петли';
   if(key==='DOOR-LOCK')return name?'Замок · '+name:'Замок';
   if(key==='DOOR-HANDLE')return name?'Ручка · '+name:'Ручка';
@@ -2767,6 +2768,11 @@ function configuredPriceCompanionLabel(item){
 function configuredPriceLineFromCompanion(item,requestedType=activeSalesPriceType()){
   const unitPrice=typeof companionItemUnitPrice==='function'?companionItemUnitPrice(item):null;
   const actualType=typeof companionSalesPriceType==='function'?companionSalesPriceType(item):null;
+  const noteParts=[];
+  if(item?.priceNote)noteParts.push(String(item.priceNote));
+  if(actualType&&normalizeSalesPriceType(actualType)!==normalizeSalesPriceType(requestedType)){
+    noteParts.push('Для этой позиции выбранный тип цены пока не утверждён; используется '+salesPriceTypeLabel(actualType)+'.');
+  }
   return configuredPriceLine({
     key:item?.baseKey||item?.key||'companion',
     label:configuredPriceCompanionLabel(item),
@@ -2775,9 +2781,7 @@ function configuredPriceLineFromCompanion(item,requestedType=activeSalesPriceTyp
     unitPrice,
     priceKnown:unitPrice!==null&&unitPrice!==undefined&&Number.isFinite(Number(unitPrice)),
     actualPriceType:actualType,
-    note:actualType&&normalizeSalesPriceType(actualType)!==normalizeSalesPriceType(requestedType)
-      ?'Для этой позиции выбранный тип цены пока не утверждён; используется '+salesPriceTypeLabel(actualType)+'.'
-      :''
+    note:noteParts.join(' ')
   });
 }
 function configuredPrice42LeafLine(prefix,width,label,priceType=activeSalesPriceType()){
@@ -3231,6 +3235,7 @@ function companionSalesPriceType(item){
   const key=String(item?.baseKey||item?.key||'');
   if(/^BUNDLE-P36-/.test(key))return activeSalesPriceType();
   if(key==='BUNDLE-P42-BOX')return activeSalesPriceType();
+  if(key==='POWDER-COAT-42')return activeSalesPriceType();
   if(typeof hardwareSalesPriceType==='function'){
     const category=String(item?.priceCategory||'');
     if(category)return hardwareSalesPriceType(category,item?.name||'',activeSalesPriceType());
@@ -3355,6 +3360,7 @@ function price42BoxColorKey(color=''){
   const s=String(color||'');
   if(/ч[её]рн/i.test(s))return 'black';
   if(/сер|хром/i.test(s))return 'gray';
+  if(/полимер|порош/i.test(s))return 'gray';
   return '';
 }
 function price42BoxPriceHeight(height){
@@ -3415,6 +3421,72 @@ function price42BoxCompanionUnitPrice(item,priceType=activeSalesPriceType()){
     color:item?.boxColor
   },priceType);
   return calc.ok?calc.price:null;
+}
+
+const PRICE42_POWDER_COAT_RATE_PER_M=460;
+const PRICE42_POWDER_COAT_RESERVE_FACTOR=1.10;
+
+function price42IsPowderColor(value=''){
+  return /полимер|порош/i.test(String(value||''));
+}
+function price42RoundLength(value){
+  const n=Number(value);
+  return Number.isFinite(n)?Math.round(n*10000)/10000:null;
+}
+function price42PowderCoatCalculation({height,width,edgeColor,boxColor,includeBox:withBox=false}={}){
+  const h=Number(height),w=Number(width);
+  if(!Number.isFinite(h)||h<=0||!Number.isFinite(w)||w<=0){
+    return {active:false,edgeMeters:0,boxMeters:0,rawMeters:0,billableMeters:0,total:0};
+  }
+  const edgePainted=price42IsPowderColor(edgeColor);
+  const boxPainted=!!withBox&&price42IsPowderColor(boxColor);
+  const edgeMm=edgePainted?(2*(h+20)+2*(w+20)):0;
+  const boxMm=boxPainted?(2*(h+100)+(w+100)):0;
+  const rawMeters=price42RoundLength((edgeMm+boxMm)/1000)||0;
+  const billableMeters=price42RoundLength(rawMeters*PRICE42_POWDER_COAT_RESERVE_FACTOR)||0;
+  return {
+    active:edgePainted||boxPainted,
+    edgePainted,boxPainted,
+    edgeMeters:price42RoundLength(edgeMm/1000)||0,
+    boxMeters:price42RoundLength(boxMm/1000)||0,
+    rawMeters,billableMeters,
+    ratePerMeter:PRICE42_POWDER_COAT_RATE_PER_M,
+    reservePercent:10,
+    total:Math.ceil(billableMeters*PRICE42_POWDER_COAT_RATE_PER_M)
+  };
+}
+function price42CurrentPowderCoatItem(){
+  if(product()!=='single42')return null;
+  const edgeColor=$('SingleEdgeColor')?.value||'';
+  const boxColor=$('bundle42Color')?.value||'';
+  const calc=price42PowderCoatCalculation({
+    height:currentHeight(),
+    width:currentWidth(),
+    edgeColor,
+    boxColor,
+    includeBox:includeBox()
+  });
+  if(!calc.active||calc.billableMeters<=0)return null;
+  const edgeRal=$('SingleEdgeRal')?.value||'';
+  const boxRal=$('bundle42Ral')?.value||'';
+  const ralParts=[];
+  if(calc.edgePainted)ralParts.push('торец '+(edgeRal||'RAL'));
+  if(calc.boxPainted)ralParts.push('короб '+(boxRal||edgeRal||'RAL'));
+  const noteParts=[];
+  if(calc.boxPainted)noteParts.push('короб '+String(calc.boxMeters).replace('.',',')+' м');
+  if(calc.edgePainted)noteParts.push('алюминиевые торцы '+String(calc.edgeMeters).replace('.',',')+' м');
+  return {
+    key:'POWDER-COAT-42',
+    baseKey:'POWDER-COAT-42',
+    type:'Услуги / Полимерно-порошковая покраска',
+    qty:calc.billableMeters,
+    unit:'м.п.',
+    step:0.0005,
+    kind:'service',
+    fixedUnitPrice:PRICE42_POWDER_COAT_RATE_PER_M,
+    priceNote:noteParts.join(' + ')+' = '+String(calc.rawMeters).replace('.',',')+' м; +10% запас = '+String(calc.billableMeters).replace('.',',')+' м.',
+    name:'Полимерно-порошковая покраска профиля 42 / '+ralParts.join(' / ')+' / '+String(calc.billableMeters).replace('.',',')+' м.п. × '+PRICE42_POWDER_COAT_RATE_PER_M+' ₽'
+  };
 }
 
 const PRICE42_PVC_RATE_PER_HEIGHT_M_PER_SIDE=1725;
@@ -3596,6 +3668,7 @@ function price42TypeLabel(priceType=activeSalesPriceType()){
 function price42EdgeKey(edge=$('SingleEdgeColor')?.value||''){
   if(edge==='Серый анод')return 'gray';
   if(edge==='Черный анод')return 'black';
+  if(edge==='Полимерно-порошковая покраска')return 'gray';
   return '';
 }
 function price42FrameKey(frame=$('frame')?.value||''){
@@ -3706,7 +3779,7 @@ function standard42PriceEligibility(priceType=activeSalesPriceType()){
   if(width<Number(book?.limits?.minWidth||450)||width>Number(book?.limits?.maxWidth||1000))reasons.push('ширина вне утверждённого диапазона 450–1000 мм');
   if(Number.isFinite(height)&&height%5!==0)reasons.push('высота должна быть кратна 5 мм');
   if(Number.isFinite(width)&&width%5!==0)reasons.push('ширина должна быть кратна 5 мм');
-  if(!edgeKey)reasons.push('торец должен быть серый или чёрный анод');
+  if(!edgeKey)reasons.push('торец должен быть серый/чёрный анод или полимерно-порошковый RAL');
   const heightFactor=price42HeightFactor(height,book);
   if(heightFactor===null)reasons.push('для этой высоты нет утверждённого коэффициента');
   const widthFactor=price42WidthFactor(width,book);
@@ -9479,6 +9552,7 @@ function companionItemUnitPrice(item){
   const baseKey=String(item?.baseKey||key);
   const type=activeSalesPriceType();
   if(baseKey==='BUNDLE-P42-BOX'&&typeof price42BoxCompanionUnitPrice==='function')return price42BoxCompanionUnitPrice(item,type);
+  if(baseKey==='POWDER-COAT-42')return Number(item?.fixedUnitPrice||PRICE42_POWDER_COAT_RATE_PER_M||460);
   if(key==='DOOR-HINGE')return hardwareSalesPrice('Петли',item?.name||'',type);
   if(key==='DOOR-LOCK')return hardwareSalesPrice('Замки',item?.name||'',type);
   if(key==='DOOR-HANDLE'||key==='SLIDE42-HANDLE')return hardwareSalesPrice('Ручки',item?.name||'',type);
@@ -12134,8 +12208,12 @@ function companionItems(){
     if(closer){
       items.push({key:'DOOR-CLOSER',type:'Фурнитура / Доводчики',priceCategory:'Доводчики',qty:1,unit:'шт.',step:1,name:closer});
     }
-    if(!includeBox())return items;
     const system=product()==='single42'?'42':'59';
+    if(system==='42'&&typeof price42CurrentPowderCoatItem==='function'){
+      const powderItem=price42CurrentPowderCoatItem();
+      if(powderItem)items.push(powderItem);
+    }
+    if(!includeBox())return items;
     const color=bundleBoxColorText(system);
     const v=boxPartLengthVertical(),t=boxPartLengthTop();
     const miter=boxMiter45Selected(),miterKey=boxMiter45Suffix(),miterName=boxMiter45NameSuffix();
