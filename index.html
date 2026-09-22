@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v114 · Запил 45°</title>
+<title>Hidden Doors — Личный кабинет · Прототип v115 · Корзина сделки</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1540,6 +1540,23 @@ th,td{border-color:#ece5dc;padding:10px 11px}
   .configured-price-line{grid-template-columns:1fr;gap:3px}
   .configured-price-line>strong{text-align:left;white-space:normal}
 }
+
+/* v115: manager deal cart workflow */
+.deal-cart-panel{margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
+.deal-cart-panel-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end}
+.deal-cart-panel .section-title{margin-bottom:5px}
+.deal-discount-control{width:140px;min-width:140px}
+.deal-discount-control input{text-align:center;font-size:17px;font-weight:900}
+.deal-bitrix-btn{min-width:280px;background:#111827}
+.cart-price-old{text-decoration:line-through;color:#9ca3af;font-size:11px;margin-bottom:2px}
+.cart-discount-chip{display:inline-block;margin-top:5px;border-radius:999px;padding:3px 7px;background:#ecfdf5;color:#166534;font-size:10px;font-weight:850}
+.cart-saving{margin-top:8px;padding:7px 9px;border-radius:9px;background:#ecfdf5;color:#166534;font-size:12px;font-weight:850}
+@media(max-width:760px){
+  .deal-cart-panel-head{display:block}
+  .deal-discount-control{width:100%;margin-top:12px}
+  .deal-bitrix-btn{min-width:0;width:100%;margin-top:12px}
+}
+
 </style>
 </head>
 <body>
@@ -1558,7 +1575,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v114 · Запил 45°</div>
+        <div class="version-chip"><span>HD</span> v115 · Корзина сделки</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -1719,8 +1736,9 @@ th,td{border-color:#ece5dc;padding:10px 11px}
         <div id="stockMatchBox" class="status info">Проверяем совпадение с готовой продукцией…</div>
         <div class="row">
           <button class="secondary" type="button" onclick="showView('stock')">Открыть склад</button>
-          <button type="button" onclick="addConfiguredToCart()">Добавить конфигурацию в заказ</button>
+          <button type="button" onclick="addConfiguredToCart()">Добавить конфигурацию в корзину сделки</button>
         </div>
+        <div id="cartAddMessage" class="status ok hidden" style="margin-top:10px"></div>
       </div>
 
       <div class="row" style="margin-top:12px">
@@ -1836,8 +1854,8 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     <section class="card">
       <div class="top" style="margin-bottom:14px">
         <div>
-          <h2 style="font-size:20px;margin-bottom:4px">Мой заказ</h2>
-          <div class="mini">Сюда попадают позиции со склада. Для позиций 36 мм показываются тип цены, цена за единицу, сумма по строке и итог заказа.</div>
+          <h2 style="font-size:20px;margin-bottom:4px">Корзина сделки</h2>
+          <div class="mini">Соберите полную комплектацию: добавляйте двери и сопутствующие позиции из конфигуратора, проверяйте количество и цены, затем передавайте всю корзину в текущую сделку Bitrix24.</div>
         </div>
         <div class="top-actions">
           <button class="secondary" onclick="showView('stock')">+ Добавить со склада</button>
@@ -1854,6 +1872,31 @@ th,td{border-color:#ece5dc;padding:10px 11px}
           </table>
         </div>
         <div id="cartPriceSummary"></div>
+
+        <div class="deal-cart-panel manager-workflow hidden">
+          <div class="deal-cart-panel-head">
+            <div>
+              <div class="section-title">Скидка от розничной цены</div>
+              <div class="mini">Ручная скидка применяется только к позициям с типом цены «Розница». Для «Опт 1» и «Опт 2» скидка недоступна.</div>
+            </div>
+            <div class="deal-discount-control">
+              <label for="cartRetailDiscount">Скидка, %</label>
+              <input id="cartRetailDiscount" type="number" min="0" max="10" step="1" value="0" onchange="setCartRetailDiscountPercent(this.value)">
+            </div>
+          </div>
+          <div id="cartRetailDiscountHint" class="mini">Скидка не задана. Можно вручную установить от 1 до 10% для розничных строк.</div>
+        </div>
+
+        <div class="deal-cart-panel bitrix-deal-action hidden">
+          <div class="deal-cart-panel-head">
+            <div>
+              <div class="section-title">Карточка сделки Bitrix24</div>
+              <div class="mini">После проверки комплектации конфигуратор передаст всю корзину одной операцией: создаст отсутствующую номенклатуру, использует существующую без дублей и добавит товарные строки в текущую сделку.</div>
+            </div>
+            <button class="deal-bitrix-btn" type="button" onclick="pushCartToBitrixDeal()">Добавить номенклатуру в сделку Bitrix24</button>
+          </div>
+          <div id="bitrixDealMessage" class="status hidden" style="margin-top:10px"></div>
+        </div>
 
         <div class="section">
           <div class="section-title">Оформление заказа</div>
@@ -9730,6 +9773,8 @@ const role=()=>$('role').value;
 const elevated=()=>['supply','admin','elena'].includes(role());
 const dimensionCustomAllowed=()=>['manager','supply','admin','elena'].includes(role());
 const catalogWriteAllowed=()=>elevated();
+const managerWorkflowVisible=()=>['manager','supply','admin'].includes(role());
+const bitrixDealActionAllowed=()=>['manager','admin'].includes(role());
 const product=()=>$('productType').value;
 
 function getStore(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch(e){return f}}
@@ -13308,6 +13353,8 @@ function copyText(id){
 function updateRoleUI(){
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',role()!=='admin'));
   document.querySelectorAll('.stock-write,.catalog-write').forEach(el=>el.classList.toggle('hidden',!catalogWriteAllowed()));
+  document.querySelectorAll('.manager-workflow').forEach(el=>el.classList.toggle('hidden',!managerWorkflowVisible()));
+  document.querySelectorAll('.bitrix-deal-action').forEach(el=>el.classList.toggle('hidden',!bitrixDealActionAllowed()));
   if(role()!=='admin'&&!$('viewPricing')?.classList.contains('hidden'))showView('configurator');
 }
 
@@ -14145,7 +14192,118 @@ function addConfiguredToCart(){
   });
 
   saveCart(cart);
-  showView('order');
+  const message=$('cartAddMessage');
+  if(message){
+    message.className='status ok';
+    message.innerHTML='Добавлено в корзину сделки: <b>'+escapeHtml(sku)+'</b>. Можно выбрать следующую конфигурацию.';
+    message.classList.remove('hidden');
+  }
+  updateCartCount();
+}
+
+const CART_RETAIL_DISCOUNT_STORE='hd_v115_cart_retail_discount';
+function cartDiscountRoleAllowed(){return ['manager','supply','admin'].includes(role())}
+function bitrixDealPushAllowed(){return ['manager','admin'].includes(role())}
+function getCartRetailDiscountPercent(){
+  const raw=Number(getStore(CART_RETAIL_DISCOUNT_STORE,0));
+  if(!Number.isFinite(raw))return 0;
+  return Math.max(0,Math.min(10,Math.round(raw)));
+}
+function setCartRetailDiscountPercent(value){
+  if(!cartDiscountRoleAllowed())return;
+  let percent=Number(value);
+  if(!Number.isFinite(percent))percent=0;
+  percent=Math.max(0,Math.min(10,Math.round(percent)));
+  setStore(CART_RETAIL_DISCOUNT_STORE,percent);
+  const input=$('cartRetailDiscount');
+  if(input&&Number(input.value)!==percent)input.value=percent;
+  renderCart();
+}
+function cartItemRetailDiscountPercent(item,percent=getCartRetailDiscountPercent()){
+  return cartStoredPriceType(item)==='retail'?Math.max(0,Math.min(10,Number(percent)||0)):0;
+}
+function cartItemEffectiveUnitPrice(item,percent=getCartRetailDiscountPercent()){
+  const base=cartItemUnitPrice(item);
+  if(base===null||!Number.isFinite(Number(base)))return null;
+  const discount=cartItemRetailDiscountPercent(item,percent);
+  return discount>0?Math.ceil(Number(base)*(1-discount/100)):Number(base);
+}
+function cartItemEffectiveLineTotal(item,percent=getCartRetailDiscountPercent()){
+  const price=cartItemEffectiveUnitPrice(item,percent);
+  const qty=Number(item?.qty||0);
+  return price===null||!Number.isFinite(price)||!Number.isFinite(qty)?null:price*qty;
+}
+function cartEffectivePriceSummary(cart,percent=getCartRetailDiscountPercent()){
+  let total=0,baseTotal=0,priced=0,unpriced=0,retailDiscountAmount=0,discountedLines=0;
+  for(const item of cart||[]){
+    const base=cartItemUnitPrice(item);
+    const qty=Number(item?.qty||0);
+    const line=cartItemEffectiveLineTotal(item,percent);
+    if(line===null){unpriced++;continue}
+    priced++;total+=line;
+    if(base!==null&&Number.isFinite(Number(base))&&Number.isFinite(qty)){
+      const baseLine=Number(base)*qty;
+      baseTotal+=baseLine;
+      const diff=Math.max(0,baseLine-line);
+      if(diff>0){retailDiscountAmount+=diff;discountedLines++}
+    }
+  }
+  return {total,baseTotal,priced,unpriced,retailDiscountAmount,discountedLines,complete:unpriced===0};
+}
+function buildBitrixDealCartPayload(){
+  const discountPercent=getCartRetailDiscountPercent();
+  return {
+    schema:'hd-bitrix-deal-cart-v1',
+    createdAt:new Date().toISOString(),
+    retailDiscountPercent:discountPercent,
+    rows:getCart().map(item=>({
+      sku:item.sku||'',
+      lineKey:cartKeyOf(item),
+      parentLineKey:item.parentLineKey||null,
+      name:item.name||'',
+      category:item.category||'',
+      qty:Number(item.qty||0),
+      unit:item.unit||'шт.',
+      priceType:cartStoredPriceType(item),
+      baseUnitPrice:cartItemUnitPrice(item),
+      discountPercent:cartItemRetailDiscountPercent(item,discountPercent),
+      unitPrice:cartItemEffectiveUnitPrice(item,discountPercent),
+      source:item.source||'',
+      extras:Array.isArray(item.extras)?item.extras:[],
+      productionMeta:item.productionMeta||null
+    }))
+  };
+}
+async function pushCartToBitrixDeal(){
+  if(!bitrixDealPushAllowed())return;
+  const cart=getCart();
+  const message=$('bitrixDealMessage');
+  if(!cart.length){
+    if(message){message.className='status warn';message.textContent='Корзина сделки пуста.';message.classList.remove('hidden')}
+    return;
+  }
+  const payload=buildBitrixDealCartPayload();
+  const adapter=window.HD_BITRIX_ADAPTER;
+  if(adapter&&typeof adapter.addCartToCurrentDeal==='function'){
+    try{
+      if(message){message.className='status info';message.textContent='Передаём номенклатуру в текущую сделку Bitrix24…';message.classList.remove('hidden')}
+      const result=await adapter.addCartToCurrentDeal(payload);
+      if(message){
+        message.className='status ok';
+        message.innerHTML='Комплектация передана в сделку Bitrix24'+(result?.dealId?' <b>#'+escapeHtml(result.dealId)+'</b>':'')+'.';
+      }
+      return;
+    }catch(error){
+      if(message){message.className='status err';message.textContent='Bitrix24: '+String(error?.message||error);message.classList.remove('hidden')}
+      return;
+    }
+  }
+  setStore('hd_v115_bitrix_preview_payload',payload);
+  if(message){
+    message.className='status info';
+    message.innerHTML='<b>Preview-режим:</b> пакет номенклатуры сформирован и сохранён локально. Реальная отправка включится после подключения Bitrix24 adapter к этой кнопке.';
+    message.classList.remove('hidden');
+  }
 }
 
 function renderCart(){
@@ -14156,29 +14314,43 @@ function renderCart(){
     if($('cartPriceSummary'))$('cartPriceSummary').innerHTML='';
     updateCartCount();return
   }
+  const discountPercent=getCartRetailDiscountPercent();
   $('cartBody').innerHTML=cart.map(x=>{
-    const unitPrice=cartItemUnitPrice(x);
-    const lineTotal=cartItemLineTotal(x);
+    const baseUnitPrice=cartItemUnitPrice(x);
+    const discount=cartItemRetailDiscountPercent(x,discountPercent);
+    const unitPrice=cartItemEffectiveUnitPrice(x,discountPercent);
+    const lineTotal=cartItemEffectiveLineTotal(x,discountPercent);
     return `
     <tr>
       <td><b>${escapeHtml(x.sku)}</b></td>
       <td>${escapeHtml(x.name)}${x.extras?.length?`<div class="mini">${x.extras.map(e=>escapeHtml(e[0]+': '+e[1])).join(' · ')}</div>`:''}</td>
       <td>${x.stock==null?'<span class="stock-badge">Под заказ</span>':x.stock+' '+escapeHtml(x.unit)}</td>
-      <td>${unitPrice===null?'<span class="mini">'+escapeHtml(x.priceNote||'По запросу')+'</span>':'<b>'+formatRub(unitPrice)+'</b>'}${cartStoredPriceType(x)?'<div class="price-tier-inline">'+escapeHtml(salesPriceTypeLabel(cartStoredPriceType(x)))+'</div>':''}</td>
+      <td>${unitPrice===null?'<span class="mini">'+escapeHtml(x.priceNote||'По запросу')+'</span>':
+        (discount>0?'<div class="cart-price-old">'+formatRub(baseUnitPrice)+'</div><b>'+formatRub(unitPrice)+'</b><div class="cart-discount-chip">−'+discount+'% от розницы</div>':'<b>'+formatRub(unitPrice)+'</b>')}${cartStoredPriceType(x)?'<div class="price-tier-inline">'+escapeHtml(salesPriceTypeLabel(cartStoredPriceType(x)))+'</div>':''}</td>
       <td><input type="number" min="0" step="${x.step||1}" ${x.stock==null?'':`max="${x.stock}"`} value="${x.qty}" onchange="changeCartQty('${cartKeyOf(x)}',this.value)"></td>
       <td>${lineTotal===null?'<span class="mini">—</span>':'<b>'+formatRub(lineTotal)+'</b>'}</td>
       <td><button class="ghost" onclick="removeCartItem('${cartKeyOf(x)}')">Удалить</button></td>
     </tr>`;
   }).join('');
-  const summary=cartPriceSummary(cart);
+  const summary=cartEffectivePriceSummary(cart,discountPercent);
   const salesTypes=[...new Set(cart.map(x=>cartStoredPriceType(x)).filter(Boolean))];
   if($('cartPriceSummary')){
     $('cartPriceSummary').innerHTML=
       '<div class="result" style="margin-top:12px"><div class="cap">Итого по заказу</div><div class="val">'+formatRub(summary.total)+'</div>'+
       (summary.unpriced?'<div class="mini" style="margin-top:6px">Не включено в итог позиций без установленной цены: '+summary.unpriced+'.</div>':'')+
-      (salesTypes.length?'<div class="mini" style="margin-top:6px">Тип цены для дверей/погонажа: <b>'+salesTypes.map(salesPriceTypeLabel).join(', ')+'</b>.</div>':'')+
-      '<div class="mini" style="margin-top:6px">36 мм и стандартные полотна 42 мм: утверждённый первый тип цены — «Опт 2». Для 42 мм источник — «'+SALES_PRICE_42_STANDARD.wholesale2.source+'». BASE Bitrix24 для фурнитуры остаётся отдельным источником.</div></div>';
+      (salesTypes.length?'<div class="mini" style="margin-top:6px">Типы цен в корзине: <b>'+salesTypes.map(salesPriceTypeLabel).join(', ')+'</b>.</div>':'')+
+      (summary.retailDiscountAmount>0?'<div class="cart-saving">Скидка от розничных строк: −'+formatRub(summary.retailDiscountAmount)+' · '+discountPercent+'%</div>':'')+
+      '<div class="mini" style="margin-top:6px">Скидка применяется только к строкам «Розница». Опт 1 и Опт 2 не изменяются.</div></div>';
   }
+  const discountInput=$('cartRetailDiscount');
+  if(discountInput)discountInput.value=discountPercent;
+  const discountHint=$('cartRetailDiscountHint');
+  if(discountHint){
+    discountHint.textContent=discountPercent>0
+      ?'Активна скидка '+discountPercent+'% только для розничных строк. Экономия: '+formatRub(summary.retailDiscountAmount)+'.'
+      :'Скидка не задана. Можно вручную установить от 1 до 10% для розничных строк.';
+  }
+  updateRoleUI();
   applyProfileToOrder(false);
   const draft=getDraft();
   if(draft.comment!==undefined){
@@ -14285,7 +14457,7 @@ function submitOrder(){
   const now=new Date();
   const seq=String(orders.length+1).padStart(3,'0');
   const num=`HD-ORD-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${seq}`;
-  orders.unshift({number:num,status:'Оформлен',created:now.toLocaleString('ru-RU'),form,items:cart});
+  orders.unshift({number:num,status:'Оформлен',created:now.toLocaleString('ru-RU'),form,items:cart,pricing:{retailDiscountPercent:getCartRetailDiscountPercent()}});
   saveOrders(orders);
   saveCart([]);
   setStore('hd_v5_order_draft',{});
@@ -14299,7 +14471,7 @@ function renderOrderHistory(){
   $('orderHistory').innerHTML=orders.length?orders.map(o=>`
     <div class="history-item">
       <div class="history-head"><b>${escapeHtml(o.number)}</b><span class="stock-badge ok">${escapeHtml(o.status)}</span></div>
-      <div class="mini">${escapeHtml(o.created)} · ${o.items.reduce((s,x)=>s+Number(x.qty),0)} ед. · ${escapeHtml(o.form.delivery)}${cartPriceSummary(o.items).priced?' · '+formatRub(cartPriceSummary(o.items).total):''}</div>
+      <div class="mini">${escapeHtml(o.created)} · ${o.items.reduce((s,x)=>s+Number(x.qty),0)} ед. · ${escapeHtml(o.form.delivery)}${cartEffectivePriceSummary(o.items,o.pricing?.retailDiscountPercent||0).priced?' · '+formatRub(cartEffectivePriceSummary(o.items,o.pricing?.retailDiscountPercent||0).total):''}</div>
       <div style="margin-top:7px">${o.items.slice(0,3).map(x=>`<div>${x.qty} × ${escapeHtml(x.sku)} — ${escapeHtml(x.name)}</div>`).join('')}${o.items.length>3?`<div class="muted">+ ещё ${o.items.length-3}</div>`:''}</div>
     </div>`).join(''):'<div class="empty">Оформленных заказов пока нет.</div>';
 }
