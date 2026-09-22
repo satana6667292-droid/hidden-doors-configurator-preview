@@ -1812,6 +1812,7 @@ function companionItemUnitPrice(item){
   const baseKey=String(item?.baseKey||key);
   const type=activeSalesPriceType();
   if(baseKey==='BUNDLE-P42-BOX'&&typeof price42BoxCompanionUnitPrice==='function')return price42BoxCompanionUnitPrice(item,type);
+  if(/^BUNDLE-P42-DOUBLE-/.test(baseKey)&&typeof price42DoubleBoxPartUnitPrice==='function')return price42DoubleBoxPartUnitPrice(item,type);
   if(baseKey==='BUNDLE-P59-BOX'&&typeof price59BoxCompanionUnitPrice==='function')return price59BoxCompanionUnitPrice(item,type);
   if(baseKey==='POWDER-COAT-42')return Number(item?.fixedUnitPrice||PRICE42_POWDER_COAT_RATE_PER_M||460);
   if(baseKey==='POWDER-COAT-59')return Number(item?.fixedUnitPrice||PRICE59_POWDER_COAT_RATE_PER_M||460);
