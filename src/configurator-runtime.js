@@ -39,6 +39,7 @@ function handleInput(e){
   if(product()==='leaf36' && e.target.id==='cover36' && $('cover36')?.value==='ПВХ-пленка') syncBundle36FilmsFromDoor();
   if(['single42','single59'].includes(product()) && ['SingleEdgeColor','SingleEdgeRal'].includes(e.target.id)) syncBundleColorFromDoor();
   if(['single42','single59'].includes(product()) && ['SingleEdgeColor','SingleEdgeRal','SingleSide1Type','SingleSide2Type','height','customHeight','frame'].includes(e.target.id)) syncRecommendedDoorHinge(true,true);
+  if(product()==='double42' && ['LeftEdgeColor','LeftEdgeRal','height','customHeight','frame'].includes(e.target.id)) syncRecommendedDoorHinge(true,true);
   refreshDynamicDetails();
   if(product()==='leaf36' && ['includeBox','cover36','film36','bundle36BoxFilm','bundle36TrimFilm','bundle36BoxQty','bundle36TrimQty'].includes(e.target.id)) updateBundle36();
   if(['single42','single59'].includes(product()) && ['includeBox','height','customHeight','width','customWidth','bundle42Color','bundle42Ral','bundle59Color','bundle59Ral'].includes(e.target.id)) updateBundle42_59();
