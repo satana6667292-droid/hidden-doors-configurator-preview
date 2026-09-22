@@ -194,11 +194,11 @@ function hardwarePricePresentation(category,name,qty=1){
   if(!meta)return '<span class="mini">Цена для этой позиции пока не подключена.</span>';
   if(meta.price===null||meta.suspicious)return '<span class="hinge-price-unset">Цена по запросу</span><span class="mini"> · исходная цена требует решения.</span>';
   const q=Math.max(1,Number(qty)||1);
-  const activeLabel=meta.priceType==='wholesale2'?'Опт 2':'Розница';
+  const activeLabel=typeof salesPriceTypeLabel==='function'?salesPriceTypeLabel(meta.priceType):(meta.priceType==='wholesale2'?'Опт 2':meta.priceType==='wholesale1'?'Опт 1':'Розница');
   let html='<b>'+formatRub(meta.price)+'/шт.</b>'+(q>1?' · '+q+' шт. = <b>'+formatRub(meta.price*q)+'</b>':'')+
     '<span class="mini"> · '+activeLabel+'</span>';
   if(meta.opt2Eligible){
-    html+='<div class="mini">Розница '+formatRub(meta.retailPrice)+'/шт. · Опт 2 '+formatRub(meta.opt2Price)+'/шт. · скидка 33%</div>';
+    html+='<div class="mini">Опт 2 '+formatRub(meta.opt2Price)+'/шт. · Опт 1 '+formatRub(meta.opt1Price)+'/шт. · Розница '+formatRub(meta.retailPrice)+'/шт.</div>';
   }else{
     html+='<div class="mini">Отдельная Опт 2 цена пока не задана — используется розница.</div>';
   }
@@ -212,7 +212,7 @@ function hingeCardPriceText(name){
   if(!meta)return 'Цена пока не подключена';
   if(meta.price===null||meta.suspicious)return 'Цена по запросу';
   return meta.opt2Eligible
-    ?(meta.priceType==='wholesale2'?'Опт 2 · '+formatRub(meta.price)+' / шт. · Розница '+formatRub(meta.retailPrice):'Розница · '+formatRub(meta.retailPrice)+' / шт. · Опт 2 −33%')
+    ?salesPriceTypeLabel(meta.priceType)+' · '+formatRub(meta.price)+' / шт. · Опт 2 '+formatRub(meta.opt2Price)+' · Опт 1 '+formatRub(meta.opt1Price)+' · Розница '+formatRub(meta.retailPrice)
     :'Розница · '+formatRub(meta.retailPrice)+' / шт.';
 }
 function hingeCatalogPriceSummary(items){
@@ -314,7 +314,7 @@ function renderHardwareCategoryPriceSummary(category,items){
   box.className='hinge-price-summary';
   box.innerHTML='<div><b>Розничные цены</b> · '+summary.priced+' из '+summary.total+' позиций с рабочей ценой'+
     (summary.min!==null?' · диапазон <b>'+formatRub(summary.min)+' — '+formatRub(summary.max)+'</b>':'')+'</div>'+
-    (opt2Count?'<div class="mini">Опт 2 −33% подключён для '+opt2Count+' позиций этой выборки.</div>':
+    (opt2Count?'<div class="mini">Опт 2 / Опт 1 / Розница подключены для '+opt2Count+' позиций K8060 / K6360/38 / K2760.</div>':
       '<div class="mini">Для этой выборки отдельная Опт 2 цена пока не задана — действует розница.</div>');
 }
 function renderHardwareSelectedPrice(){
@@ -339,8 +339,8 @@ function renderHardwareSelectedPrice(){
   }
   box.className='status ok';
   if(meta.opt2Eligible){
-    box.innerHTML='<b>'+(meta.priceType==='wholesale2'?'Опт 2':'Розница')+': '+formatRub(meta.price)+'/шт.</b><br>'+
-      '<span class="mini">Розница '+formatRub(meta.retailPrice)+' · Опт 2 '+formatRub(meta.opt2Price)+' · скидка 33%. Остальные уровни фурнитуры пока не настроены.</span>';
+    box.innerHTML='<b>'+salesPriceTypeLabel(meta.priceType)+': '+formatRub(meta.price)+'/шт.</b><br>'+
+      '<span class="mini">Опт 2 '+formatRub(meta.opt2Price)+' · Опт 1 '+formatRub(meta.opt1Price)+' · Розница '+formatRub(meta.retailPrice)+'. Три типа цены действуют только для K8060 / K6360/38 / K2760.</span>';
   }else{
     box.innerHTML='<b>Розница: '+formatRub(meta.retailPrice)+'/шт.</b><br><span class="mini">Отдельная Опт 2 цена для этой позиции пока не задана.</span>';
   }
