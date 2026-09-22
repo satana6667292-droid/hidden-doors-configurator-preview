@@ -505,6 +505,10 @@ function companionItems(){
     if($('doubleBoltLeft')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-LEFT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
     if($('doubleBoltRight')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-RIGHT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
     appendSelectedDoorProcessingItems(items);
+    if(typeof price42DoubleEdgePowderCoatItem==='function'){
+      const powderItem=price42DoubleEdgePowderCoatItem();
+      if(powderItem)items.push(powderItem);
+    }
     if(!includeBox())return items;
     const color=bundleBoxColorText('42'),v=boxPartLengthVertical(),t=double42BoxTopLength();
     const boxMeta={
