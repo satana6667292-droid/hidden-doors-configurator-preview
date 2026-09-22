@@ -169,7 +169,7 @@ function price42PowderCoatCalculation({height,width,edgeColor,boxColor,includeBo
   };
 }
 function price42CurrentPowderCoatItem(){
-  if(product()!=='single42')return null;
+  if(!['single42','sliding42'].includes(product()))return null;
   const edgeColor=$('SingleEdgeColor')?.value||'';
   const boxColor=$('bundle42Color')?.value||'';
   const calc=price42PowderCoatCalculation({
@@ -461,7 +461,7 @@ function price42CurrentFinishConfig(){
 }
 
 function standard42PriceEligibility(priceType=activeSalesPriceType()){
-  if(product()!=='single42')return {eligible:false,reason:'not42'};
+  if(!['single42','sliding42'].includes(product()))return {eligible:false,reason:'not42'};
   const book=price42Book(priceType);
   const height=currentHeight(),width=currentWidth();
   const frame=$('frame')?.value||'',frameKey=price42FrameKey(frame);
@@ -578,7 +578,7 @@ function configured42StandardUnitPrice(priceType=activeSalesPriceType()){
   return calc.eligible&&Number.isFinite(Number(calc.price))?Number(calc.price):null;
 }
 function configured42PriceNote(priceType=activeSalesPriceType()){
-  if(product()!=='single42')return '';
+  if(!['single42','sliding42'].includes(product()))return '';
   const calc=price42Calculation(priceType);
   return calc.priceOnRequest&&calc.finish?.quoteTypes?.length?'Цена после согласования':'';
 }
