@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · Прототип v111 · Цена комплекта</title>
+<title>Hidden Doors — Личный кабинет · Прототип v112 · Нестандартный короб 42</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 :root{
@@ -1558,7 +1558,7 @@ th,td{border-color:#ece5dc;padding:10px 11px}
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v111 · Цена комплекта</div>
+        <div class="version-chip"><span>HD</span> v112 · Нестандартный короб 42</div>
         <div class="rolebox">
           <label for="role">Роль</label>
           <select id="role">
@@ -3337,10 +3337,16 @@ const PRICE42_WHOLESALE1_MARKUP=0.125;
 const PRICE42_RETAIL_MARKUP=0.50;
 
 const SALES_PRICE_42_BOX_OPT2=Object.freeze({
-  standardHeight:2000,
-  standardWidths:Object.freeze([600,700,800,900]),
-  gray:5594,
-  black:6514,
+  baseHeight:2000,
+  minHeight:1700,
+  maxHeight:2300,
+  minWidth:450,
+  maxWidth:1000,
+  base:Object.freeze({gray:5594,black:6514}),
+  heightAnchors:Object.freeze({
+    gray:Object.freeze({2000:5594,2100:6154,2200:6713,2300:7272}),
+    black:Object.freeze({2000:6514,2100:7166,2200:7817,2300:8468})
+  }),
   source:'Hidden doors Партнерский Прайс продуктовой линейки',
   updated:'22.01.2026'
 });
@@ -3351,24 +3357,52 @@ function price42BoxColorKey(color=''){
   if(/сер|хром/i.test(s))return 'gray';
   return '';
 }
+function price42BoxPriceHeight(height){
+  const h=Number(height);
+  if(!Number.isFinite(h))return null;
+  if(h<=SALES_PRICE_42_BOX_OPT2.baseHeight)return SALES_PRICE_42_BOX_OPT2.baseHeight;
+  return Math.ceil(h/50)*50;
+}
+function price42BoxOpt2AtHeight(height,colorKey){
+  const priceHeight=price42BoxPriceHeight(height);
+  if(priceHeight===null)return null;
+  const anchor=Number(SALES_PRICE_42_BOX_OPT2.heightAnchors?.[colorKey]?.[priceHeight]);
+  if(Number.isFinite(anchor))return anchor;
+  const base=Number(SALES_PRICE_42_BOX_OPT2.base?.[colorKey]);
+  if(!Number.isFinite(base))return null;
+  const factor=1+Math.max(0,priceHeight-SALES_PRICE_42_BOX_OPT2.baseHeight)/1000;
+  return Math.ceil(base*factor);
+}
 function price42BoxCalculation({height,width,colorKey,color}={},priceType=activeSalesPriceType()){
   const h=Number(height),w=Number(width);
   const key=colorKey||price42BoxColorKey(color);
   if(!['gray','black'].includes(key))return {ok:false,reason:'Для выбранного цвета короба цена пока не зафиксирована.'};
-  if(h!==SALES_PRICE_42_BOX_OPT2.standardHeight||!SALES_PRICE_42_BOX_OPT2.standardWidths.includes(w)){
-    return {ok:false,reason:'Фиксированная цена короба сейчас утверждена для H=2000 мм и ширин 600/700/800/900 мм.'};
+  if(!Number.isFinite(h)||h<SALES_PRICE_42_BOX_OPT2.minHeight||h>SALES_PRICE_42_BOX_OPT2.maxHeight){
+    return {ok:false,reason:'Для короба 42 цена утверждена для высоты 1700–2300 мм.'};
   }
-  const opt2Price=Number(SALES_PRICE_42_BOX_OPT2[key]);
+  if(h%5!==0)return {ok:false,reason:'Высота короба 42 должна быть кратна 5 мм.'};
+  if(!Number.isFinite(w)||w<SALES_PRICE_42_BOX_OPT2.minWidth||w>SALES_PRICE_42_BOX_OPT2.maxWidth){
+    return {ok:false,reason:'Ширина вне текущего диапазона конфигуратора 450–1000 мм.'};
+  }
+  const priceHeight=price42BoxPriceHeight(h);
+  const opt2Price=price42BoxOpt2AtHeight(h,key);
+  if(!Number.isFinite(opt2Price))return {ok:false,reason:'Цена короба для выбранной высоты не рассчитана.'};
   const type=normalizeSalesPriceType(priceType);
+  const heightFactor=priceHeight<=2000?1:1+(priceHeight-2000)/1000;
   return {
     ok:true,
     priceType:type,
     colorKey:key,
     height:h,
     width:w,
+    priceHeight,
+    heightFactor,
+    widthFactor:1,
     opt2Price,
     price:price42ApplySalesTier(opt2Price,type),
-    formula:type==='wholesale2'?'Фиксированная цена Опт 2':price42TierFormula(type)
+    formula:priceHeight<=2000
+      ?'Цена короба 2000 мм; ширина без доплаты'
+      :'Ценовая высота '+priceHeight+' мм; +5% за каждые 50 мм; ширина без доплаты'+(type==='wholesale2'?'':' · '+price42TierFormula(type))
   };
 }
 function price42BoxCompanionUnitPrice(item,priceType=activeSalesPriceType()){
