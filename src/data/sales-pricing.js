@@ -784,9 +784,22 @@ function configuredPriceBreakdown(){
     const companions=companionItems();
     const boxParts=companions.filter(x=>/^BUNDLE-P42-DOUBLE-/.test(String(x?.baseKey||x?.key||'')));
     if(boxParts.length){
+      const boxCalc=typeof price42DoubleBoxCalculation==='function'
+        ?price42DoubleBoxCalculation({
+          height:currentHeight(),
+          leftWidth:doubleWidth('left'),
+          rightWidth:doubleWidth('right'),
+          color:$('bundle42Color')?.value||''
+        },requestedType)
+        :null;
       lines.push(configuredPriceLine({
-        key:'box-kit-double42',label:'Короб двухстворчатый 42',qty:1,unit:'комплект',priceKnown:false,
-        note:'Геометрия комплекта рассчитана, но продажная цена двухстворчатого короба пока не зафиксирована.'
+        key:'box-kit-double42',label:'Короб двухстворчатый 42',qty:1,unit:'комплект',
+        unitPrice:boxCalc?.ok?boxCalc.price:null,
+        priceKnown:!!boxCalc?.ok&&Number.isFinite(Number(boxCalc.price)),
+        actualPriceType:boxCalc?.ok?requestedType:null,
+        note:boxCalc?.ok
+          ?'Верх '+boxCalc.topLengthMm+' мм = ('+boxCalc.leftWidth+' + '+boxCalc.rightWidth+' + 10) мм × '+boxCalc.ratePerMeterOpt2+' ₽/м по Опт 2; стоевые части сохраняют высотную логику короба 42.'
+          :(boxCalc?.reason||'Цена короба требует уточнения.')
       }));
     }
     for(const item of companions){
@@ -794,7 +807,7 @@ function configuredPriceBreakdown(){
       lines.push(configuredPriceLineFromCompanion(item,requestedType));
     }
     lines.push(...configuredPriceUnknownSelectedExtras());
-    sourceNote=price42SourceNote(price42Book(requestedType))+' · Створки рассчитаны по правилам полотна 42 мм.';
+    sourceNote=price42SourceNote(price42Book(requestedType))+' · Створки рассчитаны по правилам полотна 42 мм. Двустворчатый короб: две стоевые части сохраняют высотную логику короба 42; верх = (W₁ + W₂ + 10 мм) × ставка профиля, Опт 2: серый 1 076 ₽/м, чёрный 1 253 ₽/м.';
   }
 
   const visibleLines=lines.filter(x=>Number(x.qty)>0);
