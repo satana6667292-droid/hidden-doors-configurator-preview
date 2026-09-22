@@ -488,7 +488,8 @@ function companionItems(){
   if(product()==='double42'){
     const items=[];
     const hinge=$('doorHinges')?.value?.trim()||'';
-    if(hinge)items.push({key:'DOOR-HINGE',type:'Фурнитура / Петли',priceCategory:'Петли',qty:4,unit:'шт.',step:1,name:hinge});
+    const hingeQty=Number($('doorHingeQty')?.value||recommendedHingeQty()||0);
+    if(hinge && hingeQty>0)items.push({key:'DOOR-HINGE',type:'Фурнитура / Петли',priceCategory:'Петли',qty:hingeQty,unit:'шт.',step:1,name:hinge});
     const lock=$('doorLock')?.value?.trim()||'';
     if(lock)items.push({key:'DOOR-LOCK',type:'Фурнитура / Замки',priceCategory:'Замки',qty:1,unit:'шт.',step:1,name:lock});
     const handle=$('doorHandle')?.value?.trim()||'';
