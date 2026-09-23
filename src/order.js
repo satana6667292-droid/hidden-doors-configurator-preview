@@ -53,6 +53,61 @@ function saveStock(v){
   setStore('hd_v40_stock',v);
   updateStockNavCount();
 }
+
+function clearDemoStock(){
+  if(!can('stockDemoClear'))return;
+  const stock=getStock();
+  const demoSkus=new Set(STOCK_DEMO.map(x=>String(x.sku)));
+  const demoRows=stock.filter(x=>demoSkus.has(String(x.sku)));
+  if(!demoRows.length){
+    showStockActionMessage('Демонстрационных позиций на складе уже нет.','info');
+    return;
+  }
+  if(!confirm('Удалить все демонстрационные позиции склада?\n\nБудут удалены только стартовые тестовые SKU. Добавленные реальные позиции останутся.'))return;
+  const next=stock.filter(x=>!demoSkus.has(String(x.sku)));
+  demoRows.forEach(item=>recordStockMovement({
+    type:'demo-clear',
+    sku:item.sku,
+    qty:Number(item.qty||0),
+    beforeQty:Number(item.qty||0),
+    afterQty:0,
+    location:item.location||'',
+    source:'supply'
+  }));
+  saveStock(next);
+  renderStock();
+  showStockActionMessage('Демо-склад очищен: удалено '+demoRows.length+' тестовых SKU. Теперь можно заносить фактические остатки.','ok');
+}
+function supplySnapshotPayload(){
+  const customDictionaries={};
+  if(typeof hardwareDictionaryTypes==='function'&&typeof getCustomDictionaryItems==='function'){
+    hardwareDictionaryTypes().forEach(type=>customDictionaries[type]=getCustomDictionaryItems(type));
+  }
+  return {
+    schema:'hd-supply-snapshot-v1',
+    exportedAt:new Date().toISOString(),
+    role:role(),
+    stock:getStock(),
+    stockMovements:getStockMovements(),
+    registry:getRegistry(),
+    films36:getStore('hd_v4_films36',[]),
+    filmsGeneral:getStore('hd_v4_films_general',[]),
+    rals:getRals(),
+    customDictionaries
+  };
+}
+function exportStockSnapshot(){
+  if(!can('stockExport'))return;
+  const payload=supplySnapshotPayload();
+  const stamp=new Date().toISOString().slice(0,10);
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='hidden-doors-supply-snapshot-'+stamp+'.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showStockActionMessage('Снимок данных снабжения сохранён. Не удаляйте этот файл до переноса на сервер.','ok');
+}
 function getStockMovements(){return getStore('hd_v40_stock_movements',[])}
 function saveStockMovements(v){setStore('hd_v40_stock_movements',v)}
 function recordStockMovement(movement){
@@ -60,15 +115,15 @@ function recordStockMovement(movement){
   rows.unshift({...movement,at:new Date().toISOString()});
   saveStockMovements(rows.slice(0,1000));
 }
-function getCart(){return getStore('hd_v5_cart',[])}
-function saveCart(v){setStore('hd_v5_cart',v);updateCartCount()}
+function getCart(){return normalizeDouble42Cart(getStore('hd_v5_cart',[]))}
+function saveCart(v){setStore('hd_v5_cart',normalizeDouble42Cart(v));updateCartCount()}
 function getProfile(){return getStore('hd_v5_profile',{company:'',contact:'',phone:'',email:'',city:'',delivery:'Самовывоз',address:''})}
 function getOrders(){return getStore('hd_v5_orders',[])}
 function saveOrders(v){setStore('hd_v5_orders',v)}
 function getDraft(){return getStore('hd_v5_order_draft',{})}
 
 function showView(name){
-  if(name==='pricing'&&role()!=='admin')return;
+  if(name==='pricing'&&!can('pricingAdmin'))return;
   ['configurator','stock','order','dictionaries','pricing','profile'].forEach(v=>{
     $('view'+v[0].toUpperCase()+v.slice(1))?.classList.toggle('hidden',v!==name);
     $('nav'+v[0].toUpperCase()+v.slice(1))?.classList.toggle('active',v===name);
@@ -701,7 +756,7 @@ function renderStock(){
           <input id="stockQty_${x.sku}" type="number" min="1" max="${Math.max(1,x.qty)}" value="1" ${x.qty<=0?'disabled':''}>
           <button onclick="addStockToCart('${x.sku}')" ${x.qty<=0?'disabled':''}>Добавить в заказ</button>
           <button class="secondary stock-write hidden" type="button" onclick="openStockReceipt('${x.sku}')">+ Приход</button>
-          <button class="ghost admin-only hidden" type="button" onclick="deleteStockItem('${x.sku}')">Удалить со склада</button>
+          <button class="ghost stock-delete hidden" type="button" onclick="deleteStockItem('${x.sku}')">Удалить со склада</button>
         </div>
       </div>
     </div>`;
@@ -710,7 +765,7 @@ function renderStock(){
 }
 
 function deleteStockItem(sku){
-  if(role()!=='admin')return;
+  if(!can('stockDelete'))return;
   const stock=getStock();
   const item=stock.find(x=>String(x.sku)===String(sku));
   if(!item)return;
@@ -784,8 +839,311 @@ function configuredOrderLineKey(){
 }
 function cartKeyOf(item){return item?.lineKey||item?.sku||''}
 
+
+function double42OrderHash(value){
+  let h=2166136261,s=String(value||'');
+  for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+  return (h>>>0).toString(16).toUpperCase().padStart(8,'0');
+}
+function double42SetCodeNumber(value){
+  const match=String(value||'').trim().match(/^D42-(\d+)$/i);
+  return match?Number(match[1]):0;
+}
+function double42SetCodeLabel(number){
+  return 'D42-'+String(Math.max(1,Number(number)||1)).padStart(2,'0');
+}
+function double42NameWithSetCode(name,setCode){
+  const raw=String(name||'').replace(/^D42-\d+\s*·\s*/i,'').trim();
+  return setCode+(raw?' · '+raw:'');
+}
+function ensureDouble42SetCodes(cart){
+  if(!Array.isArray(cart)||!cart.length)return Array.isArray(cart)?cart:[];
+  const groups=new Map();
+  cart.forEach((item,index)=>{
+    const setKey=String(item?.double42SetKey||'');
+    if(!setKey)return;
+    if(!groups.has(setKey))groups.set(setKey,{rows:[],index});
+    groups.get(setKey).rows.push(item);
+  });
+  if(!groups.size)return cart;
+
+  const used=new Set();
+  let next=1;
+  for(const group of [...groups.values()].sort((a,b)=>a.index-b.index)){
+    let code='';
+    for(const row of group.rows){
+      const candidate=String(row?.double42SetCode||row?.productionMeta?.double42SetCode||'').trim().toUpperCase();
+      const number=double42SetCodeNumber(candidate);
+      if(number>0&&!used.has(candidate)){code=candidate;break}
+    }
+    if(!code){
+      while(used.has(double42SetCodeLabel(next)))next+=1;
+      code=double42SetCodeLabel(next);
+    }
+    used.add(code);
+    next=Math.max(next,double42SetCodeNumber(code)+1);
+    group.rows.forEach(row=>{
+      row.double42SetCode=code;
+      row.name=double42NameWithSetCode(row.name,code);
+      row.productionMeta={...(row.productionMeta||{}),double42SetCode:code};
+    });
+  }
+  return cart;
+}
+function double42CartRowRank(item){
+  const role=String(item?.double42ComponentRole||item?.productionMeta?.double42ComponentRole||'');
+  if(role==='leaf-left'||(item?.source!=='bundle'&&item?.double42Leaf==='Left'))return 0;
+  if(role==='leaf-right'||(item?.source!=='bundle'&&item?.double42Leaf==='Right'))return 1;
+  if(role==='box'||item?.kind==='box-kit')return 2;
+  return 3;
+}
+function ensureDouble42SetRowOrder(cart){
+  if(!Array.isArray(cart)||!cart.length)return Array.isArray(cart)?cart:[];
+  const groups=new Map();
+  cart.forEach((item,index)=>{
+    const setKey=String(item?.double42SetKey||'');
+    if(!setKey)return;
+    if(!groups.has(setKey))groups.set(setKey,[]);
+    groups.get(setKey).push({item,index});
+  });
+  if(!groups.size)return cart;
+
+  const emitted=new Set();
+  const out=[];
+  cart.forEach((item,index)=>{
+    const setKey=String(item?.double42SetKey||'');
+    if(!setKey){out.push(item);return}
+    if(emitted.has(setKey))return;
+    emitted.add(setKey);
+    const group=(groups.get(setKey)||[]).slice().sort((a,b)=>{
+      const rank=double42CartRowRank(a.item)-double42CartRowRank(b.item);
+      return rank||a.index-b.index;
+    });
+    group.forEach(entry=>out.push(entry.item));
+  });
+  return out;
+}
+function normalizeDouble42Cart(cart){
+  return ensureDouble42SetRowOrder(ensureDouble42SetCodes(cart));
+}
+function double42LeafLabel(prefix){return prefix==='Left'?'Левая створка':'Правая створка'}
+function double42LeafOpening(prefix){return prefix==='Left'?'Левое на себя':'Правое на себя'}
+function double42LeafWidth(prefix){return doubleWidth(prefix==='Left'?'left':'right')}
+function double42LeafIsActive(prefix){
+  const active=$('doubleLockLeaf')?.value||'Левая створка';
+  return active===double42LeafLabel(prefix);
+}
+function double42LeafCanonicalForOrder(prefix){
+  return [
+    'DOUBLE42-LEAF','42',prefix,$('frame')?.value||'',currentHeight(),double42LeafWidth(prefix),
+    double42LeafOpening(prefix),finishText(prefix,1),finishText(prefix,2),edgeText('Double')
+  ].join('|').toUpperCase().replace(/\s+/g,' ').trim();
+}
+function double42LeafCartSku(prefix){
+  return 'CFG-D42-'+(prefix==='Left'?'L':'R')+'-'+double42OrderHash(double42LeafCanonicalForOrder(prefix));
+}
+function double42LeafOrderName(prefix){
+  const label=double42LeafLabel(prefix);
+  const active=double42LeafIsActive(prefix);
+  const parts=[
+    label+' двустворчатой двери 42 мм',
+    active?'Активная створка':'Пассивная створка',
+    $('frame')?.value||'',
+    currentHeight()+'x'+double42LeafWidth(prefix),
+    double42LeafOpening(prefix),
+    'Алюминиевый торец: '+edgeText('Double'),
+    'Сторона 1: '+finishText(prefix,1),
+    'Сторона 2: '+finishText(prefix,2)
+  ];
+  const hinge=$(prefix==='Left'?'doubleHingesLeft':'doubleHingesRight')?.value?.trim()||'';
+  const hingeQty=Number($(prefix==='Left'?'doubleHingeQtyLeft':'doubleHingeQtyRight')?.value||0);
+  if(hinge&&hingeQty>0)parts.push('Петли: '+hinge+' × '+hingeQty+' шт.');
+  const handle=$(prefix==='Left'?'doubleHandleLeftSelect':'doubleHandleRightSelect')?.value||'Без ручки';
+  parts.push(handle&&handle!=='Без ручки'?'Ручка: '+handle:'Без ручки');
+
+  const lock=$('doorLock')?.value?.trim()||'';
+  if(active&&lock)parts.push('Замок: '+lock);
+  if(!active&&lock)parts.push('Ответная часть замка: '+lock);
+  const cylinder=$('doorCylinder')?.value?.trim()||'';
+  if(active&&cylinder)parts.push('Цилиндр: '+cylinder);
+  if(!active&&$('doubleBolt')?.checked)parts.push('Ригель: PUNTO DHM-01 SN');
+
+  const stopper=$(prefix==='Left'?'doubleStopperLeft':'doubleStopperRight')?.value?.trim()||'';
+  if(stopper)parts.push('Стопор: '+stopper);
+  const threshold=$(prefix==='Left'?'doubleThresholdLeft':'doubleThresholdRight')?.value?.trim()||'';
+  if(threshold)parts.push('Автопорог: '+threshold);
+  const vent=$(prefix==='Left'?'doubleVentLeft':'doubleVentRight')?.value||'';
+  if(vent&&vent!=='Не требуется')parts.push('Вентрешётка: '+vent);
+  const extra=$(prefix==='Left'?'doubleExtraLeft':'doubleExtraRight')?.value?.trim()||'';
+  if(extra)parts.push('Доп. элемент: '+extra);
+
+  const ops=[];
+  const selected=(id,label)=>{if($(id)?.checked)ops.push(label)};
+  selected(prefix==='Left'?'procStopperMillingLeft':'procStopperMillingRight','фрезеровка под скрытый стопор');
+  selected(prefix==='Left'?'procThresholdMillingLeft':'procThresholdMillingRight','фрезеровка под автопорог');
+  selected(prefix==='Left'?'procVentCutLeft':'procVentCutRight','врезка вентиляционной решётки');
+  selected(prefix==='Left'?'procPortholeCutLeft':'procPortholeCutRight','врезка иллюминатора');
+  selected(prefix==='Left'?'procPetDoorCutLeft':'procPetDoorCutRight','врезка дверцы для животного');
+  if(active&&$('procSkudLockCut')?.checked)ops.push('врезка замка СКУД');
+  if(ops.length)parts.push('Обработка: '+ops.join(', '));
+  return parts.filter(Boolean).join(' / ');
+}
+function double42CompanionLeafPrefix(item){
+  const key=String(item?.key||'');
+  if(/^BUNDLE-P42-DOUBLE-|^BOX-MITER45-42-DOUBLE|^POWDER-COAT-42-DOUBLE$|^DOOR-CLOSER$/.test(key))return '';
+  const leaf=String(item?.leaf||item?.activeLeaf||item?.passiveLeaf||'');
+  if(leaf==='Левая створка')return 'Left';
+  if(leaf==='Правая створка')return 'Right';
+  if(key==='DOOR-CYLINDER')return double42LeafIsActive('Left')?'Left':'Right';
+  if(/(?:HINGE|HANDLE|STOPPER|THRESHOLD|MILLING|VENT-GRILLE|ADDITIONAL-ELEMENT|VENT-GRILLE-CUT|PORTHOLE-CUT|PET-DOOR-CUT)-LEFT$/.test(key))return 'Left';
+  if(/(?:HINGE|HANDLE|STOPPER|THRESHOLD|MILLING|VENT-GRILLE|ADDITIONAL-ELEMENT|VENT-GRILLE-CUT|PORTHOLE-CUT|PET-DOOR-CUT)-RIGHT$/.test(key))return 'Right';
+  return '';
+}
+function double42CompanionVisibleName(item,prefix){
+  const raw=String(item?.name||'');
+  if(prefix){
+    const label=double42LeafLabel(prefix);
+    return raw.toLowerCase().includes(label.toLowerCase())?raw:label+' / '+raw;
+  }
+  return raw.startsWith('Двустворчатый комплект 42 / ')?raw:'Двустворчатый комплект 42 / '+raw;
+}
+function double42CompanionSku(item){
+  const key=String(item?.key||'');
+  const baseKey=String(item?.baseKey||key||'DOUBLE42-COMP');
+  if(item?.kind==='box-kit'){
+    const parts=item?.boxParts||{};
+    const signature=[
+      'DOUBLE42-BOX','42',
+      Number(parts.left||0),Number(parts.right||0),Number(parts.top||0),
+      String(item?.boxColorKey||''),
+      String(item?.boxColor||'')
+    ].join('|').toUpperCase();
+    return 'CFG-D42-BOX-'+double42OrderHash(signature);
+  }
+  if(
+    item?.kind==='service' ||
+    /^PROCESS-|^BOX-MITER45-|^POWDER-COAT-/i.test(key) ||
+    /^PROCESS-|^BOX-MITER45-|^POWDER-COAT-/i.test(baseKey)
+  ){
+    return String(baseKey||key).replace(/-(LEFT|RIGHT)$/i,'');
+  }
+  const supplierId=item?.supplierItemId;
+  if(supplierId!==undefined&&supplierId!==null&&String(supplierId)!==''){
+    return 'CAT-SUP-'+String(supplierId);
+  }
+  const identity=[baseKey,String(item?.name||'')].join('|').toUpperCase().replace(/\s+/g,' ').trim();
+  return 'CAT-D42-'+double42OrderHash(identity);
+}
+function addConfiguredDouble42ToCart(){
+  const setLineKey=configuredOrderLineKey();
+  const cart=getCart();
+  const existingSetCode=cart.find(x=>x.double42SetKey===setLineKey)?.double42SetCode||'';
+  const usedSetCodes=new Set(cart.map(x=>String(x.double42SetCode||'')).filter(Boolean));
+  let setCode=existingSetCode;
+  if(!setCode){
+    let nextSetNumber=1;
+    while(usedSetCodes.has(double42SetCodeLabel(nextSetNumber)))nextSetNumber+=1;
+    setCode=double42SetCodeLabel(nextSetNumber);
+  }
+  const currentPairQty=Math.max(0,...cart.filter(x=>x.double42SetKey===setLineKey&&x.source!=='bundle').map(x=>Number(x.qty||0)));
+  const pairQty=currentPairQty+1;
+  const priceType=typeof configuredSalesPriceType==='function'?configuredSalesPriceType():activeSalesPriceType();
+  const baseMeta=(typeof doorProductionMeta==='function'?(doorProductionMeta()||{}):{});
+
+  for(const prefix of ['Left','Right']){
+    const side=prefix==='Left'?'left':'right';
+    const label=double42LeafLabel(prefix);
+    const sku=double42LeafCartSku(prefix);
+    const lineKey=setLineKey+'::LEAF-'+prefix.toUpperCase();
+    const price=typeof configuredPrice42LeafLine==='function'
+      ?configuredPrice42LeafLine(prefix,doubleWidth(side),label,priceType)
+      :null;
+    const hit=cart.find(x=>cartKeyOf(x)===lineKey);
+    const componentRole=prefix==='Left'?'leaf-left':'leaf-right';
+    const productionMeta={...baseMeta,double42SetKey:setLineKey,double42SetCode:setCode,double42Leaf:prefix,leafLabel:label,active:double42LeafIsActive(prefix),double42ComponentRole:componentRole,countAsDoor:true};
+    const row={
+      sku,lineKey,name:double42NameWithSetCode(double42LeafOrderName(prefix),setCode),category:'Двустворчатая дверь 42 · '+label,
+      stock:null,unit:'шт.',qty:pairQty,step:1,source:'production',
+      extras:[['Комплект','Двустворчатая дверь 42'],['Створка',label],['Роль',double42LeafIsActive(prefix)?'Активная':'Пассивная']],
+      productionMeta,
+      unitPrice:price?.priceKnown?Number(price.unitPrice):null,
+      priceType:price?.actualPriceType||priceType,
+      priceNote:price?.priceKnown?'':(price?.note||'Цена створки требует согласования.'),
+      double42SetKey:setLineKey,double42SetCode:setCode,double42Leaf:prefix,double42ComponentRole:componentRole,countAsDoor:true
+    };
+    if(hit)Object.assign(hit,row);
+    else cart.push(row);
+  }
+
+  const leftLineKey=setLineKey+'::LEAF-LEFT';
+  const rightLineKey=setLineKey+'::LEAF-RIGHT';
+  companionItems().forEach(x=>{
+    const prefix=double42CompanionLeafPrefix(x);
+    const parentLineKey=prefix==='Left'?leftLineKey:prefix==='Right'?rightLineKey:null;
+    const childLineKey=setLineKey+'::COMP::'+x.key;
+    const bundleSku=double42CompanionSku(x);
+    const perParentQty=Number(x.qty||0);
+    const unitPrice=companionItemUnitPrice(x);
+    const childPriceType=typeof companionSalesPriceType==='function'?companionSalesPriceType(x):null;
+    const hit=cart.find(i=>cartKeyOf(i)===childLineKey);
+    const componentRole=x.kind==='box-kit'
+      ?'box'
+      :prefix==='Left'
+        ?'leaf-companion-left'
+        :prefix==='Right'
+          ?'leaf-companion-right'
+          :'set-companion';
+    const companionProductionMeta={
+      double42SetKey:setLineKey,
+      double42SetCode:setCode,
+      double42Leaf:prefix||null,
+      double42ComponentRole:componentRole,
+      parentLineKey,
+      countAsDoor:false
+    };
+    const row={
+      sku:bundleSku,lineKey:childLineKey,name:double42NameWithSetCode(double42CompanionVisibleName(x,prefix),setCode),
+      category:x.type,stock:null,unit:x.unit,qty:perParentQty*pairQty,step:x.step||1,
+      source:'bundle',kind:x.kind||'bundle',parentLineKey,
+      parentDoorSku:prefix?double42LeafCartSku(prefix):null,
+      perParentQty,baseKey:x.baseKey||x.key,boxPart:x.boxPart||null,boxMiter45:!!x.boxMiter45,
+      unitPrice,priceType:childPriceType,double42SetKey:setLineKey,double42SetCode:setCode,double42Leaf:prefix||null,
+      double42ComponentRole:componentRole,countAsDoor:false,productionMeta:companionProductionMeta
+    };
+    if(hit)Object.assign(hit,row);
+    else cart.push(row);
+  });
+
+  saveCart(cart);
+  const message=$('cartAddMessage');
+  if(message){
+    message.className='status ok';
+    message.innerHTML='Добавлено в корзину сделки: <b>2 отдельные створки двустворчатой двери 42</b> + выбранная комплектация.';
+    message.classList.remove('hidden');
+  }
+  updateCartCount();
+}
+
+function configuredCartStep(){
+  if(product()==='trim42'&&($('trim42Sale')?.value||'')==='Метраж')return 0.001;
+  if(product()==='trim59'&&($('trim59Sale')?.value||'')==='Метраж')return 0.001;
+  return 1;
+}
+function configuredCartUnit(){
+  if(product()==='trim42'&&typeof price42TrimProfileCalculation==='function'){
+    const calc=price42TrimProfileCalculation(price42TrimProfileCurrentState(),activeSalesPriceType());
+    if(calc?.ok&&calc.unit)return calc.unit;
+  }
+  if(product()==='trim59'&&typeof price59TrimProfileCalculation==='function'){
+    const calc=price59TrimProfileCalculation(price59TrimProfileCurrentState(),activeSalesPriceType());
+    if(calc?.ok&&calc.unit)return calc.unit;
+  }
+  return 'шт.';
+}
+
 function addConfiguredToCart(){
   const v=validate(); if(v.errs.length){alert('Сначала исправьте ошибки конфигурации.');return}
+  if(product()==='double42'){addConfiguredDouble42ToCart();return}
   const match=stockMatch();
   const sku=match?.sku||configuredCartSku();
   const lineKey=configuredOrderLineKey();
@@ -796,18 +1154,24 @@ function addConfiguredToCart(){
   const configuredPriceType=typeof configuredSalesPriceType==='function'?configuredSalesPriceType():null;
   const configuredPriceNote=product()==='single59'&&typeof configured59PriceNote==='function'
     ?configured59PriceNote(configuredPriceType||activeSalesPriceType())
-    :product()==='double42'&&typeof configuredDouble42PriceNote==='function'
-      ?configuredDouble42PriceNote(configuredPriceType||activeSalesPriceType())
-      :(typeof configured42PriceNote==='function'?configured42PriceNote(configuredPriceType||activeSalesPriceType()):'');
+    :product()==='trim59'&&typeof configuredTrim59PriceNote==='function'
+      ?configuredTrim59PriceNote(configuredPriceType||activeSalesPriceType())
+      :product()==='trim42'&&typeof configuredTrim42PriceNote==='function'
+        ?configuredTrim42PriceNote(configuredPriceType||activeSalesPriceType())
+        :product()==='double42'&&typeof configuredDouble42PriceNote==='function'
+          ?configuredDouble42PriceNote(configuredPriceType||activeSalesPriceType())
+          :(typeof configured42PriceNote==='function'?configured42PriceNote(configuredPriceType||activeSalesPriceType()):'');
   if(existing){
     existing.qty=Number(existing.qty||0)+1;
     existing.productionMeta=doorProductionMeta();
     existing.priceNote=configuredPriceNote||'';
+    existing.unit=configuredCartUnit();
+    existing.step=configuredCartStep();
     if(configuredUnitPrice!==null)existing.unitPrice=configuredUnitPrice;
     else if(configuredPriceNote)existing.unitPrice=null;
     if(configuredPriceType)existing.priceType=configuredPriceType;
   }
-  else cart.push({sku,lineKey,name:longName(),category:categoryLabel(),stock,unit:'шт.',qty:1,step:1,source:match?'stock':'production',extras:selectedOrderExtras(),productionMeta:doorProductionMeta(),unitPrice:configuredUnitPrice,priceType:configuredPriceType,priceNote:configuredPriceNote});
+  else cart.push({sku,lineKey,name:longName(),category:categoryLabel(),stock,unit:configuredCartUnit(),qty:1,step:configuredCartStep(),source:match?'stock':'production',extras:selectedOrderExtras(),productionMeta:doorProductionMeta(),unitPrice:configuredUnitPrice,priceType:configuredPriceType,priceNote:configuredPriceNote});
 
   const parent=cart.find(i=>cartKeyOf(i)===lineKey);
   const parentQty=Number(parent?.qty||1);
@@ -845,8 +1209,8 @@ function addConfiguredToCart(){
 }
 
 const CART_RETAIL_DISCOUNT_STORE='hd_v115_cart_retail_discount';
-function cartDiscountRoleAllowed(){return ['manager','supply','admin'].includes(role())}
-function bitrixDealPushAllowed(){return ['manager','admin'].includes(role())}
+function cartDiscountRoleAllowed(){return can('cartDiscount')}
+function bitrixDealPushAllowed(){return can('bitrixDeal')}
 function getCartRetailDiscountPercent(){
   const raw=Number(getStore(CART_RETAIL_DISCOUNT_STORE,0));
   if(!Number.isFinite(raw))return 0;
@@ -903,6 +1267,14 @@ function buildBitrixDealCartPayload(){
       sku:item.sku||'',
       lineKey:cartKeyOf(item),
       parentLineKey:item.parentLineKey||null,
+      parentDoorSku:item.parentDoorSku||null,
+      setLineKey:item.double42SetKey||null,
+      setCode:item.double42SetCode||null,
+      leaf:item.double42Leaf||null,
+      componentRole:item.double42ComponentRole||null,
+      countAsDoor:item.countAsDoor===true,
+      kind:item.kind||null,
+      baseKey:item.baseKey||null,
       name:item.name||'',
       category:item.category||'',
       qty:Number(item.qty||0),
@@ -963,6 +1335,14 @@ function renderCart(){
     const discount=cartItemRetailDiscountPercent(x,discountPercent);
     const unitPrice=cartItemEffectiveUnitPrice(x,discountPercent);
     const lineTotal=cartItemEffectiveLineTotal(x,discountPercent);
+    const linkedDouble42Child=!!x.double42SetKey&&x.source==='bundle';
+    const linkedDouble42Main=!!x.double42SetKey&&x.source!=='bundle';
+    const qtyControl=linkedDouble42Child
+      ?'<span class="mini"><b>'+escapeHtml(String(x.qty))+'</b> · связано с комплектом</span>'
+      :'<input type="number" min="0" step="'+(x.step||1)+'" '+(x.stock==null?'':'max="'+x.stock+'"')+' value="'+x.qty+'" onchange="changeCartQty(\''+cartKeyOf(x)+'\',this.value)">';
+    const removeControl=linkedDouble42Child
+      ?'<span class="mini">В составе комплекта</span>'
+      :'<button class="ghost" onclick="removeCartItem(\''+cartKeyOf(x)+'\')">'+(linkedDouble42Main?'Удалить комплект':'Удалить')+'</button>';
     return `
     <tr>
       <td><b>${escapeHtml(x.sku)}</b></td>
@@ -970,9 +1350,9 @@ function renderCart(){
       <td>${x.stock==null?'<span class="stock-badge">Под заказ</span>':x.stock+' '+escapeHtml(x.unit)}</td>
       <td>${unitPrice===null?'<span class="mini">'+escapeHtml(x.priceNote||'По запросу')+'</span>':
         (discount>0?'<div class="cart-price-old">'+formatRub(baseUnitPrice)+'</div><b>'+formatRub(unitPrice)+'</b><div class="cart-discount-chip">−'+discount+'% от розницы</div>':'<b>'+formatRub(unitPrice)+'</b>')}${cartStoredPriceType(x)?'<div class="price-tier-inline">'+escapeHtml(salesPriceTypeLabel(cartStoredPriceType(x)))+'</div>':''}</td>
-      <td><input type="number" min="0" step="${x.step||1}" ${x.stock==null?'':`max="${x.stock}"`} value="${x.qty}" onchange="changeCartQty('${cartKeyOf(x)}',this.value)"></td>
+      <td>${qtyControl}</td>
       <td>${lineTotal===null?'<span class="mini">—</span>':'<b>'+formatRub(lineTotal)+'</b>'}</td>
-      <td><button class="ghost" onclick="removeCartItem('${cartKeyOf(x)}')">Удалить</button></td>
+      <td>${removeControl}</td>
     </tr>`;
   }).join('');
   const summary=cartEffectivePriceSummary(cart,discountPercent);
@@ -1007,9 +1387,23 @@ function renderCart(){
 
 function changeCartQty(lineKey,val){
   const cart=getCart(),item=cart.find(x=>cartKeyOf(x)===lineKey);if(!item)return;
+  if(item.double42SetKey&&item.source==='bundle'){
+    const q=Math.max(1,...cart.filter(x=>x.double42SetKey===item.double42SetKey&&x.source!=='bundle').map(x=>Number(x.qty||1)));
+    cart.filter(x=>x.double42SetKey===item.double42SetKey).forEach(x=>{
+      if(x.source==='bundle'&&Number(x.perParentQty)>0)x.qty=Number(x.perParentQty)*q;
+      else if(x.source!=='bundle')x.qty=q;
+    });
+    saveCart(cart);renderCart();return;
+  }
   const min=item.source==='bundle'?0:1;
   item.qty=item.stock==null?Math.max(min,Number(val)||min):Math.max(min,Math.min(item.stock,Number(val)||min));
-  if(item.source!=='bundle'){
+  if(item.double42SetKey&&item.source!=='bundle'){
+    const q=Number(item.qty||1);
+    cart.filter(x=>x.double42SetKey===item.double42SetKey).forEach(x=>{
+      if(x.source==='bundle'&&Number(x.perParentQty)>0)x.qty=Number(x.perParentQty)*q;
+      else if(x.source!=='bundle')x.qty=q;
+    });
+  }else if(item.source!=='bundle'){
     cart.filter(x=>x.source==='bundle'&&x.parentLineKey===lineKey&&Number(x.perParentQty)>0)
       .forEach(x=>{x.qty=Number(x.perParentQty)*Number(item.qty||0)});
   }
@@ -1017,9 +1411,11 @@ function changeCartQty(lineKey,val){
 }
 function removeCartItem(lineKey){
   const cart=getCart(),item=cart.find(x=>cartKeyOf(x)===lineKey);if(!item)return;
-  const next=item.source==='bundle'
-    ?cart.filter(x=>cartKeyOf(x)!==lineKey)
-    :cart.filter(x=>cartKeyOf(x)!==lineKey && x.parentLineKey!==lineKey);
+  const next=item.double42SetKey
+    ?cart.filter(x=>x.double42SetKey!==item.double42SetKey)
+    :item.source==='bundle'
+      ?cart.filter(x=>cartKeyOf(x)!==lineKey)
+      :cart.filter(x=>cartKeyOf(x)!==lineKey && x.parentLineKey!==lineKey);
   saveCart(next);renderCart();
 }
 function clearCart(){
