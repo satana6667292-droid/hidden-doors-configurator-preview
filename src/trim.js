@@ -36,6 +36,25 @@ function renderTrimSize(){
 function trim42Item(){return $('trim42Type')?.value||'Профиль дверного короба 42'}
 function trim59Item(){return $('trim59Type')?.value||'Профиль дверного короба 59'}
 
+function trim42EdgeDoorOrderState(){
+  const height=Number($('trim42EdgeDoorHeight')?.value||2000);
+  const width=Number($('trim42EdgeDoorWidth')?.value||800);
+  const verticalLength=height+20;
+  const horizontalLength=width+20;
+  const totalLength=verticalLength*2+horizontalLength*2;
+  return {height,width,verticalLength,horizontalLength,totalLength,totalMeters:totalLength/1000};
+}
+function trim42EdgeDoorPreviewHtml(){
+  const s=trim42EdgeDoorOrderState();
+  return '<div class="trim42-box-part-card selected">'+
+    '<div class="trim42-box-part-kicker">ФАКТИЧЕСКИЙ МЕТРАЖ</div>'+
+    '<div class="trim42-box-part-title">'+escapeHtml(trim42Item())+'</div>'+
+    '<div class="trim42-box-part-size">'+String(s.totalMeters).replace('.',',')+' м.п.</div>'+
+    '<div class="trim42-box-part-meta">2 × '+s.verticalLength+' мм + 2 × '+s.horizontalLength+' мм</div>'+
+    '<div class="trim42-box-part-name">Расчёт по полотну '+s.height+'×'+s.width+' мм</div>'+
+  '</div>';
+}
+
 function trim42DoorOrderState(){
   const height=Number($('trim42DoorHeight')?.value||2000);
   const width=Number($('trim42DoorWidth')?.value||700);
@@ -79,19 +98,36 @@ function trim42DoorPreviewHtml(){
     </div>`).join('');
 }
 function updateTrim42DoorOrderUI(){
-  const panel=$('trim42DoorOrderPanel');
-  if(!panel)return;
-  const active=trim42Item()==='Профиль дверного короба 42' && ($('trim42Sale')?.value||'')==='Под конкретную дверь';
-  panel.classList.toggle('hidden',!active);
-  if(!active)return;
-  const s=trim42DoorOrderState();
-  $('trim42DoorPartWrap')?.classList.toggle('hidden',s.mode!=='Отдельная деталь');
-  const preview=$('trim42DoorPreview');
-  if(preview)preview.innerHTML=trim42DoorPreviewHtml();
-  const title=$('trim42DoorOrderSummary');
-  if(title){
-    title.innerHTML='<b>'+escapeHtml(s.mode)+'</b> · полотно '+s.height+'×'+s.width+' · '+escapeHtml(s.opening)+' · '+escapeHtml(s.color)+
-      (s.mode==='Отдельная деталь'?' · '+escapeHtml(s.part):'');
+  const sale=($('trim42Sale')?.value||'');
+  const isSpecific=sale==='Под конкретную дверь';
+  const boxPanel=$('trim42DoorOrderPanel');
+  const edgePanel=$('trim42EdgeDoorOrderPanel');
+  const isBox=trim42Item()==='Профиль дверного короба 42';
+
+  if(boxPanel)boxPanel.classList.toggle('hidden',!(isBox&&isSpecific));
+  if(edgePanel)edgePanel.classList.toggle('hidden',isBox||!isSpecific);
+
+  if(isBox&&isSpecific){
+    const s=trim42DoorOrderState();
+    $('trim42DoorPartWrap')?.classList.toggle('hidden',s.mode!=='Отдельная деталь');
+    const preview=$('trim42DoorPreview');
+    if(preview)preview.innerHTML=trim42DoorPreviewHtml();
+    const title=$('trim42DoorOrderSummary');
+    if(title){
+      title.innerHTML='<b>'+escapeHtml(s.mode)+'</b> · полотно '+s.height+'×'+s.width+' · '+escapeHtml(s.opening)+' · '+escapeHtml(s.color)+
+        (s.mode==='Отдельная деталь'?' · '+escapeHtml(s.part):'');
+    }
+  }
+
+  if(!isBox&&isSpecific){
+    const s=trim42EdgeDoorOrderState();
+    const preview=$('trim42EdgeDoorPreview');
+    if(preview)preview.innerHTML=trim42EdgeDoorPreviewHtml();
+    const title=$('trim42EdgeDoorOrderSummary');
+    if(title){
+      title.innerHTML='<b>'+escapeHtml(trim42Item())+'</b> · полотно '+s.height+'×'+s.width+
+        ' · фактический расход '+String(s.totalMeters).replace('.',',')+' м.п.';
+    }
   }
 }
 function renderTrim42(){
@@ -104,7 +140,7 @@ function renderTrim42(){
       Для профиля дверного короба 42 используем серый или чёрный цвет. Длина хлыста короба — 5100 мм.
       При заказе «Под конкретную дверь» полотно выбирается по характеристикам. Петлевая и ответная стойки = высота полотна + 100 мм; верх = ширина полотна + 100 мм.
       Для «Левое на себя / Правое на себя / Левый реверс / Правый реверс» петлевая и ответная стойки являются разной готовой номенклатурой. Верхняя перемычка одна для всех четырёх вариантов.
-      Торцы BC3 и C4 учитываются отдельно, длина хлыста — 6000 мм.
+      Торцы BC3 и C4 учитываются отдельно, но используют одну ценовую ставку. Длина хлыста — 6000 мм. При заказе под конкретную дверь торец считается по фактическому метражу: 2×(H+20) + 2×(W+20).
     </div>`);
   renderTrim42Dynamic();
 }
@@ -125,7 +161,7 @@ function renderTrim42Dynamic(){
             <div class="trim42-door-order-title">Короб 42 под конкретную дверь</div>
             <div class="mini">Выбираем характеристики полотна — приложение подбирает нужную номенклатуру и длины деталей.</div>
           </div>
-          <span class="badge">без цены · согласование UX</span>
+          <span class="badge">цена по фактическому метражу</span>
         </div>
         <div class="fields trim42-door-filter-grid">
           ${field('Что заказать',selectEl('trim42DoorOrderMode',['Комплект короба','Отдельная деталь'],'Комплект короба'))}
@@ -144,7 +180,23 @@ function renderTrim42Dynamic(){
       field('Профиль торца',inputEl('trim42Edge',t,'text','disabled'))+
       field('Длина целого хлыста',inputEl('trim42Length','6000 мм','text','disabled'))+
       field('Способ заказа',selectEl('trim42Sale',['Метраж','Целый хлыст','Под конкретную дверь'],'Метраж'),'full')
-    );
+    )+
+    `<div id="trim42EdgeDoorOrderPanel" class="trim42-door-order-panel hidden">
+      <div class="trim42-door-order-head">
+        <div>
+          <div class="trim42-door-order-eyebrow">ПОД КОНКРЕТНУЮ ДВЕРЬ</div>
+          <div class="trim42-door-order-title">${escapeHtml(t)} по фактическому метражу</div>
+          <div class="mini">Расход: 2 вертикали H+20 мм + верх и низ W+20 мм.</div>
+        </div>
+        <span class="badge">цена по метражу</span>
+      </div>
+      <div class="fields trim42-door-filter-grid">
+        ${field('Высота полотна, мм',selectEl('trim42EdgeDoorHeight',range(1700,2950,50),2000))}
+        ${field('Ширина полотна, мм',selectEl('trim42EdgeDoorWidth',range(400,1000,50),800))}
+      </div>
+      <div id="trim42EdgeDoorOrderSummary" class="catalog-note trim42-door-summary"></div>
+      <div id="trim42EdgeDoorPreview" class="trim42-box-parts-grid"></div>
+    </div>`;
   }
   w.querySelectorAll('select,input').forEach(el=>{
     const sync=()=>{updateTrim42DoorOrderUI();render()};
@@ -162,11 +214,54 @@ function renderTrim59(){
     section('Исполнение',`<div id="trim59Dynamic"></div>`)+
     section('Правила',`<div class="note">
       Для 59 короб и торец доступны в сером, чёрном и золотом исполнении.
-      Длина хлыста короба — 5100 мм; торца — 6000 мм.
-      Для 59 используется единый профиль с четвертью.
+      Длина хлыста короба — 5100 мм; торца — 6000 мм. Профиль короба 59 можно покупать по метражу, целым хлыстом или под конкретную дверь по фактической длине.
+      Для 59 используется единый профиль с четвертью. Под конкретную дверь его расход считается как 2×(H+20) + 3×(W+20).
       «Каркас» как отдельную позицию погонажа 59 не используем.
     </div>`);
   renderTrim59Dynamic();
+}
+function trim59DoorOrderState(){
+  const height=Number($('trim59DoorHeight')?.value||2000);
+  const width=Number($('trim59DoorWidth')?.value||900);
+  return {
+    height,width,
+    verticalLength:height+100,
+    topLength:width+100,
+    totalLength:(height+100)*2+(width+100),
+    totalMeters:((height+100)*2+(width+100))/1000
+  };
+}
+function updateTrim59DoorOrderUI(){
+  const sale=$('trim59Sale')?.value||'';
+  const isSpecific=sale==='Под конкретную дверь';
+  const isBox=trim59Item()==='Профиль дверного короба 59';
+  const boxPanel=$('trim59DoorOrderPanel');
+  const edgePanel=$('trim59EdgeDoorOrderPanel');
+  if(boxPanel)boxPanel.classList.toggle('hidden',!(isBox&&isSpecific));
+  if(edgePanel)edgePanel.classList.toggle('hidden',isBox||!isSpecific);
+
+  if(isBox&&isSpecific){
+    const s=trim59DoorOrderState();
+    const summary=$('trim59DoorOrderSummary');
+    if(summary)summary.innerHTML='<b>Комплект короба 59</b> · полотно '+s.height+'×'+s.width+' · фактический расход '+String(s.totalMeters).replace('.',',')+' м.п.';
+    const preview=$('trim59DoorPreview');
+    if(preview)preview.innerHTML=
+      '<div class="trim42-box-part-card"><div class="trim42-box-part-kicker">СТОЕВЫЕ</div><div class="trim42-box-part-title">2 стойки</div><div class="trim42-box-part-size">'+s.verticalLength+' мм каждая</div><div class="trim42-box-part-meta">Высота полотна + 100 мм</div></div>'+
+      '<div class="trim42-box-part-card"><div class="trim42-box-part-kicker">ВЕРХ</div><div class="trim42-box-part-title">Верхняя перемычка</div><div class="trim42-box-part-size">'+s.topLength+' мм</div><div class="trim42-box-part-meta">Ширина полотна + 100 мм</div></div>';
+  }
+
+  if(!isBox&&isSpecific){
+    const s=price59TrimEdgeDoorOrderState();
+    const summary=$('trim59EdgeDoorOrderSummary');
+    if(summary)summary.innerHTML='<b>Торец 59 с четвертью</b> · полотно '+s.height+'×'+s.width+' · фактический расход '+String(s.totalMeters).replace('.',',')+' м.п.';
+    const preview=$('trim59EdgeDoorPreview');
+    if(preview)preview.innerHTML=
+      '<div class="trim42-box-part-card selected"><div class="trim42-box-part-kicker">ФАКТИЧЕСКИЙ МЕТРАЖ</div>'+
+      '<div class="trim42-box-part-title">Торец 59 с четвертью</div>'+
+      '<div class="trim42-box-part-size">'+String(s.totalMeters).replace('.',',')+' м.п.</div>'+
+      '<div class="trim42-box-part-meta">2 × '+s.verticalLength+' мм + 3 × '+s.horizontalLength+' мм</div>'+
+      '<div class="trim42-box-part-name">Расчёт по полотну '+s.height+'×'+s.width+' мм</div></div>';
+  }
 }
 function renderTrim59Dynamic(){
   const w=$('trim59Dynamic');if(!w)return;
@@ -176,6 +271,44 @@ function renderTrim59Dynamic(){
     field('Цвет',selectEl('trim59Color',['Серый','Чёрный','Золотой'],'Серый'))+
     field('Длина целого хлыста',inputEl('trim59Length',isBox?'5100 мм':'6000 мм','text','disabled'))+
     field('Способ заказа',selectEl('trim59Sale',['Метраж','Целый хлыст','Под конкретную дверь'],'Метраж'),'full')
-  );
-  w.querySelectorAll('select,input').forEach(el=>{el.addEventListener('input',render);el.addEventListener('change',render)});
+  )+(isBox?`
+    <div id="trim59DoorOrderPanel" class="trim42-door-order-panel hidden">
+      <div class="trim42-door-order-head">
+        <div>
+          <div class="trim42-door-order-eyebrow">ПОД КОНКРЕТНУЮ ДВЕРЬ</div>
+          <div class="trim42-door-order-title">Короб 59 по фактическому метражу</div>
+          <div class="mini">Две стойки H+100 мм и верх W+100 мм.</div>
+        </div>
+        <span class="badge">цена по фактическому метражу</span>
+      </div>
+      <div class="fields trim42-door-filter-grid">
+        ${field('Высота полотна, мм',selectEl('trim59DoorHeight',range(1700,2950,50),2000))}
+        ${field('Ширина полотна, мм',selectEl('trim59DoorWidth',range(450,1000,50),900))}
+      </div>
+      <div id="trim59DoorOrderSummary" class="catalog-note trim42-door-summary"></div>
+      <div id="trim59DoorPreview" class="trim42-box-parts-grid"></div>
+    </div>`:`
+    <div id="trim59EdgeDoorOrderPanel" class="trim42-door-order-panel hidden">
+      <div class="trim42-door-order-head">
+        <div>
+          <div class="trim42-door-order-eyebrow">ПОД КОНКРЕТНУЮ ДВЕРЬ</div>
+          <div class="trim42-door-order-title">Торец 59 по фактическому метражу</div>
+          <div class="mini">Расход: 2 вертикали H+20 мм + 3 горизонтали W+20 мм.</div>
+        </div>
+        <span class="badge">цена по фактическому метражу</span>
+      </div>
+      <div class="fields trim42-door-filter-grid">
+        ${field('Высота полотна, мм',selectEl('trim59EdgeDoorHeight',range(1700,2950,50),2000))}
+        ${field('Ширина полотна, мм',selectEl('trim59EdgeDoorWidth',range(450,1000,50),800))}
+      </div>
+      <div id="trim59EdgeDoorOrderSummary" class="catalog-note trim42-door-summary"></div>
+      <div id="trim59EdgeDoorPreview" class="trim42-box-parts-grid"></div>
+    </div>`);
+
+  w.querySelectorAll('select,input').forEach(el=>{
+    const sync=()=>{updateTrim59DoorOrderUI();render()};
+    el.addEventListener('input',sync);
+    el.addEventListener('change',sync);
+  });
+  updateTrim59DoorOrderUI();
 }
