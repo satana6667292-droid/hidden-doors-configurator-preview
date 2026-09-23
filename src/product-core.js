@@ -9,7 +9,7 @@ function boxOption(defaultChecked=true){
 }
 function includeBox(){return $('includeBox')?.checked??false}
 function boxMiter45Option(){
-  if(!['single42','single59'].includes(product()))return '';
+  if(!['single42','single59','double42'].includes(product()))return '';
   return `<div class="bundle-check" style="margin-top:10px">
     <input id="boxMiter45" type="checkbox">
     <div>
@@ -19,14 +19,14 @@ function boxMiter45Option(){
   </div>`;
 }
 function boxMiter45Selected(){
-  return ['single42','single59'].includes(product()) && includeBox() && ($('boxMiter45')?.checked??false);
+  return ['single42','single59','double42'].includes(product()) && includeBox() && ($('boxMiter45')?.checked??false);
 }
 function boxMiter45Suffix(){return boxMiter45Selected()?'M45':''}
 function boxMiter45NameSuffix(){return boxMiter45Selected()?' / Запил 45°':''}
 function doorProductionMeta(){
-  if(!['single42','single59'].includes(product()))return {};
+  if(!['single42','single59','double42'].includes(product()))return {};
   return {
-    system:product()==='single42'?'42':'59',
+    system:product()==='single59'?'59':'42',
     boxIncluded:includeBox(),
     boxMiter45:boxMiter45Selected(),
     boxTreatment:boxMiter45Selected()?'MITER_45':'NONE'
@@ -53,7 +53,7 @@ const CATALOG_HERO_MAIN_ROUTES=[
   {key:'hardware',label:'Фурнитура'},
   {key:'openingSystem',label:'Системы открывания'}
 ];
-const CATALOG_HERO_EXTRA_ROUTES=['additionalElement','installation','plinth'];
+const CATALOG_HERO_EXTRA_ROUTES=['additionalElement','installation'];
 const CATALOG_UTILITY_ROUTES=['stock','order'];
 
 function catalogHeroIcon(key){
