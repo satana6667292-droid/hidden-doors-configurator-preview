@@ -25,6 +25,166 @@ const PRICE59_GENERAL_FILM_SURCHARGE_PER_DOOR=2300;
 const PRICE59_POWDER_COAT_RATE_PER_M=460;
 const PRICE59_POWDER_COAT_RESERVE_FACTOR=1.10;
 
+const PRICE59_TRIM_BOX_STANDARD_PROFILE_METERS=5.2;
+const PRICE59_TRIM_BOX_WHIP_METERS=5.1;
+const PRICE59_TRIM_EDGE_WHIP_METERS=6;
+const PRICE59_TRIM_EDGE_OPT2_MARKUP=0.60;
+const PRICE59_TRIM_EDGE_PURCHASE_WHIP=Object.freeze({
+  gray:2052,
+  black:2322,
+  gold:2322
+});
+const PRICE59_TRIM_EDGE_SOURCE='АЛКОР · счёт №1186 от 19.08.2026 · профиль торца 58 мм "Вега": серебро 2 052 ₽/6 м, золото 2 322 ₽/6 м; чёрный временно по золотой базе';
+const PRICE59_TRIM_BOX_LINEAR_OPT2_RAW=Object.freeze({
+  gray:SALES_PRICE_59.boxOpt2.gray/PRICE59_TRIM_BOX_STANDARD_PROFILE_METERS,
+  black:SALES_PRICE_59.boxOpt2.black/PRICE59_TRIM_BOX_STANDARD_PROFILE_METERS
+});
+const PRICE59_TRIM_BOX_LINEAR_OPT2=Object.freeze({
+  gray:Math.ceil(PRICE59_TRIM_BOX_LINEAR_OPT2_RAW.gray),
+  black:Math.ceil(PRICE59_TRIM_BOX_LINEAR_OPT2_RAW.black)
+});
+
+function price59TrimDoorOrderState(){
+  const height=Number($('trim59DoorHeight')?.value||2000);
+  const width=Number($('trim59DoorWidth')?.value||900);
+  return {
+    height,width,
+    verticalLength:height+100,
+    topLength:width+100,
+    totalLength:(height+100)*2+(width+100)
+  };
+}
+function price59TrimEdgeDoorOrderState(){
+  const height=Number($('trim59EdgeDoorHeight')?.value||2000);
+  const width=Number($('trim59EdgeDoorWidth')?.value||800);
+  const verticalLength=height+20;
+  const horizontalLength=width+20;
+  const totalLength=verticalLength*2+horizontalLength*3;
+  return {height,width,verticalLength,horizontalLength,totalLength,totalMeters:totalLength/1000};
+}
+function price59TrimProfileCurrentState(){
+  const item=typeof trim59Item==='function'?trim59Item():'';
+  const sale=$('trim59Sale')?.value||'Метраж';
+  const isEdge=item==='Торец 59 с четвертью';
+  const state=isEdge?price59TrimEdgeDoorOrderState():price59TrimDoorOrderState();
+  return {
+    item,
+    color:$('trim59Color')?.value||'Серый',
+    sale,
+    height:state.height,
+    width:state.width,
+    verticalLength:state.verticalLength,
+    horizontalLength:Number(state.horizontalLength||0),
+    topLength:Number(state.topLength||0),
+    totalLength:state.totalLength
+  };
+}
+function price59TrimProfileCalculation(config=price59TrimProfileCurrentState(),priceType=activeSalesPriceType()){
+  const item=String(config?.item||'');
+  const sale=String(config?.sale||'Метраж');
+  const type=normalizeSalesPriceType(priceType);
+
+  if(item==='Торец 59 с четвертью'){
+    const color=String(config?.color||'Серый');
+    const edgeKey=price59EdgeKey(color);
+    const purchaseKey=/золот/i.test(color)?'gold':edgeKey;
+    const purchaseWhip=Number(PRICE59_TRIM_EDGE_PURCHASE_WHIP[purchaseKey]);
+    if(!Number.isFinite(purchaseWhip)){
+      return {ok:false,reason:'Для выбранного цвета торца 59 закупочная база не определена.'};
+    }
+    const rawRatePerMeterOpt2=(purchaseWhip/PRICE59_TRIM_EDGE_WHIP_METERS)*(1+PRICE59_TRIM_EDGE_OPT2_MARKUP);
+    const ratePerMeterOpt2=Math.ceil(rawRatePerMeterOpt2);
+
+    let lengthMm=1000;
+    let unit='м.п.';
+    let label='Торец 59 с четвертью · 1 м.п.';
+    if(sale==='Целый хлыст'){
+      lengthMm=Math.round(PRICE59_TRIM_EDGE_WHIP_METERS*1000);
+      unit='хлыст';
+      label='Торец 59 с четвертью · хлыст '+lengthMm+' мм';
+    }else if(sale==='Под конкретную дверь'){
+      const h=Number(config?.height||0);
+      const w=Number(config?.width||0);
+      const verticalLength=h+20;
+      const horizontalLength=w+20;
+      lengthMm=verticalLength*2+horizontalLength*3;
+      unit='комплект';
+      label='Торец 59 с четвертью · под дверь '+h+'×'+w+' · '+String(lengthMm/1000).replace('.',',')+' м.п.';
+    }
+
+    if(!Number.isFinite(lengthMm)||lengthMm<=0)return {ok:false,reason:'Не удалось определить длину торца 59.'};
+    const lengthM=lengthMm/1000;
+    const opt2Raw=lengthM*rawRatePerMeterOpt2;
+    const opt2Price=Math.ceil(opt2Raw);
+    return {
+      ok:true,item,sale,priceType:type,color,edgeKey,
+      height:Number(config?.height||0),width:Number(config?.width||0),
+      verticalLength:sale==='Под конкретную дверь'?Number(config?.height||0)+20:null,
+      horizontalLength:sale==='Под конкретную дверь'?Number(config?.width||0)+20:null,
+      lengthMm,lengthM,unit,label,
+      source:PRICE59_TRIM_EDGE_SOURCE,
+      purchaseWhipPrice:purchaseWhip,
+      purchaseWhipMeters:PRICE59_TRIM_EDGE_WHIP_METERS,
+      opt2Markup:PRICE59_TRIM_EDGE_OPT2_MARKUP,
+      rawRatePerMeterOpt2,ratePerMeterOpt2,opt2Raw,opt2Price,
+      price:price59ApplySalesTier(opt2Price,type),
+      formula:'Закуп '+purchaseWhip+' ₽ / '+PRICE59_TRIM_EDGE_WHIP_METERS+' м × 1,60 × '+String(lengthM).replace('.',',')+' м → Opt 2 '+opt2Price+' ₽'
+    };
+  }
+
+  if(item!=='Профиль дверного короба 59'){
+    return {ok:false,reason:'Для выбранного погонажа 59 цена не определена.'};
+  }
+  const edgeKey=price59EdgeKey(config?.color||'');
+  const rawRatePerMeterOpt2=Number(PRICE59_TRIM_BOX_LINEAR_OPT2_RAW[edgeKey]);
+  const ratePerMeterOpt2=Number(PRICE59_TRIM_BOX_LINEAR_OPT2[edgeKey]);
+  if(!Number.isFinite(rawRatePerMeterOpt2)||!Number.isFinite(ratePerMeterOpt2)){
+    return {ok:false,reason:'Для выбранного цвета профиля короба 59 ставка не определена.'};
+  }
+
+  let lengthMm=1000;
+  let unit='м.п.';
+  let label='Профиль дверного короба 59 · 1 м.п.';
+  if(sale==='Целый хлыст'){
+    lengthMm=Math.round(PRICE59_TRIM_BOX_WHIP_METERS*1000);
+    unit='хлыст';
+    label='Профиль дверного короба 59 · хлыст '+lengthMm+' мм';
+  }else if(sale==='Под конкретную дверь'){
+    const vertical=Number(config?.verticalLength||0);
+    const top=Number(config?.topLength||0);
+    lengthMm=vertical*2+top;
+    unit='комплект';
+    label='Комплект профиля короба 59 · 2×'+vertical+' + '+top+' мм';
+  }
+
+  if(!Number.isFinite(lengthMm)||lengthMm<=0)return {ok:false,reason:'Не удалось определить длину профиля короба 59.'};
+  const lengthM=lengthMm/1000;
+  const opt2Price=Math.ceil(lengthM*rawRatePerMeterOpt2);
+  return {
+    ok:true,item,sale,priceType:type,
+    color:String(config?.color||''),
+    edgeKey,
+    height:Number(config?.height||0),
+    width:Number(config?.width||0),
+    verticalLength:Number(config?.verticalLength||0),
+    topLength:Number(config?.topLength||0),
+    lengthMm,lengthM,unit,label,
+    rawRatePerMeterOpt2,ratePerMeterOpt2,opt2Price,
+    price:price59ApplySalesTier(opt2Price,type),
+    formula:'Длина '+String(lengthM).replace('.',',')+' м × расчётная ставка '+String(Math.round(rawRatePerMeterOpt2*100)/100).replace('.',',')+' ₽/м по Opt 2'
+  };
+}
+function configuredTrim59UnitPrice(priceType=activeSalesPriceType()){
+  if(product()!=='trim59')return null;
+  const calc=price59TrimProfileCalculation(price59TrimProfileCurrentState(),priceType);
+  return calc.ok?calc.price:null;
+}
+function configuredTrim59PriceNote(priceType=activeSalesPriceType()){
+  if(product()!=='trim59')return '';
+  const calc=price59TrimProfileCalculation(price59TrimProfileCurrentState(),priceType);
+  return calc.ok?'':(calc.reason||'Цена погонажа 59 требует согласования.');
+}
+
 function price59TypeLabel(priceType){return salesPriceTypeLabel(priceType)}
 function price59ApplySalesTier(opt2Value,priceType=activeSalesPriceType()){
   const v=Number(opt2Value);
