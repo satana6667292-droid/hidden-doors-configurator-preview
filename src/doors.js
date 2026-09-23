@@ -367,10 +367,39 @@ function appendSelectedDoorProcessingItems(items){
     });
   };
   add('procStopperMilling','PROCESS-STOPPER-MILLING','Фрезеровка под скрытый стопор',575);
+  add('procStopperMillingLeft','PROCESS-STOPPER-MILLING-LEFT','Фрезеровка под скрытый стопор · левая створка',575);
+  add('procStopperMillingRight','PROCESS-STOPPER-MILLING-RIGHT','Фрезеровка под скрытый стопор · правая створка',575);
   add('procThresholdMilling','PROCESS-THRESHOLD-MILLING','Фрезеровка под автопорог',1840);
+  add('procThresholdMillingLeft','PROCESS-THRESHOLD-MILLING-LEFT','Фрезеровка под автопорог · левая створка',1840);
+  add('procThresholdMillingRight','PROCESS-THRESHOLD-MILLING-RIGHT','Фрезеровка под автопорог · правая створка',1840);
+  add('procVentCutLeft','PROCESS-VENT-GRILLE-CUT-LEFT','Врезка вентиляционной решётки · левая створка',1500);
+  add('procVentCutRight','PROCESS-VENT-GRILLE-CUT-RIGHT','Врезка вентиляционной решётки · правая створка',1500);
   add('procPortholeCut','PROCESS-PORTHOLE-CUT','Врезка иллюминатора',1955);
+  add('procPortholeCutLeft','PROCESS-PORTHOLE-CUT-LEFT','Врезка иллюминатора · левая створка',1955);
+  add('procPortholeCutRight','PROCESS-PORTHOLE-CUT-RIGHT','Врезка иллюминатора · правая створка',1955);
   add('procPetDoorCut','PROCESS-PET-DOOR-CUT','Врезка дверцы для животного',2875);
-  add('procSkudLockCut','PROCESS-SKUD-LOCK-CUT','Врезка замка СКУД-системы',4025,'Партнёрский прайс: от 4 025 ₽; без наценки по типу цены.');
+  add('procPetDoorCutLeft','PROCESS-PET-DOOR-CUT-LEFT','Врезка дверцы для животного · левая створка',2875);
+  add('procPetDoorCutRight','PROCESS-PET-DOOR-CUT-RIGHT','Врезка дверцы для животного · правая створка',2875);
+  if(product()==='double42'){
+    if($('procSkudLockCut')?.checked){
+      const activeLeaf=$('doubleLockLeaf')?.value||'Левая створка';
+      items.push({
+        key:'PROCESS-SKUD-LOCK-CUT',
+        baseKey:'PROCESS-SKUD-LOCK-CUT',
+        type:'Услуги / Дополнительная обработка',
+        qty:1,
+        unit:'шт.',
+        step:1,
+        kind:'service',
+        fixedUnitPrice:4000,
+        leaf:activeLeaf,
+        name:'Врезка замка СКУД-системы · '+activeLeaf,
+        priceNote:'Одна врезка СКУД только на активной створке. Фиксированная стоимость: 4 000 ₽ для Опт 2 / Опт 1 / Розницы.'
+      });
+    }
+  }else{
+    add('procSkudLockCut','PROCESS-SKUD-LOCK-CUT','Врезка замка СКУД-системы',4000,'Фиксированная стоимость: 4 000 ₽ для Опт 2 / Опт 1 / Розницы.');
+  }
   add('procSlidingMilling','PROCESS-SLIDING-MILLING','Фрезеровка под откатную систему',2875);
   return items;
 }
@@ -410,6 +439,14 @@ function companionItems(){
     const closer=$('doorCloser')?.value?.trim()||'';
     if(closer){
       items.push({key:'DOOR-CLOSER',type:'Фурнитура / Доводчики',priceCategory:'Доводчики',qty:1,unit:'шт.',step:1,name:closer});
+    }
+    const vent=$('doorVent')?.value||'';
+    if(vent&&vent!=='Не требуется'){
+      items.push({key:'DOOR-VENT-GRILLE',type:'Дополнительные элементы двери / Вентиляционные решётки',priceCategory:'Вентиляционные решетки',qty:1,unit:'шт.',step:1,name:vent});
+    }
+    const extra=$('doorExtra')?.value?.trim()||'';
+    if(extra&&typeof hardwareSalesPrice==='function'&&hardwareSalesPrice('Доп.фурнитура',extra,'retail')!==null){
+      items.push({key:'DOOR-ADDITIONAL-ELEMENT',type:'Дополнительные элементы двери',priceCategory:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:extra});
     }
     appendSelectedDoorProcessingItems(items);
     const system=product()==='single42'?'42':'59';
@@ -482,48 +519,214 @@ function companionItems(){
     const system=$('slidingSystem')?.value||'';
     if(handle!=='Без ручки')items.push({key:'SLIDE42-HANDLE',type:'Фурнитура / Ручки',priceCategory:'Ручки',qty:1,unit:'шт.',step:1,name:handle});
     if(system && system!=='Без системы')items.push({key:'SLIDE42-SYSTEM',type:'Системы открывания',priceCategory:'Системы открывания',qty:1,unit:'шт.',step:1,name:system});
+    const vent=$('doorVent')?.value||'';
+    if(vent&&vent!=='Не требуется'){
+      items.push({key:'DOOR-VENT-GRILLE',type:'Дополнительные элементы двери / Вентиляционные решётки',priceCategory:'Вентиляционные решетки',qty:1,unit:'шт.',step:1,name:vent});
+    }
+    const extra=$('doorExtra')?.value?.trim()||'';
+    if(extra&&typeof hardwareSalesPrice==='function'&&hardwareSalesPrice('Доп.фурнитура',extra,'retail')!==null){
+      items.push({key:'DOOR-ADDITIONAL-ELEMENT',type:'Дополнительные элементы двери',priceCategory:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:extra});
+    }
     appendSelectedDoorProcessingItems(items);
     return items;
   }
   if(product()==='double42'){
     const items=[];
-    const hinge=$('doorHinges')?.value?.trim()||'';
-    const hingeQty=Number($('doorHingeQty')?.value||recommendedHingeQty()||0);
-    if(hinge && hingeQty>0)items.push({key:'DOOR-HINGE',type:'Фурнитура / Петли',priceCategory:'Петли',qty:hingeQty,unit:'шт.',step:1,name:hinge});
+    const hingeLeft=$('doubleHingesLeft')?.value?.trim()||'';
+    const hingeRight=$('doubleHingesRight')?.value?.trim()||'';
+    const hingeQtyLeft=Number($('doubleHingeQtyLeft')?.value||recommendedDouble42HingeQtyForLeaf('Left')||0);
+    const hingeQtyRight=Number($('doubleHingeQtyRight')?.value||recommendedDouble42HingeQtyForLeaf('Right')||0);
+    if(hingeLeft && hingeQtyLeft>0)items.push({
+      key:'DOUBLE42-HINGE-LEFT',baseKey:'DOOR-HINGE',
+      type:'Фурнитура / Петли',priceCategory:'Петли',
+      qty:hingeQtyLeft,unit:'шт.',step:1,leaf:'Левая створка',
+      name:hingeLeft,
+      priceNote:'Петли левой створки выбираются и считаются независимо от правой.'
+    });
+    if(hingeRight && hingeQtyRight>0)items.push({
+      key:'DOUBLE42-HINGE-RIGHT',baseKey:'DOOR-HINGE',
+      type:'Фурнитура / Петли',priceCategory:'Петли',
+      qty:hingeQtyRight,unit:'шт.',step:1,leaf:'Правая створка',
+      name:hingeRight,
+      priceNote:'Петли правой створки выбираются и считаются независимо от левой.'
+    });
     const lock=$('doorLock')?.value?.trim()||'';
-    if(lock)items.push({key:'DOOR-LOCK',type:'Фурнитура / Замки',priceCategory:'Замки',qty:1,unit:'шт.',step:1,name:lock});
-    const handle=$('doorHandle')?.value?.trim()||'';
-    if(handle)items.push({key:'DOOR-HANDLE',type:'Фурнитура / Ручки',priceCategory:'Ручки',qty:1,unit:'шт.',step:1,name:handle});
-    const turn=$('doorTurn')?.value?.trim()||'';
-    if(turn)items.push({key:'DOOR-TURN',type:'Фурнитура / Завертки',priceCategory:'Завертки',qty:1,unit:'шт.',step:1,name:turn});
-    const stopper=$('doorStopper')?.value?.trim()||'';
-    if(stopper)items.push({key:'DOOR-STOPPER',type:'Фурнитура / Стопоры',priceCategory:'Стопоры',qty:1,unit:'шт.',step:1,name:stopper});
-    const threshold=$('doorThreshold')?.value?.trim()||'';
-    if(threshold)items.push({key:'DOOR-THRESHOLD',type:'Фурнитура / Скрытые пороги',priceCategory:'Скрытый порог',qty:1,unit:'шт.',step:1,name:threshold});
+    if(lock){
+      const activeLeaf=$('doubleLockLeaf')?.value||'Левая створка';
+      items.push({
+        key:'DOOR-LOCK',type:'Фурнитура / Замки',priceCategory:'Замки',
+        qty:1,unit:'шт.',step:1,name:lock,
+        activeLeaf,
+        strikeLeaf:activeLeaf==='Левая створка'?'Правая створка':'Левая створка',
+        priceNote:'Один замок на активной створке; модель и цена наследуют правила замков обычной двери 42 мм. Второй замок автоматически не добавляется.'
+      });
+    }
+    const handleLeft=$('doubleHandleLeftSelect')?.value||'Без ручки';
+    const handleRight=$('doubleHandleRightSelect')?.value||'Без ручки';
+    if(handleLeft&&handleLeft!=='Без ручки'){
+      items.push({
+        key:'DOUBLE42-HANDLE-LEFT',baseKey:'DOOR-HANDLE',
+        type:'Фурнитура / Ручки',priceCategory:'Ручки',
+        qty:1,unit:'комплект',step:1,leaf:'Левая створка',
+        name:handleLeft,
+        priceNote:'Комплект ручек выбран для левой створки.'
+      });
+    }
+    if(handleRight&&handleRight!=='Без ручки'){
+      items.push({
+        key:'DOUBLE42-HANDLE-RIGHT',baseKey:'DOOR-HANDLE',
+        type:'Фурнитура / Ручки',priceCategory:'Ручки',
+        qty:1,unit:'комплект',step:1,leaf:'Правая створка',
+        name:handleRight,
+        priceNote:'Комплект ручек выбран для правой створки.'
+      });
+    }
+
+    const cylinder=$('doorCylinder')?.value?.trim()||'';
+    if(cylinder){
+      items.push({
+        key:'DOOR-CYLINDER',
+        type:'Фурнитура / Цилиндры',
+        priceCategory:'Цилиндровые механизмы',
+        qty:1,
+        unit:'шт.',
+        step:1,
+        name:cylinder,
+        priceNote:'В карточку двустворчатой двери добавляется 1 совместимый цилиндр. Дополнительный цилиндр при необходимости добавляется отдельно через вкладку «Фурнитура».'
+      });
+    }
+    const stopperLeft=$('doubleStopperLeft')?.value?.trim()||'';
+    if(stopperLeft){
+      items.push({
+        key:'DOUBLE42-STOPPER-LEFT',
+        baseKey:'DOOR-STOPPER',
+        type:'Фурнитура / Стопоры',
+        priceCategory:'Стопоры',
+        qty:1,unit:'шт.',step:1,
+        leaf:'Левая створка',
+        name:stopperLeft,
+        priceNote:'Стопор выбран отдельно для левой створки.'
+      });
+    }
+    const stopperRight=$('doubleStopperRight')?.value?.trim()||'';
+    if(stopperRight){
+      items.push({
+        key:'DOUBLE42-STOPPER-RIGHT',
+        baseKey:'DOOR-STOPPER',
+        type:'Фурнитура / Стопоры',
+        priceCategory:'Стопоры',
+        qty:1,unit:'шт.',step:1,
+        leaf:'Правая створка',
+        name:stopperRight,
+        priceNote:'Стопор выбран отдельно для правой створки.'
+      });
+    }
+    const thresholdLeft=$('doubleThresholdLeft')?.value?.trim()||'';
+    if(thresholdLeft){
+      items.push({
+        key:'DOUBLE42-THRESHOLD-LEFT',
+        baseKey:'DOOR-THRESHOLD',
+        type:'Фурнитура / Скрытые пороги',
+        priceCategory:'Скрытый порог',
+        qty:1,unit:'шт.',step:1,
+        leaf:'Левая створка',
+        name:thresholdLeft,
+        priceNote:'Автоматический порог выбран отдельно для левой створки.'
+      });
+    }
+    const thresholdRight=$('doubleThresholdRight')?.value?.trim()||'';
+    if(thresholdRight){
+      items.push({
+        key:'DOUBLE42-THRESHOLD-RIGHT',
+        baseKey:'DOOR-THRESHOLD',
+        type:'Фурнитура / Скрытые пороги',
+        priceCategory:'Скрытый порог',
+        qty:1,unit:'шт.',step:1,
+        leaf:'Правая створка',
+        name:thresholdRight,
+        priceNote:'Автоматический порог выбран отдельно для правой створки.'
+      });
+    }
     const closer=$('doorCloser')?.value?.trim()||'';
-    if(closer)items.push({key:'DOOR-CLOSER',type:'Фурнитура / Доводчики',priceCategory:'Доводчики',qty:1,unit:'шт.',step:1,name:closer});
-    if($('doubleBoltLeft')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-LEFT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
-    if($('doubleBoltRight')?.value==='Ригель для двери')items.push({key:'DOUBLE42-BOLT-RIGHT',type:'Доп.фурнитура',qty:1,unit:'шт.',step:1,name:'Ригель для двери'});
+    if(closer){
+      items.push({
+        key:'DOOR-CLOSER',
+        type:'Фурнитура / Доводчики',
+        priceCategory:'Доводчики',
+        qty:1,unit:'шт.',step:1,
+        name:closer,
+        priceNote:'Один доводчик на весь комплект двустворчатой двери 42 мм; не делится по створкам.'
+      });
+    }
+    if($('doubleBolt')?.checked){
+      const activeLeaf=$('doubleLockLeaf')?.value||'Левая створка';
+      const passiveLeaf=activeLeaf==='Левая створка'?'Правая створка':'Левая створка';
+      items.push({
+        key:'DOUBLE42-BOLT',
+        baseKey:'DOUBLE42-BOLT',
+        type:'Фурнитура / Замки',
+        priceCategory:'Замки',
+        qty:1,unit:'шт.',step:1,
+        passiveLeaf,
+        supplierItemId:63203,
+        name:'Ригель металлический скрытый PUNTO DHM-01 SN мат.никель',
+        priceNote:'Один скрытый ригель на пассивной створке. Актуальный ориентир Trade Lock 17.09.2026: 137,46 ₽; лестница: Опт 2 = 92 ₽, Опт 1 = 104 ₽, Розница = 138 ₽.'
+      });
+    }
+    const ventLeft=$('doubleVentLeft')?.value||'';
+    if(ventLeft&&ventLeft!=='Не требуется'){
+      items.push({key:'DOUBLE42-VENT-GRILLE-LEFT',baseKey:'DOOR-VENT-GRILLE',type:'Дополнительные элементы двери / Вентиляционные решётки',priceCategory:'Вентиляционные решетки',qty:1,unit:'шт.',step:1,leaf:'Левая створка',name:ventLeft});
+    }
+    const ventRight=$('doubleVentRight')?.value||'';
+    if(ventRight&&ventRight!=='Не требуется'){
+      items.push({key:'DOUBLE42-VENT-GRILLE-RIGHT',baseKey:'DOOR-VENT-GRILLE',type:'Дополнительные элементы двери / Вентиляционные решётки',priceCategory:'Вентиляционные решетки',qty:1,unit:'шт.',step:1,leaf:'Правая створка',name:ventRight});
+    }
+    const extraLeft=$('doubleExtraLeft')?.value?.trim()||'';
+    if(extraLeft&&typeof hardwareSalesPrice==='function'&&hardwareSalesPrice('Доп.фурнитура',extraLeft,'retail')!==null){
+      items.push({key:'DOUBLE42-ADDITIONAL-ELEMENT-LEFT',baseKey:'DOOR-ADDITIONAL-ELEMENT',type:'Дополнительные элементы двери',priceCategory:'Доп.фурнитура',qty:1,unit:'шт.',step:1,leaf:'Левая створка',name:extraLeft});
+    }
+    const extraRight=$('doubleExtraRight')?.value?.trim()||'';
+    if(extraRight&&typeof hardwareSalesPrice==='function'&&hardwareSalesPrice('Доп.фурнитура',extraRight,'retail')!==null){
+      items.push({key:'DOUBLE42-ADDITIONAL-ELEMENT-RIGHT',baseKey:'DOOR-ADDITIONAL-ELEMENT',type:'Дополнительные элементы двери',priceCategory:'Доп.фурнитура',qty:1,unit:'шт.',step:1,leaf:'Правая створка',name:extraRight});
+    }
     appendSelectedDoorProcessingItems(items);
-    if(typeof price42DoubleEdgePowderCoatItem==='function'){
-      const powderItem=price42DoubleEdgePowderCoatItem();
+    if(typeof price42DoublePowderCoatItem==='function'){
+      const powderItem=price42DoublePowderCoatItem();
       if(powderItem)items.push(powderItem);
     }
     if(!includeBox())return items;
     const color=bundleBoxColorText('42'),v=boxPartLengthVertical(),t=double42BoxTopLength();
-    const boxMeta={
-      kind:'box-part',
+    items.push({
+      key:'BUNDLE-P42-DOUBLE-KIT',
+      baseKey:'BUNDLE-P42-DOUBLE-KIT',
+      type:'Погонаж 42',
+      qty:1,
+      unit:'комплект',
+      step:1,
+      kind:'box-kit',
       boxHeight:currentHeight(),
       leftWidth:doubleWidth('left'),
       rightWidth:doubleWidth('right'),
       boxColor:color,
-      boxColorKey:price42BoxColorKey(color)
-    };
-    items.push(
-      {key:'BUNDLE-P42-DOUBLE-LEFT',baseKey:'BUNDLE-P42-DOUBLE-LEFT',type:'Погонаж 42',qty:1,unit:'шт.',step:1,boxPart:'left',...boxMeta,name:`Профиль дверного короба 42 / Левая петлевая стойка / ${v} мм / ${color}`},
-      {key:'BUNDLE-P42-DOUBLE-RIGHT',baseKey:'BUNDLE-P42-DOUBLE-RIGHT',type:'Погонаж 42',qty:1,unit:'шт.',step:1,boxPart:'right',...boxMeta,name:`Профиль дверного короба 42 / Правая петлевая стойка / ${v} мм / ${color}`},
-      {key:'BUNDLE-P42-DOUBLE-TOP',baseKey:'BUNDLE-P42-DOUBLE-TOP',type:'Погонаж 42',qty:1,unit:'шт.',step:1,boxPart:'top',boxLength:t,...boxMeta,name:`Профиль дверного короба 42 / Верхняя перемычка / ${t} мм / ${color}`}
-    );
+      boxColorKey:price42BoxColorKey(color),
+      boxMiter45:boxMiter45Selected(),
+      boxParts:{left:v,right:v,top:t},
+      name:`Комплект дверного короба 42 для двустворчатой двери / 2 петлевые стойки по ${v} мм / верхняя перемычка ${t} мм / ${color}${boxMiter45NameSuffix()}`
+    });
+    if(boxMiter45Selected()){
+      items.push({
+        key:'BOX-MITER45-42-DOUBLE',
+        baseKey:'BOX-MITER45-42-DOUBLE',
+        type:'Услуги / Обработка короба',
+        qty:1,
+        unit:'комплект',
+        step:1,
+        kind:'service',
+        fixedUnitPrice:PRICE42_BOX_MITER45_FIXED_PRICE,
+        priceNote:'Фиксированная стоимость услуги 1 100 ₽ за весь двустворчатый комплект короба для Опт 2 / Опт 1 / Розницы.',
+        name:'Запил двустворчатого комплекта дверного короба 42 мм под 45°'
+      });
+    }
     return items;
   }
   if(!includeBox())return [];
