@@ -101,7 +101,6 @@ const BITRIX_LOCK_BASE_PRICES=Object.freeze([
   {name:"Замок магнитный под цилиндр Vantage MC85BL черный",price:910,sourceBase:910,parentId:25288,offerId:25290,priceOverride:false},
   {name:"Замок магнитный под цилиндр Vantage MC 85 SC -мат хром",price:910,sourceBase:910,parentId:26926,offerId:26928,priceOverride:false},
   {name:"Замок межкомнатный MORELLI IP WC B бесшумный, цвет черный",price:1720,sourceBase:1720,parentId:38412,offerId:38414,priceOverride:false},
-  {name:"Замок С/У шар \"ARCHIE\"",price:null,sourceBase:null,parentId:1380,offerId:21412,priceOverride:false},
   {name:"Замок электромагнитный  СКУД«Орион Болид»",price:15500,sourceBase:15500,parentId:24158,offerId:24160,priceOverride:false},
   {name:"Замок электромеханический ALeko ALM-561EM",price:47200,sourceBase:47200,parentId:34448,offerId:34450,priceOverride:false},
   {name:"Защелка межкомнатная MORELLI LP6-45 BL, цвет черный",price:340,sourceBase:340,parentId:42300,offerId:42302,priceOverride:false},
@@ -1667,6 +1666,32 @@ function normalizeHardwarePriceName(value){
     .replace(/\s*-\s*/g,'-')
     .trim();
 }
+const BITRIX_VENT_GRILLE_BASE_PRICES=Object.freeze([
+  {name:"Вентиляционная алюминиевая решетка Profiledoors, 30x2,5см (комплект)",price:4300,sourceBase:4300,parentId:21502,offerId:21504,priceOverride:false},
+  {name:"Решетка вентиляционная алюминиевая 245х60 мм, белая, GTV",price:610,sourceBase:610,parentId:21498,offerId:21500,priceOverride:false},
+  {name:"Решетка вентиляционная алюминиевая 245х60 мм, серебристая, GTV (1шт)",price:610,sourceBase:610,parentId:21490,offerId:21492,priceOverride:false},
+  {name:"Решетка вентиляционная алюминиевая 245х60 мм, чёрная, GTV",price:610,sourceBase:610,parentId:21494,offerId:21496,priceOverride:false},
+  {name:"Решетка врезная металлическая 600х40, белая",price:1220,sourceBase:1220,parentId:25376,offerId:25378,priceOverride:false}
+]);
+
+const BITRIX_ADDITIONAL_ELEMENT_BASE_PRICES=Object.freeze([
+  {name:"Иллюминатор, диаметр 250 мм, матовая латунь",price:15800,sourceBase:15800,parentId:24150,offerId:24152,priceOverride:false},
+  {name:"Иллюминатор декоративный для дверей, диаметр 350мм",price:16160,sourceBase:16160,parentId:24004,offerId:24006,priceOverride:false},
+  {name:"Иллюминатор для дверей. Нержавеющая сталь. Стекло прозрачное. Диаметр 350 мм, цвет - матовый хром",price:9000,sourceBase:9000,parentId:28602,offerId:28604,priceOverride:false},
+  {name:"Накладка для двери из нитрид титана, матовая латунь",price:29400,sourceBase:29400,parentId:null,offerId:null,priceOverride:false},
+  {name:"Квадрат (ось) 105 мм",price:70,sourceBase:70,parentId:30304,offerId:30306,priceOverride:true,priceOverrideReason:"BASE Bitrix24 70 ₽ подтверждён и утверждён как розничная цена"},
+  {name:"Квадрат (ось) 8х150мм",price:150,sourceBase:150,parentId:28660,offerId:28662,priceOverride:false},
+  {name:"Квадрат Spindle 6х80мм ARMADILLO (для дверей 59мм)",price:100,sourceBase:100,parentId:27392,offerId:27394,priceOverride:true,priceOverrideReason:"BASE Bitrix24 100 ₽ подтверждён и утверждён как розничная цена"},
+  {name:"Четырехгранник LUX-SPINDLE-WC 110 NERO 110мм с кнопкой, цвет черный",price:1885,sourceBase:1885,parentId:29826,offerId:29828,priceOverride:false},
+  {name:"Четырехгранник MORELLI LUX-SPINDLE-WC 110 CSA 110мм, цвет мат. хром",price:1863,sourceBase:1863,parentId:34296,offerId:34298,priceOverride:false}
+]);
+
+const BITRIX_INSTALLATION_BASE_PRICES=Object.freeze([
+  {name:"Комплект монтажника под двери 42 мм",price:75,sourceBase:75,parentId:null,offerId:null,priceOverride:true,priceOverrideReason:"Утверждено Александром: розничная цена 75 ₽"},
+  {name:"Комплект монтажника под двери 59 мм",price:75,sourceBase:75,parentId:null,offerId:null,priceOverride:true,priceOverrideReason:"Утверждено Александром: розничная цена 75 ₽"},
+  {name:"Переход гибкий ABLOY EA281, цвет хром",price:800,sourceBase:800,parentId:null,offerId:null,priceOverride:true,priceOverrideReason:"Утверждено Александром: розничная цена 800 ₽"}
+]);
+
 const BITRIX_HARDWARE_BASE_PRICE_MAPS=Object.freeze({
   'Петли':new Map(BITRIX_HINGE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Замки':new Map(BITRIX_LOCK_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
@@ -1676,7 +1701,10 @@ const BITRIX_HARDWARE_BASE_PRICE_MAPS=Object.freeze({
   'Стопоры':new Map(BITRIX_STOPPER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Скрытый порог':new Map(BITRIX_THRESHOLD_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
   'Доводчики':new Map(BITRIX_CLOSER_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
-  'Системы открывания':new Map(BITRIX_OPENING_SYSTEM_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
+  'Системы открывания':new Map(BITRIX_OPENING_SYSTEM_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
+  'Вентиляционные решетки':new Map(BITRIX_VENT_GRILLE_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
+  'Доп.фурнитура':new Map(BITRIX_ADDITIONAL_ELEMENT_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item])),
+  'Монтаж и комплектующие':new Map(BITRIX_INSTALLATION_BASE_PRICES.map(item=>[normalizeHardwarePriceName(item.name),item]))
 });
 function hardwareBasePriceMeta(category,name){
   const map=BITRIX_HARDWARE_BASE_PRICE_MAPS[category];
@@ -1803,11 +1831,31 @@ function configuredCatalogUnitPrice(){
     return hardwareSalesPrice(sourceCategory,$('catalogItem')?.value||'',activeSalesPriceType());
   }
   if(product()==='openingSystem')return hardwareSalesPrice('Системы открывания',$('catalogItem')?.value||'',activeSalesPriceType());
+  if(product()==='installation')return hardwareSalesPrice('Монтаж и комплектующие',$('catalogItem')?.value||'','retail');
+  if(product()==='additionalElement'){
+    const type=$('additionalType')?.value||'';
+    const name=$('catalogItem')?.value||'';
+    if(type==='Вентиляционные решётки')return hardwareSalesPrice('Вентиляционные решетки',name,'retail');
+    const p=hardwareSalesPrice('Доп.фурнитура',name,'retail');
+    if(p!==null)return p;
+  }
+  if(product()==='trim42'&&typeof configuredTrim42UnitPrice==='function')return configuredTrim42UnitPrice(activeSalesPriceType());
+  if(product()==='trim59'&&typeof configuredTrim59UnitPrice==='function')return configuredTrim59UnitPrice(activeSalesPriceType());
   if(['single42','sliding42'].includes(product())&&typeof configured42StandardUnitPrice==='function')return configured42StandardUnitPrice();
   if(product()==='double42'&&typeof configuredDouble42LeafUnitPrice==='function')return configuredDouble42LeafUnitPrice();
   if(product()==='single59'&&typeof configured59UnitPrice==='function')return configured59UnitPrice();
   return configured36CartUnitPrice();
 }
+const DOUBLE42_BOLT_DHM01_SALES_PRICES=Object.freeze({
+  wholesale2:92,
+  wholesale1:104,
+  retail:138
+});
+function double42BoltSalesPrice(priceType=activeSalesPriceType()){
+  const type=normalizeSalesPriceType(priceType);
+  return DOUBLE42_BOLT_DHM01_SALES_PRICES[type]??DOUBLE42_BOLT_DHM01_SALES_PRICES.wholesale2;
+}
+
 function companionItemUnitPrice(item){
   const key=String(item?.key||'');
   const baseKey=String(item?.baseKey||key);
@@ -1818,17 +1866,19 @@ function companionItemUnitPrice(item){
   if(baseKey==='POWDER-COAT-42')return Number(item?.fixedUnitPrice||PRICE42_POWDER_COAT_RATE_PER_M||460);
   if(baseKey==='POWDER-COAT-59')return Number(item?.fixedUnitPrice||PRICE59_POWDER_COAT_RATE_PER_M||460);
   if(/^BOX-MITER45-/.test(baseKey)||/^BOX-MITER45-/.test(key))return Number(item?.fixedUnitPrice||PRICE42_BOX_MITER45_FIXED_PRICE||1100);
-  if(baseKey==='PROCESS-SKUD-LOCK-CUT'||key==='PROCESS-SKUD-LOCK-CUT')return null;
   if(/^PROCESS-/.test(baseKey)||/^PROCESS-/.test(key))return Number(item?.fixedUnitPrice||0)||null;
   if(key==='DOOR-HINGE')return hardwareSalesPrice('Петли',item?.name||'',type);
   if(key==='DOOR-LOCK')return hardwareSalesPrice('Замки',item?.name||'',type);
   if(key==='DOOR-HANDLE'||key==='SLIDE42-HANDLE')return hardwareSalesPrice('Ручки',item?.name||'',type);
   if(key==='DOOR-TURN')return hardwareSalesPrice('Завертки',item?.name||'',type);
   if(key==='DOOR-CYLINDER')return hardwareSalesPrice('Цилиндровые механизмы',item?.name||'',type);
-  if(key==='DOOR-STOPPER')return hardwareSalesPrice('Стопоры',item?.name||'',type);
-  if(key==='DOOR-THRESHOLD')return hardwareSalesPrice('Скрытый порог',item?.name||'',type);
+  if(baseKey==='DOOR-STOPPER'||key==='DOOR-STOPPER')return hardwareSalesPrice('Стопоры',item?.name||'',type);
+  if(baseKey==='DOOR-THRESHOLD'||key==='DOOR-THRESHOLD')return hardwareSalesPrice('Скрытый порог',item?.name||'',type);
   if(key==='DOOR-CLOSER')return hardwareSalesPrice('Доводчики',item?.name||'',type);
+  if(baseKey==='DOOR-VENT-GRILLE'||key==='DOOR-VENT-GRILLE')return hardwareSalesPrice('Вентиляционные решетки',item?.name||'','retail');
+  if(baseKey==='DOOR-ADDITIONAL-ELEMENT'||key==='DOOR-ADDITIONAL-ELEMENT')return hardwareSalesPrice('Доп.фурнитура',item?.name||'','retail');
   if(key==='SLIDE42-SYSTEM')return hardwareSalesPrice('Системы открывания',openingSystemPriceName(item?.name||''),type);
+  if(baseKey==='DOUBLE42-BOLT'||key==='DOUBLE42-BOLT')return double42BoltSalesPrice(type);
   return companion36UnitPrice(item);
 }
 
@@ -1870,6 +1920,18 @@ function genericCatalogItemPrice(item){
   }
   if(category==='Системы открывания'){
     const p=hardwareSalesPrice('Системы открывания',openingSystemPriceName(name),item?.priceType||activeSalesPriceType());
+    if(p!==null)return p;
+  }
+  if(/вентиляционн.*решет|вентрешет/i.test(category+' '+name)){
+    const p=hardwareSalesPrice('Вентиляционные решетки',name,'retail');
+    if(p!==null)return p;
+  }
+  if(/монтаж|ABLOY EA281/i.test(category+' '+name)){
+    const p=hardwareSalesPrice('Монтаж и комплектующие',name,'retail');
+    if(p!==null)return p;
+  }
+  if(/иллюминатор/i.test(category+' '+name)){
+    const p=hardwareSalesPrice('Доп.фурнитура',name,'retail');
     if(p!==null)return p;
   }
   if(typeof cart42StandardFallbackUnitPrice==='function'){
