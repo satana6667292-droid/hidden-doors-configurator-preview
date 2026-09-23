@@ -142,6 +142,142 @@ const PRICE42_BOX_LINEAR_OPT2=Object.freeze({
   black:Math.ceil(SALES_PRICE_42_BOX_OPT2.base.black/PRICE42_BOX_STANDARD_PROFILE_METERS)
 });
 
+const PRICE42_TRIM_BOX_WHIP_METERS=5.1;
+const PRICE42_TRIM_EDGE_WHIP_METERS=6;
+const PRICE42_TRIM_EDGE_PURCHASE_WHIP=1638;
+const PRICE42_TRIM_EDGE_OPT2_MARKUP=0.60;
+const PRICE42_TRIM_EDGE_SOURCE='АЛКОР · счёт №1356 от 23.09.2026 · профиль торца 42 чёрный наружный/реверс';
+const PRICE42_TRIM_EDGE_OPT2_RATE_PER_M=(PRICE42_TRIM_EDGE_PURCHASE_WHIP/PRICE42_TRIM_EDGE_WHIP_METERS)*(1+PRICE42_TRIM_EDGE_OPT2_MARKUP);
+
+function price42TrimProfileCurrentState(){
+  const sale=$('trim42Sale')?.value||'Метраж';
+  const boxState=typeof trim42DoorOrderState==='function'?trim42DoorOrderState():null;
+  const edgeState=typeof trim42EdgeDoorOrderState==='function'?trim42EdgeDoorOrderState():null;
+  const item=typeof trim42Item==='function'?trim42Item():'';
+  const isEdge=item==='Торец BC3'||item==='Торец C4';
+  const state=isEdge?edgeState:boxState;
+  return {
+    item,
+    color:$('trim42Color')?.value||'Серый',
+    sale,
+    mode:boxState?.mode||'Комплект короба',
+    part:boxState?.part||'Петлевая стойка',
+    height:Number(state?.height||2000),
+    width:Number(state?.width||700),
+    verticalLength:Number(state?.verticalLength||2100),
+    horizontalLength:Number(state?.horizontalLength||0),
+    totalLength:Number(state?.totalLength||0),
+    topLength:Number(boxState?.topLength||800)
+  };
+}
+function price42TrimProfileCalculation(config=price42TrimProfileCurrentState(),priceType=activeSalesPriceType()){
+  const item=String(config?.item||'');
+  const sale=String(config?.sale||'Метраж');
+  const type=normalizeSalesPriceType(priceType);
+
+  if(item==='Торец BC3'||item==='Торец C4'){
+    let lengthMm=1000;
+    let unit='м.п.';
+    let label=item+' · 1 м.п.';
+    if(sale==='Целый хлыст'){
+      lengthMm=Math.round(PRICE42_TRIM_EDGE_WHIP_METERS*1000);
+      unit='хлыст';
+      label=item+' · хлыст '+lengthMm+' мм';
+    }else if(sale==='Под конкретную дверь'){
+      const height=Number(config?.height||0);
+      const width=Number(config?.width||0);
+      const verticalLength=height+20;
+      const horizontalLength=width+20;
+      lengthMm=verticalLength*2+horizontalLength*2;
+      unit='комплект';
+      label=item+' · под дверь '+height+'×'+width+' · '+String(lengthMm/1000).replace('.',',')+' м.п.';
+    }
+    const lengthM=lengthMm/1000;
+    const opt2Raw=lengthM*PRICE42_TRIM_EDGE_OPT2_RATE_PER_M;
+    const opt2Price=Math.ceil(opt2Raw);
+    return {
+      ok:true,item,sale,priceType:type,lengthMm,lengthM,unit,label,
+      height:Number(config?.height||0),width:Number(config?.width||0),
+      verticalLength:sale==='Под конкретную дверь'?Number(config?.height||0)+20:null,
+      horizontalLength:sale==='Под конкретную дверь'?Number(config?.width||0)+20:null,
+      purchaseWhipPrice:PRICE42_TRIM_EDGE_PURCHASE_WHIP,
+      purchaseWhipMeters:PRICE42_TRIM_EDGE_WHIP_METERS,
+      source:PRICE42_TRIM_EDGE_SOURCE,
+      purchaseRatePerM:PRICE42_TRIM_EDGE_PURCHASE_WHIP/PRICE42_TRIM_EDGE_WHIP_METERS,
+      opt2Markup:PRICE42_TRIM_EDGE_OPT2_MARKUP,
+      ratePerMeterOpt2:PRICE42_TRIM_EDGE_OPT2_RATE_PER_M,
+      opt2Raw,opt2Price,
+      price:price42ApplySalesTier(opt2Price,type),
+      formula:'Закуп '+PRICE42_TRIM_EDGE_PURCHASE_WHIP+' ₽ / '+PRICE42_TRIM_EDGE_WHIP_METERS+' м × 1,60 × '+String(lengthM).replace('.',',')+' м → Opt 2 '+opt2Price+' ₽'
+    };
+  }
+
+  if(item!=='Профиль дверного короба 42'){
+    return {ok:false,reason:'Для выбранного погонажа 42 цена не определена.'};
+  }
+  const colorKey=price42BoxColorKey(config?.color||'');
+  const ratePerMeterOpt2=Number(PRICE42_BOX_LINEAR_OPT2[colorKey]);
+  if(!Number.isFinite(ratePerMeterOpt2)){
+    return {ok:false,reason:'Для выбранного цвета профиля короба 42 ставка не определена.'};
+  }
+
+  let lengthMm=1000;
+  let unit='м.п.';
+  let label='Профиль дверного короба 42 · 1 м.п.';
+  if(sale==='Целый хлыст'){
+    lengthMm=Math.round(PRICE42_TRIM_BOX_WHIP_METERS*1000);
+    unit='хлыст';
+    label='Профиль дверного короба 42 · хлыст '+lengthMm+' мм';
+  }else if(sale==='Под конкретную дверь'){
+    const mode=String(config?.mode||'Комплект короба');
+    if(mode==='Отдельная деталь'){
+      const part=String(config?.part||'Петлевая стойка');
+      lengthMm=part==='Верхняя перемычка'?Number(config?.topLength||0):Number(config?.verticalLength||0);
+      unit='шт.';
+      label='Профиль дверного короба 42 · '+part+' · '+lengthMm+' мм';
+    }else{
+      const vertical=Number(config?.verticalLength||0);
+      const top=Number(config?.topLength||0);
+      lengthMm=vertical*2+top;
+      unit='комплект';
+      label='Комплект профиля короба 42 · 2×'+vertical+' + '+top+' мм';
+    }
+  }
+
+  if(!Number.isFinite(lengthMm)||lengthMm<=0)return {ok:false,reason:'Не удалось определить длину профиля короба 42.'};
+  const lengthM=lengthMm/1000;
+  const opt2Price=Math.ceil(lengthM*ratePerMeterOpt2);
+  return {
+    ok:true,
+    priceType:type,
+    colorKey,
+    color:String(config?.color||''),
+    sale,
+    mode:String(config?.mode||''),
+    part:String(config?.part||''),
+    height:Number(config?.height||0),
+    width:Number(config?.width||0),
+    lengthMm,
+    lengthM,
+    unit,
+    label,
+    ratePerMeterOpt2,
+    opt2Price,
+    price:price42ApplySalesTier(opt2Price,type),
+    formula:'Длина '+String(lengthM).replace('.',',')+' м × '+ratePerMeterOpt2+' ₽/м по Опт 2'
+  };
+}
+function configuredTrim42UnitPrice(priceType=activeSalesPriceType()){
+  if(product()!=='trim42')return null;
+  const calc=price42TrimProfileCalculation(price42TrimProfileCurrentState(),priceType);
+  return calc.ok?calc.price:null;
+}
+function configuredTrim42PriceNote(priceType=activeSalesPriceType()){
+  if(product()!=='trim42')return '';
+  const calc=price42TrimProfileCalculation(price42TrimProfileCurrentState(),priceType);
+  return calc.ok?'':(calc.reason||'Цена погонажа 42 требует согласования.');
+}
+
 function price42DoubleBoxCalculation({height,leftWidth,rightWidth,colorKey,color}={},priceType=activeSalesPriceType()){
   const h=Number(height),left=Number(leftWidth),right=Number(rightWidth);
   const key=colorKey||price42BoxColorKey(color);
@@ -176,7 +312,7 @@ function price42DoubleBoxCalculation({height,leftWidth,rightWidth,colorKey,color
 }
 function price42DoubleBoxPartUnitPrice(item,priceType=activeSalesPriceType()){
   const key=String(item?.baseKey||item?.key||'');
-  if(!/^BUNDLE-P42-DOUBLE-(LEFT|RIGHT|TOP)$/.test(key))return null;
+  if(!/^BUNDLE-P42-DOUBLE-(LEFT|RIGHT|TOP|KIT)$/.test(key))return null;
   const calc=price42DoubleBoxCalculation({
     height:item?.boxHeight,
     leftWidth:item?.leftWidth,
@@ -185,6 +321,7 @@ function price42DoubleBoxPartUnitPrice(item,priceType=activeSalesPriceType()){
     color:item?.boxColor
   },priceType);
   if(!calc.ok)return null;
+  if(key.endsWith('-KIT'))return calc.price;
   if(key.endsWith('-TOP'))return calc.topPrice;
   const leftPrice=Math.floor(calc.verticalPairPrice/2);
   const rightPrice=calc.verticalPairPrice-leftPrice;
@@ -224,51 +361,61 @@ function price42PowderCoatCalculation({height,width,edgeColor,boxColor,includeBo
     total:Math.ceil(billableMeters*PRICE42_POWDER_COAT_RATE_PER_M)
   };
 }
-function price42DoubleEdgePowderCoatCalculation({height,leftWidth,rightWidth,leftEdgeColor,rightEdgeColor}={}){
+function price42DoublePowderCoatCalculation({height,leftWidth,rightWidth,leftEdgeColor,rightEdgeColor,boxColor,includeBox:withBox=false}={}){
   const h=Number(height),lw=Number(leftWidth),rw=Number(rightWidth);
   if(!Number.isFinite(h)||h<=0||!Number.isFinite(lw)||lw<=0||!Number.isFinite(rw)||rw<=0){
-    return {active:false,leftEdgeMeters:0,rightEdgeMeters:0,rawMeters:0,billableMeters:0,total:0};
+    return {active:false,leftEdgeMeters:0,rightEdgeMeters:0,boxMeters:0,rawMeters:0,billableMeters:0,total:0};
   }
   const leftPainted=price42IsPowderColor(leftEdgeColor);
   const rightPainted=price42IsPowderColor(rightEdgeColor);
+  const boxPainted=!!withBox&&price42IsPowderColor(boxColor);
   const leftEdgeMm=leftPainted?(2*(h+20)+2*(lw+20)):0;
   const rightEdgeMm=rightPainted?(2*(h+20)+2*(rw+20)):0;
+  const topMm=lw+rw+10;
+  const boxMm=boxPainted?(2*(h+100)+topMm):0;
   const leftEdgeMeters=price42RoundLength(leftEdgeMm/1000)||0;
   const rightEdgeMeters=price42RoundLength(rightEdgeMm/1000)||0;
-  const rawMeters=price42RoundLength(leftEdgeMeters+rightEdgeMeters)||0;
+  const boxMeters=price42RoundLength(boxMm/1000)||0;
+  const rawMeters=price42RoundLength(leftEdgeMeters+rightEdgeMeters+boxMeters)||0;
   const billableMeters=price42RoundLength(rawMeters*PRICE42_POWDER_COAT_RESERVE_FACTOR)||0;
   return {
-    active:leftPainted||rightPainted,
-    leftPainted,rightPainted,leftEdgeMeters,rightEdgeMeters,rawMeters,billableMeters,
+    active:leftPainted||rightPainted||boxPainted,
+    leftPainted,rightPainted,boxPainted,leftEdgeMeters,rightEdgeMeters,boxMeters,topMm,rawMeters,billableMeters,
     ratePerMeter:PRICE42_POWDER_COAT_RATE_PER_M,
     reservePercent:10,
     total:Math.ceil(billableMeters*PRICE42_POWDER_COAT_RATE_PER_M)
   };
 }
-function price42DoubleEdgePowderCoatItem(){
+function price42DoublePowderCoatItem(){
   if(product()!=='double42')return null;
-  const calc=price42DoubleEdgePowderCoatCalculation({
+  const calc=price42DoublePowderCoatCalculation({
     height:currentHeight(),
     leftWidth:doubleWidth('left'),
     rightWidth:doubleWidth('right'),
-    leftEdgeColor:$('LeftEdgeColor')?.value||'',
-    rightEdgeColor:$('RightEdgeColor')?.value||''
+    leftEdgeColor:$('DoubleEdgeColor')?.value||'',
+    rightEdgeColor:$('DoubleEdgeColor')?.value||'',
+    boxColor:$('bundle42Color')?.value||'',
+    includeBox:includeBox()
   });
   if(!calc.active||calc.billableMeters<=0)return null;
-  const leftRal=$('LeftEdgeRal')?.value||'';
-  const rightRal=$('RightEdgeRal')?.value||'';
-  const ralParts=[];
-  const noteParts=[];
+  const leftRal=$('DoubleEdgeRal')?.value||'';
+  const rightRal=leftRal;
+  const boxRal=(calc.boxPainted&&calc.leftPainted)?(leftRal||$('bundle42Ral')?.value||''):($('bundle42Ral')?.value||'');
+  const ralParts=[],noteParts=[];
   if(calc.leftPainted){
     ralParts.push('левая створка '+(leftRal||'RAL'));
-    noteParts.push('левая створка '+String(calc.leftEdgeMeters).replace('.',',')+' м');
+    noteParts.push('торец левой створки '+String(calc.leftEdgeMeters).replace('.',',')+' м');
   }
   if(calc.rightPainted){
     ralParts.push('правая створка '+(rightRal||'RAL'));
-    noteParts.push('правая створка '+String(calc.rightEdgeMeters).replace('.',',')+' м');
+    noteParts.push('торец правой створки '+String(calc.rightEdgeMeters).replace('.',',')+' м');
+  }
+  if(calc.boxPainted){
+    ralParts.push('короб '+(boxRal||leftRal||'RAL'));
+    noteParts.push('короб '+String(calc.boxMeters).replace('.',',')+' м');
   }
   return {
-    key:'POWDER-COAT-42-DOUBLE-EDGES',
+    key:'POWDER-COAT-42-DOUBLE',
     baseKey:'POWDER-COAT-42',
     type:'Услуги / Полимерно-порошковая покраска',
     qty:calc.billableMeters,
@@ -276,8 +423,8 @@ function price42DoubleEdgePowderCoatItem(){
     step:0.0005,
     kind:'service',
     fixedUnitPrice:PRICE42_POWDER_COAT_RATE_PER_M,
-    priceNote:noteParts.join(' + ')+' = '+String(calc.rawMeters).replace('.',',')+' м; +10% технологический запас = '+String(calc.billableMeters).replace('.',',')+' м. Короб в этот расчёт не входит.',
-    name:'Полимерно-порошковая покраска торцов двустворчатой 42 / '+ralParts.join(' / ')+' / '+String(calc.billableMeters).replace('.',',')+' м.п. × '+PRICE42_POWDER_COAT_RATE_PER_M+' ₽'
+    priceNote:noteParts.join(' + ')+' = '+String(calc.rawMeters).replace('.',',')+' м; +10% технологический запас = '+String(calc.billableMeters).replace('.',',')+' м.',
+    name:'Полимерно-порошковая покраска алюминиевого профиля двустворчатой 42 / '+ralParts.join(' / ')+' / '+String(calc.billableMeters).replace('.',',')+' м.п. × '+PRICE42_POWDER_COAT_RATE_PER_M+' ₽'
   };
 }
 
