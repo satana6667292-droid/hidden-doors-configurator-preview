@@ -97,33 +97,42 @@ function renderDouble42(){
     section('Базовая система',fields(
       field('Тип изделия',inputEl('fixedType','Двустворчатая дверь 42 мм','text','disabled'))+
       field('Система',inputEl('fixedSystem','42 мм','text','disabled'))+
-      field('Конструкция обоих полотен',selectEl('frame',['Каркас из фанеры','Алюминиевый каркас'],'Каркас из фанеры'),'full')
+      field('Конструкция обоих полотен',selectEl('frame',['Каркас из фанеры','Алюминиевый каркас'],'Каркас из фанеры')+
+        '<div class="mini">Тип каркаса единый для обеих створок. Смешанное исполнение фанера + алюминий не допускается.</div>','full')
     ))+
     section('Размеры',fields(
-      field('Общая высота, мм',`<div class="inline">${selectEl('height',range(1700,2200,50),2000)}${plusButton(`toggleCustom("height")`)}</div><input id="customHeight" class="hidden" type="number" min="1700" step="1">`)+
+      field('Общая высота, мм',`<div class="inline">${selectEl('height',range(1700,2200,50),2000)}${plusButton(`toggleCustom("height")`)}</div><input id="customHeight" class="hidden" type="number" min="1700" step="5">`)+
       field('Признак цены',inputEl('standardFlag','Стандарт','text','disabled'))+
-      field('Ширина левой створки, мм',`<div class="inline">${selectEl('leftWidth',range(400,1000,50),800)}${plusButton(`toggleCustomDoubleWidth("left")`)}</div><input id="customLeftWidth" class="hidden" type="number" min="400" max="1000" step="1">`)+
-      field('Ширина правой створки, мм',`<div class="inline">${selectEl('rightWidth',range(400,1000,50),600)}${plusButton(`toggleCustomDoubleWidth("right")`)}</div><input id="customRightWidth" class="hidden" type="number" min="400" max="1000" step="1">`)+
-      field('Открывание',selectEl('opening',['Левое на себя','Правое на себя'],'Левое на себя'),'full')
+      field('Ширина левой створки, мм',`<div class="inline">${selectEl('leftWidth',range(400,1000,50),800)}${plusButton(`toggleCustomDoubleWidth("left")`)}</div><input id="customLeftWidth" class="hidden" type="number" min="400" max="1000" step="5">`)+
+      field('Ширина правой створки, мм',`<div class="inline">${selectEl('rightWidth',range(400,1000,50),600)}${plusButton(`toggleCustomDoubleWidth("right")`)}</div><input id="customRightWidth" class="hidden" type="number" min="400" max="1000" step="5">`)+
+      field('Общая ширина проёма',inputEl('doubleTotalWidth','Рассчитывается из двух створок','text','disabled')+
+        '<div class="mini">Отдельного ограничения по общей ширине нет. Контролируются только левая и правая створки по отдельности.</div>','full')+
+      field('Открывание левой створки',inputEl('doubleLeftOpening','Левое на себя','text','disabled'))+
+      field('Открывание правой створки',inputEl('doubleRightOpening','Правое на себя','text','disabled'))
     ))+
     section('Покрытия створок',
-      `<div class="note">Реверса нет. Активная/пассивная створка пока не участвует в SKU. Левая и правая створки могут иметь разные покрытия.</div>
-       <div class="row" style="margin:12px 0"><button class="secondary" type="button" onclick="copyLeftToRight()">Скопировать левую створку → правую</button></div>
+      `<div class="note">Реверса нет. Левая створка всегда открывается «левое на себя», правая — «правое на себя». У двустворчатой двери всегда одна активная и одна пассивная створка; вариант «обе активные» не используется. Активная сторона — параметр конкретного заказа: она не входит в SKU, длинное название и ключ дублей номенклатуры. Покрытия левой и правой створки могут отличаться, но цвет алюминиевого торца выбирается один на весь комплект.</div>
+       <div class="row" style="margin:12px 0"><button class="secondary" type="button" onclick="copyLeftToRight()">Скопировать покрытие левой створки → правую</button></div>
        <div class="fields">
-         <div>${finishPane('Левая створка','Left',COVER_BASE,'42',false)}</div>
-         <div>${finishPane('Правая створка','Right',COVER_BASE,'42',false)}</div>
+         <div>${finishPane('Левая створка','Left',COVER_BASE,'42',false,false)}</div>
+         <div>${finishPane('Правая створка','Right',COVER_BASE,'42',false,false)}</div>
+       </div>
+       <div class="pane" style="margin-top:12px">
+         <div class="pane-title">Алюминиевый торец · общий для комплекта</div>
+         ${edgeControls('Double',false)}
        </div>`
     )+
     section('Комплектация двери',
-      boxOption(true)+
+      boxOption(true)+boxMiter45Option()+
       `<div id="bundleDouble42Details" style="margin-top:10px">
-        <div class="catalog-note"><b>Короб 42 для двухстворчатой двери</b><br>Две вертикальные детали — петлевые стойки по высоте полотна +100 мм. Ответной стойки короба нет. Верхняя перемычка = ширина левой створки + ширина правой створки +10 мм.</div>
+        <div class="catalog-note"><b>Короб 42 для двухстворчатой двери</b><br>Две вертикальные детали — петлевые стойки по высоте полотна +100 мм. Ответной стойки короба нет. Верхняя перемычка = ширина левой створки + ширина правой створки +10 мм.<br>Цвет короба по умолчанию подставляется по общему цвету алюминиевого торца, но менеджер может вручную выбрать другой цвет короба. Ручной выбор сохраняется, пока снова не изменят цвет торца.</div>
         <div class="fields" style="margin-top:10px">
           ${field('Цвет короба',
             selectEl('bundle42Color',['Серый','Чёрный','Полимерно-порошковая покраска'],'Серый')+
             `<div id="bundle42RalWrap" class="hidden" style="margin-top:8px">
                <label>RAL короба</label>
                ${selectEl('bundle42Ral',getRals(),getRals()[0])}
+               <div id="bundle42RalHint" class="mini"></div>
              </div>`
           ,'full')}
           ${field('Левая петлевая стойка',inputEl('bundleDouble42Left','', 'text','disabled'))}
@@ -133,13 +142,15 @@ function renderDouble42(){
       </div>`
     )+
     doorOrderSections()+
-    section('Расположение замка и ригелей',
-      `<div class="catalog-note">Активную/пассивную створку пока не задаём. Если замок выбран выше, здесь указывается створка с замком; ответная часть подразумевается на противоположной створке. Если замок не выбран, ответная часть не формируется. Ригель выбирается отдельно для каждой створки и не входит в SKU полотен.</div>`+
+
+    section('Активная / пассивная створка',
+      `<div class="catalog-note">У двустворчатой двери всегда одна активная и одна пассивная створка. Выберите активную; противоположная автоматически считается пассивной. Размер створки на эту роль не влияет: активная может быть уже, шире или равна пассивной. Открывание створок фиксировано конструктивом: левая — левое на себя, правая — правое на себя. Если выбран замок, он ставится только на активную створку, а ответная часть — на пассивную. Режима «обе створки активные» нет.</div>`+
       fields(
-        field('Створка с замком',selectEl('doubleLockLeaf',['Левая створка','Правая створка'],'Левая створка')+
+        field('Активная створка',selectEl('doubleLockLeaf',['Левая створка','Правая створка'],'Левая створка')+
           '<div id="doubleLockHint" class="mini"></div>','full')+
-        field('Ригель — левая створка',selectEl('doubleBoltLeft',['Не требуется','Ригель для двери'],'Не требуется'))+
-        field('Ригель — правая створка',selectEl('doubleBoltRight',['Не требуется','Ригель для двери'],'Не требуется'))
+        field('Ригель / шпингалет пассивной створки',
+          '<label class="check"><input id="doubleBolt" type="checkbox" checked> <span>Добавить 1 ригель / шпингалет на пассивную створку</span></label>'+
+          '<div id="doubleBoltHint" class="mini"></div>','full')
       )
     )+
     section('Особенности заказа',field('Комментарий / операции, не входящие в SKU',`<textarea id="comment" placeholder="Замок, петли, фрезеровки, ригели и прочие операции заказа"></textarea>`,'full'));
@@ -163,7 +174,7 @@ function updateDouble42Frame(){
 }
 function double42BoxTopLength(){return doubleWidth('left')+doubleWidth('right')+10}
 function doubleBundleColorFromDoor(){
-  const edge=$('LeftEdgeColor')?.value||'Серый анод';
+  const edge=$('DoubleEdgeColor')?.value||'Серый анод';
   if(edge==='Черный анод')return 'Чёрный';
   if(edge==='Полимерно-порошковая покраска')return 'Полимерно-порошковая покраска';
   return 'Серый';
@@ -173,29 +184,51 @@ function syncDouble42BundleColorFromDoor(){
   const color=doubleBundleColorFromDoor();
   if($('bundle42Color'))$('bundle42Color').value=color;
   if(color==='Полимерно-порошковая покраска' && $('bundle42Ral')){
-    $('bundle42Ral').value=$('LeftEdgeRal')?.value||getRals()[0];
+    $('bundle42Ral').value=$('DoubleEdgeRal')?.value||getRals()[0];
   }
   updateBundleDouble42();
 }
 function updateBundleDouble42(){
   if(product()!=='double42')return;
+  updateBoxMiter45State();
   const d=$('bundleDouble42Details'); if(d)d.classList.toggle('hidden',!includeBox());
   const v=boxPartLengthVertical(), t=double42BoxTopLength();
   if($('bundleDouble42Left'))$('bundleDouble42Left').value=v+' мм';
   if($('bundleDouble42Right'))$('bundleDouble42Right').value=v+' мм';
   if($('bundleDouble42Top'))$('bundleDouble42Top').value=t+' мм';
-  $('bundle42RalWrap')?.classList.toggle('hidden',$('bundle42Color')?.value!=='Полимерно-порошковая покраска');
+  if($('doubleTotalWidth'))$('doubleTotalWidth').value=(doubleWidth('left')+doubleWidth('right'))+' мм';
+
+  const boxPowder=$('bundle42Color')?.value==='Полимерно-порошковая покраска';
+  const edgePowder=$('DoubleEdgeColor')?.value==='Полимерно-порошковая покраска';
+  const ral=$('bundle42Ral');
+  $('bundle42RalWrap')?.classList.toggle('hidden',!boxPowder);
+
+  if(boxPowder&&edgePowder&&ral){
+    ral.value=$('DoubleEdgeRal')?.value||getRals()[0];
+    ral.disabled=true;
+    if($('bundle42RalHint'))$('bundle42RalHint').textContent='RAL короба совпадает с общим RAL алюминиевого торца.';
+  }else{
+    if(ral)ral.disabled=false;
+    if($('bundle42RalHint'))$('bundle42RalHint').textContent=boxPowder?'RAL короба можно выбрать отдельно, так как торец не окрашен порошково.':'';
+  }
 }
 function updateDouble42Hardware(){
   if(product()!=='double42')return;
   const lock=$('doorLock')?.value?.trim()||'';
-  const select=$('doubleLockLeaf');
-  if(select)select.disabled=!lock;
+  const activeLeaf=$('doubleLockLeaf')?.value||'Левая створка';
+  const passiveLeaf=activeLeaf==='Левая створка'?'Правая створка':'Левая створка';
   const hint=$('doubleLockHint');
   if(hint){
-    if(!lock) hint.textContent='Замок не выбран — ответная часть между створками не формируется.';
-    else hint.textContent='Замок ставится в выбранную створку; ответная часть — в противоположную.';
+    if(!lock) hint.textContent='Активная: '+activeLeaf+'. Пассивная: '+passiveLeaf+'. Замок не выбран.';
+    else{
+      const skud=typeof isSkudLockForProcessing==='function'&&isSkudLockForProcessing(lock);
+      hint.textContent=skud
+        ?'Активная: '+activeLeaf+'. Пассивная: '+passiveLeaf+'. 1 СКУД-замок и 1 врезка СКУД — только на активной; на пассивной — ответная часть.'
+        :'Активная: '+activeLeaf+'. Пассивная: '+passiveLeaf+'. 1 замок — на активной; ответная часть — на пассивной.';
+    }
   }
+  const boltHint=$('doubleBoltHint');
+  if(boltHint)boltHint.textContent='Один ригель / шпингалет устанавливается на пассивную створку: '+passiveLeaf+'.';
 }
 
 function refillFinishType(id,covers){
