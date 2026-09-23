@@ -1,4 +1,5 @@
-$('role').addEventListener('change',renderForm);
+initStandaloneRoleFromUrl();
+$('role')?.addEventListener('change',renderForm);
 $('salesPriceType')?.addEventListener('change',e=>setActiveSalesPriceType(e.target.value));
 $('catalogSection').addEventListener('change',()=>syncTopCatalog(true));
 $('catalogSystem').addEventListener('change',()=>syncTopCatalog(true));
