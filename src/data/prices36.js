@@ -95,18 +95,88 @@ function formatRub(value){
   return new Intl.NumberFormat('ru-RU',{maximumFractionDigits:0}).format(Number(value))+' ₽';
 }
 
+// v186: non-standard 36 mm telescopic extension price by approved piecewise-linear formula.
+// Control Opt 2 points remain exact: 100 mm = 655 ₽, 150 mm = 770 ₽, 200 mm = 989 ₽.
+// Range follows the existing configurator limit: 50–500 mm.
+function price36DoborOpt2(width){
+  const w=Number(width);
+  if(!Number.isFinite(w)||w<50||w>500)return null;
+  const p100=SALES_PRICE_36_OPT2.trim.dobor100;
+  const p150=SALES_PRICE_36_OPT2.trim.dobor150;
+  const p200=SALES_PRICE_36_OPT2.trim.dobor200;
+  const raw=w<=150
+    ?p100+(w-100)*((p150-p100)/50)
+    :p150+(w-150)*((p200-p150)/50);
+  return Math.ceil(raw);
+}
+function price36DoborUnitPrice(width,priceType=activeSalesPriceType()){
+  const opt2=price36DoborOpt2(width);
+  if(opt2===null)return null;
+  const type=normalizeSalesPriceType(priceType);
+  if(type==='wholesale2')return opt2;
+  if(type==='wholesale1')return price36ApplyMarkup(opt2,PRICE36_WHOLESALE1_MARKUP);
+  if(type==='retail')return price36ApplyMarkup(opt2,PRICE36_RETAIL_MARKUP);
+  return null;
+}
+
+const PRICE36_GROUND_DISCOUNT=2000;
+const PRICE36_GROUND_FACTOR=9730/11730;
+function price36GroundOpt2FromPvc(value){
+  const n=Number(value);
+  return Number.isFinite(n)?Math.ceil(n*PRICE36_GROUND_FACTOR):null;
+}
+const PRICE36_GROUND_OPT2=Object.freeze({
+  leaf:6391,
+  box:675.20,
+  casing:330.20
+});
+function price36GroundComponentUnitPrice(kind,priceType=activeSalesPriceType()){
+  const base=Number(PRICE36_GROUND_OPT2[kind]);
+  if(!Number.isFinite(base))return null;
+  const type=normalizeSalesPriceType(priceType);
+  if(type==='wholesale2')return base;
+  if(type==='wholesale1')return price36ApplyMarkup(base,PRICE36_WHOLESALE1_MARKUP);
+  if(type==='retail')return price36ApplyMarkup(base,PRICE36_RETAIL_MARKUP);
+  return null;
+}
+function price36LeafUnitPrice(cover,priceType=activeSalesPriceType()){
+  const book=price36Book(priceType);
+  if(!book)return null;
+  return cover==='Грунт под покраску'
+    ?price36GroundComponentUnitPrice('leaf',priceType)
+    :Number(book.doorLeaf);
+}
+
 function trim36PartnerUnitPrice(priceType=activeSalesPriceType()){
   const book=price36Book(priceType);
   const type=$('trimType')?.value||'';
   if(!book)return {price:null,label:type||'Погонаж 36',missingTier:true};
-  if(type==='Короб телескопический')return {price:book.trim.box,label:'Короб телескопический'};
-  if(type==='Наличник телескопический')return {price:book.trim.casing,label:'Наличник телескопический'};
-  if(type==='Притворная планка')return {price:book.trim.rebate,label:'Притворная планка'};
+  const ground=$('trimCover')?.value==='Грунт под покраску';
+  if(type==='Короб телескопический')return {price:ground?price36GroundComponentUnitPrice('box',priceType):book.trim.box,label:'Короб телескопический'};
+  if(type==='Наличник телескопический')return {price:ground?price36GroundComponentUnitPrice('casing',priceType):book.trim.casing,label:'Наличник телескопический'};
+  if(type==='Притворная планка'){
+    const opt2=ground?price36GroundOpt2FromPvc(SALES_PRICE_36_OPT2.trim.rebate):SALES_PRICE_36_OPT2.trim.rebate;
+    const price=ground
+      ?(normalizeSalesPriceType(priceType)==='wholesale2'?opt2:price36ApplyMarkup(opt2,normalizeSalesPriceType(priceType)==='wholesale1'?PRICE36_WHOLESALE1_MARKUP:PRICE36_RETAIL_MARKUP))
+      :book.trim.rebate;
+    return {price,label:'Притворная планка'};
+  }
   if(type==='Соединительная планка для стыковки доборов')return {price:book.trim.connector,label:'Соединительная планка'};
   if(type==='Добор телескопический'){
     const width=doborWidth();
-    const map={100:book.trim.dobor100,150:book.trim.dobor150,200:book.trim.dobor200};
-    return {price:map[width]??null,label:'Добор телескопический '+width+' мм',custom:!Object.prototype.hasOwnProperty.call(map,width)};
+    const standard=[100,150,200].includes(width);
+    const pvcOpt2=price36DoborOpt2(width);
+    const groundOpt2=ground?price36GroundOpt2FromPvc(pvcOpt2):pvcOpt2;
+    const normalized=normalizeSalesPriceType(priceType);
+    const price=ground
+      ?(normalized==='wholesale2'?groundOpt2:price36ApplyMarkup(groundOpt2,normalized==='wholesale1'?PRICE36_WHOLESALE1_MARKUP:PRICE36_RETAIL_MARKUP))
+      :price36DoborUnitPrice(width,priceType);
+    return {
+      price,
+      label:'Добор телескопический '+width+' мм',
+      custom:!standard,
+      width
+    };
   }
   return {price:null,label:type||'Погонаж 36'};
 }
@@ -126,33 +196,40 @@ function partnerPrice36Snapshot(){
   }
 
   if(product()==='leaf36'){
-    if($('cover36')?.value!=='ПВХ-пленка'){
-      return {visible:true,available:false,title:'Цена по запросу',note:'Для типа цены «'+typeLabel+'» цена 36 мм зафиксирована для исполнения в ПВХ-плёнке.',priceType:type};
-    }
-    const leaf=book.doorLeaf;
+    const cover=$('cover36')?.value||'ПВХ-пленка';
+    const ground=cover==='Грунт под покраску';
+    const leaf=price36LeafUnitPrice(cover,type);
     const included=includeBox();
     const boxQty=included?Number($('bundle36BoxQty')?.value||0):0;
     const casingQty=included?Number($('bundle36TrimQty')?.value||0):0;
-    const boxSum=boxQty*book.trim.box;
-    const casingSum=casingQty*book.trim.casing;
+    const boxUnit=ground?price36GroundComponentUnitPrice('box',type):book.trim.box;
+    const casingUnit=ground?price36GroundComponentUnitPrice('casing',type):book.trim.casing;
+    const boxSum=boxQty*boxUnit;
+    const casingSum=casingQty*casingUnit;
     const total=leaf+boxSum+casingSum;
-    const defaultKit=included&&boxQty===2.5&&casingQty===5&&Math.abs(total-book.doorKit)<0.01;
+    const defaultKit=included&&boxQty===2.5&&casingQty===5;
     const lines=[
       '<div><b>Полотно:</b> '+formatRub(leaf)+'</div>',
-      included?'<div>Короб: '+boxQty+' × '+formatRub(book.trim.box)+' = <b>'+formatRub(boxSum)+'</b></div>':'',
-      included?'<div>Наличник: '+casingQty+' × '+formatRub(book.trim.casing)+' = <b>'+formatRub(casingSum)+'</b></div>':'',
+      included?'<div>Короб: '+boxQty+' × '+formatRub(boxUnit)+' = <b>'+formatRub(boxSum)+'</b></div>':'',
+      included?'<div>Наличник: '+casingQty+' × '+formatRub(casingUnit)+' = <b>'+formatRub(casingSum)+'</b></div>':'',
       '<div style="margin-top:6px"><b>'+(defaultKit?'Комплект':'Итого')+': '+formatRub(total)+'</b></div>'
     ].filter(Boolean);
     return {
       visible:true,available:true,title:formatRub(total),html:lines.join(''),priceType:type,
-      note:price36SourceNote(book)+(defaultKit?' · базовый комплект совпадает с прайсом '+formatRub(book.doorKit):'')
+      note:price36SourceNote(book)
+        +(ground?' · грунт под покраску: скидка 2 000 ₽ распределена пропорционально между полотном, 2,5 палками короба и 5 наличниками':'')
+        +(defaultKit&&!ground?' · базовый комплект совпадает с прайсом '+formatRub(book.doorKit):'')
+        +(defaultKit&&ground&&type==='wholesale2'?' · базовый комплект в грунте '+formatRub(9730):'')
     };
   }
 
   const item=trim36PartnerUnitPrice(type);
-  const connector=$('trimType')?.value==='Соединительная планка для стыковки доборов';
-  if(!connector && $('trimCover')?.value!=='ПВХ-пленка'){
-    return {visible:true,available:false,title:'Цена по запросу',note:'Для типа цены «'+typeLabel+'» цена этого погонажа зафиксирована для исполнения в ПВХ-плёнке.',priceType:type};
+  const trimType=$('trimType')?.value||'';
+  const connector=trimType==='Соединительная планка для стыковки доборов';
+  const groundTrim=$('trimCover')?.value==='Грунт под покраску';
+  const groundPriced=['Короб телескопический','Наличник телескопический','Добор телескопический','Притворная планка'].includes(trimType);
+  if(!connector && groundTrim && !groundPriced){
+    return {visible:true,available:false,title:'Цена по запросу',note:'Для грунта автоматически рассчитаны только короб и наличник из состава стандартного комплекта. Для этой позиции цена пока не утверждена.',priceType:type};
   }
   if(item.price===null){
     return {
@@ -165,7 +242,9 @@ function partnerPrice36Snapshot(){
   return {
     visible:true,available:true,title:formatRub(item.price),priceType:type,
     html:'<div><b>'+escapeHtml(item.label)+': '+formatRub(item.price)+'/шт.</b></div>',
-    note:price36SourceNote(book)
+    note:price36SourceNote(book)+(item.custom
+      ?' · нестандартный добор '+item.width+' мм рассчитан по утверждённой кусочно-линейной формуле от контрольных точек 100 / 150 / 200 мм'
+      :'')
   };
 }
 
@@ -185,12 +264,14 @@ function configured36CartUnitPrice(priceType=activeSalesPriceType()){
   const book=price36Book(priceType);
   if(!book)return null;
   if(product()==='leaf36'){
-    if($('cover36')?.value!=='ПВХ-пленка')return null;
-    return book.doorLeaf;
+    return price36LeafUnitPrice($('cover36')?.value||'ПВХ-пленка',priceType);
   }
   if(product()==='trim36'){
-    const connector=$('trimType')?.value==='Соединительная планка для стыковки доборов';
-    if(!connector && $('trimCover')?.value!=='ПВХ-пленка')return null;
+    const trimType=$('trimType')?.value||'';
+    const connector=trimType==='Соединительная планка для стыковки доборов';
+    const ground=$('trimCover')?.value==='Грунт под покраску';
+    const groundPriced=['Короб телескопический','Наличник телескопический','Добор телескопический','Притворная планка'].includes(trimType);
+    if(!connector && ground && !groundPriced)return null;
     return trim36PartnerUnitPrice(priceType).price;
   }
   return null;
@@ -199,8 +280,9 @@ function companion36UnitPrice(item,priceType=activeSalesPriceType()){
   const book=price36Book(priceType);
   if(!book)return null;
   const key=String(item?.baseKey||item?.key||'');
-  if(key==='BUNDLE-P36-BOX')return book.trim.box;
-  if(key==='BUNDLE-P36-TRIM')return book.trim.casing;
+  const ground=/Грунт под покраску/i.test(String(item?.name||''));
+  if(key==='BUNDLE-P36-BOX')return ground?price36GroundComponentUnitPrice('box',priceType):book.trim.box;
+  if(key==='BUNDLE-P36-TRIM')return ground?price36GroundComponentUnitPrice('casing',priceType):book.trim.casing;
   return null;
 }
 function cart36FallbackUnitPrice(item,priceType=item?.priceType||activeSalesPriceType()){
@@ -212,18 +294,37 @@ function cart36FallbackUnitPrice(item,priceType=item?.priceType||activeSalesPric
   const sku=String(item.sku||'');
   const baseKey=String(item.baseKey||'');
   if(category==='Погонаж 36'&&/Соединительная планка/i.test(name))return book.trim.connector;
-  if(/Грунт под покраску/i.test(name))return null;
-  if(baseKey==='BUNDLE-P36-BOX'||sku.startsWith('BUNDLE-P36-BOX-')||/Короб телескопический 36/i.test(name))return book.trim.box;
-  if(baseKey==='BUNDLE-P36-TRIM'||sku.startsWith('BUNDLE-P36-TRIM-')||/Наличник телескопический 36/i.test(name))return book.trim.casing;
-  if(category==='Дверь 36'||/Дверь\s*\/\s*36 мм/i.test(name))return book.doorLeaf;
+  if(baseKey==='BUNDLE-P36-BOX'||sku.startsWith('BUNDLE-P36-BOX-')||/Короб телескопический 36/i.test(name)){
+    return /Грунт под покраску/i.test(name)?price36GroundComponentUnitPrice('box',priceType):book.trim.box;
+  }
+  if(baseKey==='BUNDLE-P36-TRIM'||sku.startsWith('BUNDLE-P36-TRIM-')||/Наличник телескопический 36/i.test(name)){
+    return /Грунт под покраску/i.test(name)?price36GroundComponentUnitPrice('casing',priceType):book.trim.casing;
+  }
+  if(category==='Дверь 36'||/Дверь\s*\/\s*36 мм/i.test(name)){
+    return price36LeafUnitPrice(/Грунт под покраску/i.test(name)?'Грунт под покраску':'ПВХ-пленка',priceType);
+  }
   if(category==='Погонаж 36'){
-    if(/Короб телескопический/i.test(name))return book.trim.box;
-    if(/Наличник телескопический/i.test(name))return book.trim.casing;
-    if(/Притворная планка/i.test(name))return book.trim.rebate;
+    const ground=/Грунт под покраску/i.test(name);
+    if(/Короб телескопический/i.test(name))return ground?price36GroundComponentUnitPrice('box',priceType):book.trim.box;
+    if(/Наличник телескопический/i.test(name))return ground?price36GroundComponentUnitPrice('casing',priceType):book.trim.casing;
+    if(/Притворная планка/i.test(name)){
+      if(!ground)return book.trim.rebate;
+      const opt2=price36GroundOpt2FromPvc(SALES_PRICE_36_OPT2.trim.rebate);
+      const normalized=normalizeSalesPriceType(priceType);
+      return normalized==='wholesale2'?opt2:price36ApplyMarkup(opt2,normalized==='wholesale1'?PRICE36_WHOLESALE1_MARKUP:PRICE36_RETAIL_MARKUP);
+    }
     if(/Соединительная планка/i.test(name))return book.trim.connector;
     if(/Добор/i.test(name)){
-      const m=name.match(/(?:\b|×)(100|150|200)(?:\b|×)/);
-      if(m)return {100:book.trim.dobor100,150:book.trim.dobor150,200:book.trim.dobor200}[Number(m[1])]||null;
+      const sizeMatch=name.match(/10\s*[×xX]\s*(\d{2,3})\s*[×xX]\s*2070/i);
+      const widthMatch=name.match(/Добор[^\d]{0,40}(\d{2,3})\s*мм/i);
+      const legacyMatch=name.match(/(?:\b|×)(100|150|200)(?:\b|×)/);
+      const width=sizeMatch?Number(sizeMatch[1]):widthMatch?Number(widthMatch[1]):legacyMatch?Number(legacyMatch[1]):null;
+      if(width!==null){
+        if(!ground)return price36DoborUnitPrice(width,priceType);
+        const opt2=price36GroundOpt2FromPvc(price36DoborOpt2(width));
+        const normalized=normalizeSalesPriceType(priceType);
+        return normalized==='wholesale2'?opt2:price36ApplyMarkup(opt2,normalized==='wholesale1'?PRICE36_WHOLESALE1_MARKUP:PRICE36_RETAIL_MARKUP);
+      }
     }
   }
   return null;
@@ -237,13 +338,20 @@ function is36SalesCatalogItem(item){
     /^BUNDLE-P36-/.test(baseKey)||/телескопический 36|планка.*36/i.test(name);
 }
 function configuredSalesPriceType(){
-  if(['leaf36','trim36','single42','sliding42','single59','double42'].includes(product()))return activeSalesPriceType();
+  if(['leaf36','trim36','trim42','trim59','single42','sliding42','single59','double42'].includes(product()))return activeSalesPriceType();
   if(product()==='hardware'&&typeof hardwareSalesPriceType==='function'){
     const uiCategory=$('hardwareCategory')?.value||'';
     const category=(typeof HARDWARE_MAP!=='undefined'?(HARDWARE_MAP[uiCategory]||uiCategory):uiCategory);
     return hardwareSalesPriceType(category,$('catalogItem')?.value||'',activeSalesPriceType());
   }
   if(product()==='openingSystem')return 'retail';
+  if(product()==='installation')return 'retail';
+  if(product()==='additionalElement'){
+    const type=$('additionalType')?.value||'';
+    const name=$('catalogItem')?.value||'';
+    if(type==='Вентиляционные решётки')return 'retail';
+    if(typeof hardwareSalesPrice==='function'&&hardwareSalesPrice('Доп.фурнитура',name,'retail')!==null)return 'retail';
+  }
   return null;
 }
 function companionSalesPriceType(item){
@@ -251,9 +359,11 @@ function companionSalesPriceType(item){
   if(/^BUNDLE-P36-/.test(key))return activeSalesPriceType();
   if(key==='BUNDLE-P42-BOX'||key==='BUNDLE-P59-BOX')return activeSalesPriceType();
   if(/^BUNDLE-P42-DOUBLE-/.test(key))return activeSalesPriceType();
+  if(key==='DOUBLE42-BOLT')return activeSalesPriceType();
   if(key==='POWDER-COAT-42'||key==='POWDER-COAT-59')return activeSalesPriceType();
   if(/^BOX-MITER45-/.test(key))return activeSalesPriceType();
   if(/^PROCESS-/.test(key))return activeSalesPriceType();
+  if(key==='DOOR-VENT-GRILLE'||key==='DOOR-ADDITIONAL-ELEMENT')return 'retail';
   if(typeof hardwareSalesPriceType==='function'){
     const category=String(item?.priceCategory||'');
     if(category)return hardwareSalesPriceType(category,item?.name||'',activeSalesPriceType());
