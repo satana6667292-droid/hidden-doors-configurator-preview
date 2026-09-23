@@ -38,31 +38,106 @@ function simpleSelectWithNone(id,cat){
   return selectEl(id,vals,'Не требуется');
 }
 function doorHingeQtyField(){
-  if(!['single42','single59','double42'].includes(product()))return '';
+  if(!['single42','single59'].includes(product()))return '';
   return field('Количество петель',
     `<input id="doorHingeQty" type="number" min="1" step="1">
      <div id="doorHingeQtyHint" class="mini"></div>`);
+}
+function double42HandleFields(){
+  if(product()!=='double42')return '';
+  const vals=['Без ручки',...catalogValues('Ручки')];
+  return field('Ручка — левая створка',
+      selectEl('doubleHandleLeftSelect',vals,'Без ручки')+
+      `<div id="doubleHandleLeftPriceHint" class="mini hinge-price-hint"></div>`)+
+    field('Ручка — правая створка',
+      selectEl('doubleHandleRightSelect',vals,'Без ручки')+
+      `<div id="doubleHandleRightPriceHint" class="mini hinge-price-hint"></div>`);
+}
+
+function double42HingeFields(){
+  if(product()!=='double42')return '';
+  return field('Петли — левая створка',
+      searchableCatalog('doubleHingesLeft','Петли')+
+      `<div id="doubleHingeLeftPriceHint" class="mini hinge-price-hint"></div>`)+
+    field('Количество петель — левая створка',
+      `<input id="doubleHingeQtyLeft" type="number" min="1" step="1">
+       <div id="doubleHingeQtyLeftHint" class="mini"></div>`)+
+    field('Петли — правая створка',
+      searchableCatalog('doubleHingesRight','Петли')+
+      `<div id="doubleHingeRightPriceHint" class="mini hinge-price-hint"></div>`)+
+    field('Количество петель — правая створка',
+      `<input id="doubleHingeQtyRight" type="number" min="1" step="1">
+       <div id="doubleHingeQtyRightHint" class="mini"></div>`);
+}
+
+function doorCylinderConstructKey(){
+  if(product()==='double42')return '42-normal';
+  if(product()==='single42'){
+    return /реверс/i.test($('opening')?.value||'')?'42-reverse':'42-normal';
+  }
+  if(product()==='single59')return '59';
+  return '';
+}
+function cylinderCompatibleWithDoor(name){
+  const s=String(name||'');
+  const key=doorCylinderConstructKey();
+  if(key==='42-reverse'){
+    return /для\s*42[^)]*reverse/i.test(s) || (/65\s*мм/i.test(s) && /25\s*\+\s*10\s*\+\s*30/i.test(s));
+  }
+  if(key==='42-normal'){
+    if(/для\s*полотн[^)]*59|59\s*мм/i.test(s))return false;
+    if(/для\s*42[^)]*reverse/i.test(s)||/65\s*мм/i.test(s))return false;
+    return /(?:60\s*мм|\b60\s*C(?:K)?\b|\bM60\b|\bZM-60\b|\bCKZ60\b|30T\s*\*\s*30|30\s*[xх×]\s*30)/i.test(s);
+  }
+  if(key==='59'){
+    if(/для\s*полотн[^)]*59/i.test(s))return true;
+    const size80=/(?:80\s*мм|\b(?:PC|ZC?|M|JM|ZM)[-\s]?80\b)/i.test(s);
+    return size80 && /(35C?\s*[/xх×*+]\s*45|45C?\s*[/xх×*+]\s*35|35\s*[/xх×*+]\s*45C?|45\s*[/xх×*+]\s*35C?)/i.test(s);
+  }
+  return true;
+}
+function compatibleDoorCylinderValues(){
+  return catalogValues('Цилиндровые механизмы').filter(cylinderCompatibleWithDoor);
+}
+function doorCylinderCatalog(){
+  const vals=compatibleDoorCylinderValues();
+  return `<input id="doorCylinder" list="doorCylinderList" placeholder="Выберите совместимый цилиндр">${datalistHtml('doorCylinderList',vals)}<div id="doorCylinderCompatHint" class="mini">${vals.length} совместимых позиций для выбранного конструктива</div><div id="doorCylinderPriceHint" class="mini hinge-price-hint"></div><div class="mini">Для замка типа «Под цилиндр» в карточку двери добавляется 1 цилиндр. Дополнительный цилиндр можно добавить отдельно во вкладке «Фурнитура».</div>`;
 }
 
 function doorOrderSections(){
   return section('Фурнитура',
     `<div class="catalog-note">Петля для 42/59 подставляется автоматически как рекомендация по системе двери, цвету профиля и стеклу/зеркалу, но поле остаётся обычным: модель можно заменить вручную. Количество считается по таблице Hidden Doors и также доступно для ручной корректировки.</div>`+
     `<div class="fields" style="margin-top:12px">`+
-      field('Петли',searchableCatalog('doorHinges','Петли')+`<div id="doorHingePriceHint" class="mini hinge-price-hint"></div>`)+
-      doorHingeQtyField()+
+      (product()==='double42'
+        ?double42HingeFields()
+        :field('Петли',searchableCatalog('doorHinges','Петли')+`<div id="doorHingePriceHint" class="mini hinge-price-hint"></div>`)+doorHingeQtyField())+
       field('Замок',searchableCatalog('doorLock','Замки')+`<div id="doorLockPriceHint" class="mini hinge-price-hint"></div>`)+
-      field('Ручка',searchableCatalog('doorHandle','Ручки')+`<div id="doorHandlePriceHint" class="mini hinge-price-hint"></div>`)+
-      field('Завертка',searchableCatalog('doorTurn','Завертки')+`<div id="doorTurnPriceHint" class="mini hinge-price-hint"></div>`)+
-      `<div id="doorCylinderFieldWrap" class="hidden">${field('Цилиндр',searchableCatalog('doorCylinder','Цилиндровые механизмы')+`<div id="doorCylinderPriceHint" class="mini hinge-price-hint"></div><div class="mini">Обязательное поле для замков типа «Под цилиндр».</div>`)}</div>`+
-      field('Стопор',searchableCatalog('doorStopper','Стопоры')+`<div id="doorStopperPriceHint" class="mini hinge-price-hint"></div>`)+
-      field('Автоматический порог',searchableCatalog('doorThreshold','Скрытый порог')+`<div id="doorThresholdPriceHint" class="mini hinge-price-hint"></div>`)+
+      (product()==='double42'
+        ?double42HandleFields()
+        :field('Ручка',searchableCatalog('doorHandle','Ручки')+`<div id="doorHandlePriceHint" class="mini hinge-price-hint"></div>`))+
+      (product()==='double42'?'':field('Завертка',searchableCatalog('doorTurn','Завертки')+`<div id="doorTurnPriceHint" class="mini hinge-price-hint"></div>`))+
+      `<div id="doorCylinderFieldWrap" class="hidden">${field('Цилиндр',doorCylinderCatalog())}</div>`+
+      (product()==='double42'
+        ?field('Стопор — левая створка',searchableCatalog('doubleStopperLeft','Стопоры')+`<div id="doubleStopperLeftPriceHint" class="mini hinge-price-hint"></div>`)+
+         field('Стопор — правая створка',searchableCatalog('doubleStopperRight','Стопоры')+`<div id="doubleStopperRightPriceHint" class="mini hinge-price-hint"></div>`)
+        :field('Стопор',searchableCatalog('doorStopper','Стопоры')+`<div id="doorStopperPriceHint" class="mini hinge-price-hint"></div>`))+
+      (product()==='double42'
+        ?field('Автоматический порог — левая створка',searchableCatalog('doubleThresholdLeft','Скрытый порог')+`<div id="doubleThresholdLeftPriceHint" class="mini hinge-price-hint"></div>`)+
+         field('Автоматический порог — правая створка',searchableCatalog('doubleThresholdRight','Скрытый порог')+`<div id="doubleThresholdRightPriceHint" class="mini hinge-price-hint"></div>`)
+        :field('Автоматический порог',searchableCatalog('doorThreshold','Скрытый порог')+`<div id="doorThresholdPriceHint" class="mini hinge-price-hint"></div>`))+
       field('Доводчик',searchableCatalog('doorCloser','Доводчики')+`<div id="doorCloserPriceHint" class="mini hinge-price-hint"></div>`)+
     `</div>`
   )+
   section('Дополнительные элементы двери',
     fields(
-      field('Вентиляционная решётка',simpleSelectWithNone('doorVent','Вентиляционные решетки'))+
-      field('Иллюминатор / декоративный элемент',searchableCatalog('doorExtra','Доп.фурнитура','Не требуется — начните вводить'),'full')
+      (product()==='double42'
+        ?field('Вентиляционная решётка — левая створка',simpleSelectWithNone('doubleVentLeft','Вентиляционные решетки'))+
+         field('Вентиляционная решётка — правая створка',simpleSelectWithNone('doubleVentRight','Вентиляционные решетки'))
+        :field('Вентиляционная решётка',simpleSelectWithNone('doorVent','Вентиляционные решетки')))+
+      (product()==='double42'
+        ?field('Иллюминатор / декоративный элемент — левая створка',searchableCatalog('doubleExtraLeft','Доп.фурнитура','Не требуется — начните вводить'),'full')+
+         field('Иллюминатор / декоративный элемент — правая створка',searchableCatalog('doubleExtraRight','Доп.фурнитура','Не требуется — начните вводить'),'full')
+        :field('Иллюминатор / декоративный элемент',searchableCatalog('doorExtra','Доп.фурнитура','Не требуется — начните вводить'),'full'))
     )
   )+
   doorProcessingSection('swing');
@@ -72,6 +147,7 @@ function doorOrderSections(){
 const DOOR_PROCESSING_PRICES=Object.freeze({
   stopper:575,
   threshold:1840,
+  vent:1500,
   porthole:1955,
   sliding:2875,
   petDoor:2875,
@@ -87,10 +163,35 @@ function doorProcessingSection(mode='swing'){
   const rows=mode==='sliding'
     ?processingCheckboxRow('procSlidingMilling','Фрезеровка под откатную систему',DOOR_PROCESSING_PRICES.sliding)
     :[
-      processingCheckboxRow('procStopperMilling','Фрезеровка под скрытый стопор',DOOR_PROCESSING_PRICES.stopper),
-      processingCheckboxRow('procThresholdMilling','Фрезеровка под автопорог',DOOR_PROCESSING_PRICES.threshold),
-      processingCheckboxRow('procPortholeCut','Врезка иллюминатора',DOOR_PROCESSING_PRICES.porthole),
-      processingCheckboxRow('procPetDoorCut','Врезка дверцы для животного',DOOR_PROCESSING_PRICES.petDoor),
+      ...(product()==='double42'
+        ?[
+          processingCheckboxRow('procStopperMillingLeft','Фрезеровка под скрытый стопор · левая створка',DOOR_PROCESSING_PRICES.stopper),
+          processingCheckboxRow('procStopperMillingRight','Фрезеровка под скрытый стопор · правая створка',DOOR_PROCESSING_PRICES.stopper)
+        ]
+        :[processingCheckboxRow('procStopperMilling','Фрезеровка под скрытый стопор',DOOR_PROCESSING_PRICES.stopper)]),
+      ...(product()==='double42'
+        ?[
+          processingCheckboxRow('procThresholdMillingLeft','Фрезеровка под автопорог · левая створка',DOOR_PROCESSING_PRICES.threshold),
+          processingCheckboxRow('procThresholdMillingRight','Фрезеровка под автопорог · правая створка',DOOR_PROCESSING_PRICES.threshold)
+        ]
+        :[processingCheckboxRow('procThresholdMilling','Фрезеровка под автопорог',DOOR_PROCESSING_PRICES.threshold)]),
+      ...(product()==='double42'
+        ?[
+          processingCheckboxRow('procVentCutLeft','Врезка вентиляционной решётки · левая створка',DOOR_PROCESSING_PRICES.vent),
+          processingCheckboxRow('procVentCutRight','Врезка вентиляционной решётки · правая створка',DOOR_PROCESSING_PRICES.vent)
+        ]
+        :[]),
+      ...(product()==='double42'
+        ?[
+          processingCheckboxRow('procPortholeCutLeft','Врезка иллюминатора · левая створка',DOOR_PROCESSING_PRICES.porthole),
+          processingCheckboxRow('procPortholeCutRight','Врезка иллюминатора · правая створка',DOOR_PROCESSING_PRICES.porthole),
+          processingCheckboxRow('procPetDoorCutLeft','Врезка дверцы для животного · левая створка',DOOR_PROCESSING_PRICES.petDoor),
+          processingCheckboxRow('procPetDoorCutRight','Врезка дверцы для животного · правая створка',DOOR_PROCESSING_PRICES.petDoor)
+        ]
+        :[
+          processingCheckboxRow('procPortholeCut','Врезка иллюминатора',DOOR_PROCESSING_PRICES.porthole),
+          processingCheckboxRow('procPetDoorCut','Врезка дверцы для животного',DOOR_PROCESSING_PRICES.petDoor)
+        ]),
       processingCheckboxRow('procSkudLockCut','Врезка замка СКУД-системы',DOOR_PROCESSING_PRICES.skud,'цена в прайсе указана «от 4 025 ₽»')
     ].join('');
   return '<div id="doorProcessingSectionWrap" class="hidden">'+section('Дополнительные обработки',
@@ -132,21 +233,51 @@ function syncDoorProcessingOptions(){
   }
   if(!['single42','single59','double42'].includes(product()))return;
   const stopper=$('doorStopper')?.value?.trim()||'';
+  const stopperLeft=$('doubleStopperLeft')?.value?.trim()||'';
+  const stopperRight=$('doubleStopperRight')?.value?.trim()||'';
   const threshold=$('doorThreshold')?.value?.trim()||'';
+  const thresholdLeft=$('doubleThresholdLeft')?.value?.trim()||'';
+  const thresholdRight=$('doubleThresholdRight')?.value?.trim()||'';
   const lock=$('doorLock')?.value?.trim()||'';
+  const ventLeft=$('doubleVentLeft')?.value||'';
+  const ventRight=$('doubleVentRight')?.value||'';
   const extra=$('doorExtra')?.value?.trim()||'';
+  const extraLeft=$('doubleExtraLeft')?.value?.trim()||'';
+  const extraRight=$('doubleExtraRight')?.value?.trim()||'';
   const extraKind=selectedDoorExtraProcessingKind(extra);
+  const extraLeftKind=product()==='double42'?selectedDoorExtraProcessingKind(extraLeft):'';
+  const extraRightKind=product()==='double42'?selectedDoorExtraProcessingKind(extraRight):'';
   const stopperActive=!!stopper&&isHiddenStopperForProcessing(stopper);
+  const stopperLeftActive=product()==='double42'&&!!stopperLeft&&isHiddenStopperForProcessing(stopperLeft);
+  const stopperRightActive=product()==='double42'&&!!stopperRight&&isHiddenStopperForProcessing(stopperRight);
   const thresholdActive=!!threshold;
+  const thresholdLeftActive=product()==='double42'&&!!thresholdLeft;
+  const thresholdRightActive=product()==='double42'&&!!thresholdRight;
+  const ventLeftActive=product()==='double42'&&!!ventLeft&&ventLeft!=='Не требуется';
+  const ventRightActive=product()==='double42'&&!!ventRight&&ventRight!=='Не требуется';
   const portholeActive=extraKind==='porthole';
   const petDoorActive=extraKind==='petDoor';
+  const portholeLeftActive=extraLeftKind==='porthole';
+  const portholeRightActive=extraRightKind==='porthole';
+  const petDoorLeftActive=extraLeftKind==='petDoor';
+  const petDoorRightActive=extraRightKind==='petDoor';
   const skudActive=!!lock&&isSkudLockForProcessing(lock);
   syncProcessingCheckbox('procStopperMilling',stopperActive,stopper);
+  syncProcessingCheckbox('procStopperMillingLeft',stopperLeftActive,stopperLeft);
+  syncProcessingCheckbox('procStopperMillingRight',stopperRightActive,stopperRight);
   syncProcessingCheckbox('procThresholdMilling',thresholdActive,threshold);
+  syncProcessingCheckbox('procThresholdMillingLeft',thresholdLeftActive,thresholdLeft);
+  syncProcessingCheckbox('procThresholdMillingRight',thresholdRightActive,thresholdRight);
+  syncProcessingCheckbox('procVentCutLeft',ventLeftActive,ventLeft);
+  syncProcessingCheckbox('procVentCutRight',ventRightActive,ventRight);
   syncProcessingCheckbox('procPortholeCut',portholeActive,extra);
   syncProcessingCheckbox('procPetDoorCut',petDoorActive,extra);
+  syncProcessingCheckbox('procPortholeCutLeft',portholeLeftActive,extraLeft);
+  syncProcessingCheckbox('procPortholeCutRight',portholeRightActive,extraRight);
+  syncProcessingCheckbox('procPetDoorCutLeft',petDoorLeftActive,extraLeft);
+  syncProcessingCheckbox('procPetDoorCutRight',petDoorRightActive,extraRight);
   syncProcessingCheckbox('procSkudLockCut',skudActive,lock);
-  const anyActive=stopperActive||thresholdActive||portholeActive||petDoorActive||skudActive;
+  const anyActive=stopperActive||stopperLeftActive||stopperRightActive||thresholdActive||thresholdLeftActive||thresholdRightActive||ventLeftActive||ventRightActive||portholeActive||petDoorActive||portholeLeftActive||portholeRightActive||petDoorLeftActive||petDoorRightActive||skudActive;
   $('doorProcessingSectionWrap')?.classList.toggle('hidden',!anyActive);
 }
 
@@ -161,6 +292,13 @@ function recommendedHingeFamily(){
 function recommended42HingeQtyPerLeaf(height=currentHeight()){
   const h=Number(height);
   return Number.isFinite(h)&&h<=2300?2:null;
+}
+function recommendedDouble42HingeQtyForLeaf(prefix){
+  if(product()!=='double42')return null;
+  // Current approved 42 mm rule: glass/mirror is not available for this construct.
+  // Keep the recommendation leaf-scoped so future approved load rules can affect
+  // only the corresponding leaf instead of both leaves at once.
+  return recommended42HingeQtyPerLeaf(currentHeight());
 }
 function recommendedHingeQty(){
   const h=currentHeight();
@@ -179,7 +317,7 @@ function recommendedHingeQty(){
 }
 function recommendedHingeColorTerms(){
   const edge=product()==='double42'
-    ?($('LeftEdgeColor')?.value||'')
+    ?($('DoubleEdgeColor')?.value||'')
     :($('SingleEdgeColor')?.value||'');
   const family=recommendedHingeFamily();
   if(edge==='Черный анод'){
@@ -246,6 +384,18 @@ function updateDoorHingePriceHint(){
   const qty=Number($('doorHingeQty')?.value||1);
   box.innerHTML=name?hingePriceHtml(name,qty):'Выберите петлю.';
 }
+function updateDouble42HingePriceHints(){
+  if(product()!=='double42')return;
+  [
+    ['doubleHingesLeft','doubleHingeQtyLeft','doubleHingeLeftPriceHint'],
+    ['doubleHingesRight','doubleHingeQtyRight','doubleHingeRightPriceHint']
+  ].forEach(([hingeId,qtyId,hintId])=>{
+    const box=$(hintId);if(!box)return;
+    const name=$(hingeId)?.value?.trim()||'';
+    const qty=Number($(qtyId)?.value||1);
+    box.innerHTML=name?hingePriceHtml(name,qty):'Выберите петлю.';
+  });
+}
 function updateDoorLockPriceHint(){
   const box=$('doorLockPriceHint');if(!box)return;
   const name=$('doorLock')?.value?.trim()||'';
@@ -257,6 +407,33 @@ function updateDoorHandlePriceHint(){
   const name=$('doorHandle')?.value?.trim()||'';
   if(!name){box.innerHTML='Выберите ручку.';return}
   box.innerHTML=hardwarePricePresentation('Ручки',name,1);
+}
+function updateDouble42HandlePriceHints(){
+  if(product()!=='double42')return;
+  [
+    ['doubleHandleLeftSelect','doubleHandleLeftPriceHint'],
+    ['doubleHandleRightSelect','doubleHandleRightPriceHint']
+  ].forEach(([fieldId,hintId])=>{
+    const box=$(hintId);if(!box)return;
+    const name=$(fieldId)?.value||'Без ручки';
+    box.innerHTML=!name||name==='Без ручки'
+      ?'Ручка на эту створку не добавляется.'
+      :hardwarePricePresentation('Ручки',name,1);
+  });
+}
+function syncDouble42Handles(sourceId){
+  if(product()!=='double42')return;
+  const source=$(sourceId);
+  if(!source)return;
+  const targetId=sourceId==='doubleHandleLeftSelect'?'doubleHandleRightSelect':'doubleHandleLeftSelect';
+  const target=$(targetId);
+  const value=source.value||'Без ручки';
+  // Автокопирование только в пустую створку / «Без ручки».
+  // Уже вручную выбранную другую ручку не перезаписываем.
+  if(target&&value!=='Без ручки'&&(!target.value||target.value==='Без ручки')){
+    target.value=value;
+  }
+  updateDouble42HandlePriceHints();
 }
 function updateDoorTurnPriceHint(){
   const box=$('doorTurnPriceHint');if(!box)return;
@@ -276,11 +453,27 @@ function updateDoorStopperPriceHint(){
   if(!name){box.innerHTML='Выберите стопор.';return}
   box.innerHTML=hardwarePricePresentation('Стопоры',name,1);
 }
+function updateDouble42StopperPriceHints(){
+  [['doubleStopperLeft','doubleStopperLeftPriceHint'],['doubleStopperRight','doubleStopperRightPriceHint']].forEach(([fieldId,hintId])=>{
+    const box=$(hintId);if(!box)return;
+    const name=$(fieldId)?.value?.trim()||'';
+    if(!name){box.innerHTML='Стопор не выбран.';return}
+    box.innerHTML=hardwarePricePresentation('Стопоры',name,1);
+  });
+}
 function updateDoorThresholdPriceHint(){
   const box=$('doorThresholdPriceHint');if(!box)return;
   const name=$('doorThreshold')?.value?.trim()||'';
   if(!name){box.innerHTML='Выберите автоматический порог.';return}
   box.innerHTML=hardwarePricePresentation('Скрытый порог',name,1);
+}
+function updateDouble42ThresholdPriceHints(){
+  [['doubleThresholdLeft','doubleThresholdLeftPriceHint'],['doubleThresholdRight','doubleThresholdRightPriceHint']].forEach(([fieldId,hintId])=>{
+    const box=$(hintId);if(!box)return;
+    const name=$(fieldId)?.value?.trim()||'';
+    if(!name){box.innerHTML='Автоматический порог не выбран.';return}
+    box.innerHTML=hardwarePricePresentation('Скрытый порог',name,1);
+  });
 }
 function updateDoorCloserPriceHint(){
   const box=$('doorCloserPriceHint');if(!box)return;
@@ -370,26 +563,37 @@ function recommendedHingeItem(){
 }
 function syncRecommendedDoorHinge(forceItem=true,forceQty=true){
   if(!['single42','single59','double42'].includes(product()))return;
-  const hinge=$('doorHinges'),qty=$('doorHingeQty'),hint=$('doorHingeQtyHint');
-  if(hinge&&forceItem){
-    const rec=recommendedHingeItem();
-    if(rec)hinge.value=rec;
+  const family=recommendedHingeFamily();
+  const rec=recommendedHingeItem();
+
+  if(product()==='double42'){
+    [
+      ['Left','doubleHingesLeft','doubleHingeQtyLeft','doubleHingeQtyLeftHint'],
+      ['Right','doubleHingesRight','doubleHingeQtyRight','doubleHingeQtyRightHint']
+    ].forEach(([prefix,hingeId,qtyId,hintId])=>{
+      const hinge=$(hingeId),qty=$(qtyId),hint=$(hintId);
+      const leafQty=recommendedDouble42HingeQtyForLeaf(prefix);
+      if(hinge&&forceItem&&rec)hinge.value=rec;
+      if(qty&&forceQty)qty.value=leafQty==null?'':leafQty;
+      if(hint)hint.textContent=leafQty==null
+        ?`Рекомендация: ${family}. Для этой створки количество по текущим параметрам не задано.`
+        :`Рекомендация для этой створки: ${family}; ${leafQty} шт. Количество считается отдельно от второй створки и может быть скорректировано вручную.`;
+    });
+    updateDouble42HingePriceHints();
+    return;
   }
+
+  const hinge=$('doorHinges'),qty=$('doorHingeQty'),hint=$('doorHingeQtyHint');
+  if(hinge&&forceItem&&rec)hinge.value=rec;
   if(qty&&forceQty){
     const q=recommendedHingeQty();
     qty.value=q==null?'':q;
   }
   if(hint){
-    const family=recommendedHingeFamily();
     const q=recommendedHingeQty();
-    if(['single42','double42'].includes(product()) && q==null){
-      hint.textContent=`Рекомендация: ${family}. Для выбранной высоты количество не задано.`;
-    }else if(product()==='double42'){
-      const perLeaf=recommended42HingeQtyPerLeaf();
-      hint.textContent=`Рекомендация: ${family}; ${perLeaf||'—'} шт. на створку, всего ${q||'—'} шт.`;
-    }else{
-      hint.textContent=`Рекомендация: ${family}; количество по утверждённой таблице — ${q||'—'} шт.`;
-    }
+    hint.textContent=['single42'].includes(product())&&q==null
+      ?`Рекомендация: ${family}. Для выбранной высоты количество не задано.`
+      :`Рекомендация: ${family}; количество по утверждённой таблице — ${q||'—'} шт.`;
   }
   updateDoorHingePriceHint();
 }
@@ -540,17 +744,22 @@ function selectedDoorLockType(){
   return hardwareTypeForItem('Замки',lock);
 }
 function doorLockRequiresCylinder(){
-  return ['single42','single59'].includes(product()) && selectedDoorLockType()==='Под цилиндр';
+  return ['single42','single59','double42'].includes(product()) && selectedDoorLockType()==='Под цилиндр';
 }
 function updateDoorCylinderField(){
-  if(!['single42','single59'].includes(product()))return;
+  if(!['single42','single59','double42'].includes(product()))return;
   const wrap=$('doorCylinderFieldWrap');
   const cylinder=$('doorCylinder');
+  const list=$('doorCylinderList');
+  const hint=$('doorCylinderCompatHint');
   const required=doorLockRequiresCylinder();
+  const vals=required?compatibleDoorCylinderValues():[];
   wrap?.classList.toggle('hidden',!required);
+  if(list)list.innerHTML=vals.map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
+  if(hint)hint.textContent=vals.length+' совместимых позиций для выбранного конструктива';
   if(cylinder){
     cylinder.required=required;
-    if(!required)cylinder.value='';
+    if(!required || !vals.includes(cylinder.value))cylinder.value='';
   }
 }
 
@@ -1515,7 +1724,7 @@ function renderInstallation(){
     section('Монтаж и комплектующие',fields(
       field('Позиция',`<input id="catalogItem" list="installList" value="${escapeHtml(vals[0]||'')}">${datalistHtml('installList',vals)}`,'full')
     ))+
-    section('Правило',`<div class="note">Монтажные комплекты 42/59 и сухари остаются в этом разделе. Гибкий переход ABLOY EA281 позже будет вынесен в отдельную электромеханику / кабельные переходы.</div>`);
+    section('Правило',`<div class="note">В этом разделе остаются монтажные комплекты 42/59 и гибкий переход ABLOY EA281. Монтажные сухари скрыты из каталога.</div>`);
 }
 function renderPlinth(){
   const vals=catalogValues('Плинтус');
