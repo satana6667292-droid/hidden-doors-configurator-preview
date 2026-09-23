@@ -40,13 +40,12 @@ function edgeControls(prefix,is59=false){
   </div>`;
 }
 
-function finishPane(title,prefix,covers,filmMode,is59=false){
+function finishPane(title,prefix,covers,filmMode,is59=false,includeEdge=true){
   return `<div class="pane">
     ${title?`<div class="pane-title">${title}</div>`:''}
     ${finishSide(`${prefix}Side1`,'Сторона 1 (лицевая)',covers,filmMode)}
     <div style="height:10px"></div>
     ${finishSide(`${prefix}Side2`,'Сторона 2 (внутренняя)',covers,filmMode)}
-    <div style="height:10px"></div>
-    ${edgeControls(prefix,is59)}
+    ${includeEdge?`<div style="height:10px"></div>${edgeControls(prefix,is59)}`:''}
   </div>`;
 }
