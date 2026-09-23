@@ -23,8 +23,11 @@ function handleInput(e){
   }
   if(product()==='sliding42' && ['slidingSystem','SingleSide1Type','SingleSide2Type'].includes(e.target.id)) syncSliding42Armadillo();
   if(product()==='double42' && e.target.id==='doorLock') updateDouble42Hardware();
-  if(['single42','single59'].includes(product()) && e.target.id==='doorLock') updateDoorCylinderField();
-  if(product()==='double42' && ['LeftEdgeColor','LeftEdgeRal'].includes(e.target.id)) syncDouble42BundleColorFromDoor();
+  if(product()==='double42' && ['doubleHandleLeftSelect','doubleHandleRightSelect'].includes(e.target.id)) syncDouble42Handles(e.target.id);
+  if(['single42','single59','double42'].includes(product()) && e.target.id==='doorLock') updateDoorCylinderField();
+  if(product()==='single42' && e.target.id==='opening') updateDoorCylinderField();
+  if(product()==='double42' && e.target.id==='DoubleEdgeColor') syncDouble42BundleColorFromDoor();
+  if(product()==='double42' && e.target.id==='DoubleEdgeRal') updateBundleDouble42();
   if(e.target.id==='trimType') renderTrimSize();
   if(e.target.id==='trim42Type') renderTrim42Dynamic();
   if(e.target.id==='trim59Type') renderTrim59Dynamic();
@@ -39,7 +42,7 @@ function handleInput(e){
   if(product()==='leaf36' && e.target.id==='cover36' && $('cover36')?.value==='ПВХ-пленка') syncBundle36FilmsFromDoor();
   if(['single42','single59'].includes(product()) && ['SingleEdgeColor','SingleEdgeRal'].includes(e.target.id)) syncBundleColorFromDoor();
   if(['single42','single59'].includes(product()) && ['SingleEdgeColor','SingleEdgeRal','SingleSide1Type','SingleSide2Type','height','customHeight','frame'].includes(e.target.id)) syncRecommendedDoorHinge(true,true);
-  if(product()==='double42' && ['LeftEdgeColor','LeftEdgeRal','height','customHeight','frame'].includes(e.target.id)) syncRecommendedDoorHinge(true,true);
+  if(product()==='double42' && ['DoubleEdgeColor','DoubleEdgeRal','height','customHeight','frame','LeftSide1Type','LeftSide2Type','RightSide1Type','RightSide2Type'].includes(e.target.id)) syncRecommendedDoorHinge(true,true);
   refreshDynamicDetails();
   if(product()==='leaf36' && ['includeBox','cover36','film36','bundle36BoxFilm','bundle36TrimFilm','bundle36BoxQty','bundle36TrimQty'].includes(e.target.id)) updateBundle36();
   if(['single42','single59'].includes(product()) && ['includeBox','height','customHeight','width','customWidth','bundle42Color','bundle42Ral','bundle59Color','bundle59Ral'].includes(e.target.id)) updateBundle42_59();
@@ -49,14 +52,14 @@ function handleInput(e){
 
 function refreshDynamicDetails(){
   document.querySelectorAll('[id$="Side1Type"],[id$="Side2Type"]').forEach(el=>updateFinishDetail(el.id));
-  ['SingleEdgeColor','LeftEdgeColor','RightEdgeColor'].forEach(id=>updateEdgeRal(id));
+  ['SingleEdgeColor','DoubleEdgeColor'].forEach(id=>updateEdgeRal(id));
   if($('film36')) $('film36').closest('.full')?.classList.toggle('hidden',$('cover36')?.value!=='ПВХ-пленка');
   if($('trimFilm')) $('trimFilm').closest('div')?.parentElement?.classList.toggle('hidden',$('trimCover')?.value!=='ПВХ-пленка');
   if($('doborStandard')) $('doborStandard').value=[100,150,200].includes(doborWidth())?'Стандарт':'Нестандарт';
   if(product()==='leaf36') updateBundle36();
   if(['single42','single59'].includes(product())){updateBundle42_59();updateDoorCylinderField();updateDoorHingePriceHint();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorCylinderPriceHint();updateDoorStopperPriceHint();updateDoorThresholdPriceHint();updateDoorCloserPriceHint();}
   if(product()==='sliding42'){syncSliding42Armadillo();updateSlidingHandlePriceHint();}
-  if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorLockPriceHint();updateDoorHandlePriceHint();updateDoorTurnPriceHint();updateDoorStopperPriceHint();updateDoorThresholdPriceHint();updateDoorCloserPriceHint()}
+  if(product()==='double42'){updateBundleDouble42();updateDouble42Hardware();updateDoorCylinderField();updateDoorLockPriceHint();updateDouble42HandlePriceHints();updateDoorCylinderPriceHint();updateDouble42HingePriceHints();updateDouble42StopperPriceHints();updateDouble42ThresholdPriceHints();updateDoorCloserPriceHint()}
   if(product()==='hardware')renderHardwareSelectedPrice();
   if(typeof syncDoorProcessingOptions==='function')syncDoorProcessingOptions();
 }
@@ -174,12 +177,12 @@ function addDictionaryFor(typeId,detailId,mode){
 
 
 function copyLeftToRight(){
-  ['Side1Type','Side2Type','EdgeColor'].forEach(suffix=>{
+  ['Side1Type','Side2Type'].forEach(suffix=>{
     const l=$('Left'+suffix),r=$('Right'+suffix);
     if(l&&r){r.value=l.value}
   });
   refreshDynamicDetails();
-  ['Side1Detail','Side2Detail','EdgeRal'].forEach(suffix=>{
+  ['Side1Detail','Side2Detail'].forEach(suffix=>{
     const l=$('Left'+suffix),r=$('Right'+suffix);
     if(l&&r)r.value=l.value;
   });
@@ -260,7 +263,11 @@ function validate(){
     rejectGlassMirrorFor42(['Single'],errs);
     if(!$('doorHinges')?.value?.trim())errs.push('Выберите петлю.');
     if(!(Number($('doorHingeQty')?.value)>0))errs.push('Укажите количество петель.');
-    if(doorLockRequiresCylinder() && !$('doorCylinder')?.value?.trim())errs.push('Для выбранного замка под цилиндр обязательно выберите цилиндр.');
+    if(doorLockRequiresCylinder()){
+      const cylinder=$('doorCylinder')?.value?.trim()||'';
+      if(!cylinder)errs.push('Для выбранного замка под цилиндр обязательно выберите цилиндр.');
+      else if(typeof cylinderCompatibleWithDoor==='function'&&!cylinderCompatibleWithDoor(cylinder))errs.push('Выбранный цилиндр несовместим с конструктивом двери.');
+    }
   }
   if(product()==='sliding42'){
     const h=currentHeight(),w=currentWidth(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2300;
@@ -284,7 +291,11 @@ function validate(){
     checkFinishes(['Single'],errs,false);
     if(!$('doorHinges')?.value?.trim())errs.push('Выберите петлю.');
     if(!(Number($('doorHingeQty')?.value)>0))errs.push('Укажите количество петель.');
-    if(doorLockRequiresCylinder() && !$('doorCylinder')?.value?.trim())errs.push('Для выбранного замка под цилиндр обязательно выберите цилиндр.');
+    if(doorLockRequiresCylinder()){
+      const cylinder=$('doorCylinder')?.value?.trim()||'';
+      if(!cylinder)errs.push('Для выбранного замка под цилиндр обязательно выберите цилиндр.');
+      else if(typeof cylinderCompatibleWithDoor==='function'&&!cylinderCompatibleWithDoor(cylinder))errs.push('Выбранный цилиндр несовместим с конструктивом двери.');
+    }
   }
   if(product()==='leaf36'){
     const w=width36();
@@ -304,10 +315,24 @@ function validate(){
     const h=currentHeight(),ply=$('frame').value==='Каркас из фанеры',maxH=ply?2200:2300;
     const lw=doubleWidth('left'),rw=doubleWidth('right');
     if(h<1700||h>maxH)errs.push(`Общая высота должна быть 1700–${maxH} мм.`);
+    if(Number.isFinite(h)&&h%5!==0)errs.push('Общая высота двустворчатой двери 42 мм задаётся с шагом 5 мм.');
     if(lw<400||lw>1000)errs.push('Левая створка: ширина 400–1000 мм.');
+    if(Number.isFinite(lw)&&lw%5!==0)errs.push('Левая створка: ширина задаётся с шагом 5 мм.');
     if(rw<400||rw>1000)errs.push('Правая створка: ширина 400–1000 мм.');
+    if(Number.isFinite(rw)&&rw%5!==0)errs.push('Правая створка: ширина задаётся с шагом 5 мм.');
     checkFinishes(['Left','Right'],errs,ply);
     rejectGlassMirrorFor42(['Left','Right'],errs);
+    if($('DoubleEdgeColor')?.value==='Полимерно-порошковая покраска'&&!$('DoubleEdgeRal')?.value)errs.push('Для общего торца двустворчатой двери требуется RAL.');
+    if(!$('doubleHingesLeft')?.value?.trim())errs.push('Левая створка: выберите петлю.');
+    if(!(Number($('doubleHingeQtyLeft')?.value)>0))errs.push('Левая створка: укажите количество петель.');
+    if(!$('doubleHingesRight')?.value?.trim())errs.push('Правая створка: выберите петлю.');
+    if(!(Number($('doubleHingeQtyRight')?.value)>0))errs.push('Правая створка: укажите количество петель.');
+    if(!['Левая створка','Правая створка'].includes($('doubleLockLeaf')?.value||''))errs.push('Для двустворчатой двери нужно выбрать ровно одну активную створку; вторая автоматически считается пассивной.');
+    if(doorLockRequiresCylinder()){
+      const cylinder=$('doorCylinder')?.value?.trim()||'';
+      if(!cylinder)errs.push('Для выбранного замка под цилиндр обязательно выберите один цилиндр.');
+      else if(typeof cylinderCompatibleWithDoor==='function'&&!cylinderCompatibleWithDoor(cylinder))errs.push('Выбранный цилиндр несовместим с конструктивом двустворчатой двери 42 мм.');
+    }
   }
   return{errs,warns};
 }
@@ -338,6 +363,7 @@ function standardFlag(){
   if(product()==='wallPanel') return 'Не применяется';
   if(['hardware','openingSystem','additionalElement','installation','plinth','trim42','trim59'].includes(product())) return 'Каталожная позиция';
   if(product()==='single42') return currentHeight()===2000&&[600,700,800,900].includes(currentWidth())?'Стандарт':'Нестандарт';
+  if(product()==='double42') return currentHeight()===2000&&[600,700,800,900].includes(doubleWidth('left'))&&[600,700,800,900].includes(doubleWidth('right'))?'Стандарт':'Нестандарт';
   if(product()==='leaf36') return Number($('height36')?.value)>2000?'Нестандарт':'Стандарт';
   if(product()==='trim36'){
     if($('trimType')?.value==='Добор телескопический') return [100,150,200].includes(doborWidth())?'Стандарт':'Нестандарт';
@@ -378,12 +404,25 @@ function longName(){
       }
       return ['Профиль дверного короба 42',trim42DoorSelectedPartName(s),'Под конкретную дверь'].join(' / ');
     }
-    if(t==='Профиль дверного короба 42')return [t,$('trim42Color')?.value,'хлыст 5100 мм',sale].join(' / ');
-    return [t,'хлыст 6000 мм',sale].join(' / ');
+    if(t==='Профиль дверного короба 42')return [t,$('trim42Color')?.value,sale==='Метраж'?'1 м.п.':'хлыст 5100 мм',sale].join(' / ');
+    if(sale==='Под конкретную дверь'){
+      const s=trim42EdgeDoorOrderState();
+      return [t,`Под полотно ${s.height}x${s.width}`,`Фактический метраж ${String(s.totalMeters).replace('.',',')} м.п.`].join(' / ');
+    }
+    return [t,sale==='Метраж'?'1 м.п.':'хлыст 6000 мм',sale].join(' / ');
   }
   if(product()==='trim59'){
     const t=trim59Item(),sale=$('trim59Sale')?.value||'Метраж';
-    return [t,$('trim59Color')?.value,`хлыст ${t==='Профиль дверного короба 59'?'5100':'6000'} мм`,sale].join(' / ');
+    if(t==='Профиль дверного короба 59'&&sale==='Под конкретную дверь'){
+      const s=trim59DoorOrderState();
+      return [t,$('trim59Color')?.value,`Под полотно ${s.height}x${s.width}`,`2×${s.verticalLength} + ${s.topLength} мм`,`Фактический метраж ${String(s.totalMeters).replace('.',',')} м.п.`].join(' / ');
+    }
+    if(t==='Торец 59 с четвертью'&&sale==='Под конкретную дверь'){
+      const s=price59TrimEdgeDoorOrderState();
+      return [t,$('trim59Color')?.value,`Под полотно ${s.height}x${s.width}`,`2×${s.verticalLength} + 3×${s.horizontalLength} мм`,`Фактический метраж ${String(s.totalMeters).replace('.',',')} м.п.`].join(' / ');
+    }
+    if(t==='Профиль дверного короба 59')return [t,$('trim59Color')?.value,sale==='Метраж'?'1 м.п.':'хлыст 5100 мм',sale].join(' / ');
+    return [t,$('trim59Color')?.value,sale==='Метраж'?'1 м.п.':'хлыст 6000 мм',sale].join(' / ');
   }
   if(product()==='trim36'){
     const t=$('trimType').value,cover=trimCoverText();
@@ -394,9 +433,10 @@ function longName(){
   }
   if(product()==='double42'){
     return ['Двустворчатая дверь','42 мм',$('frame').value,`H${currentHeight()}`,
-      `Левая ${doubleWidth('left')} мм`,`Правая ${doubleWidth('right')} мм`,$('opening').value,
-      `Левая створка — Сторона 1: ${finishText('Left',1)}`,`Сторона 2: ${finishText('Left',2)}`,'Алюминиевый торец '+edgeText('Left'),
-      `Правая створка — Сторона 1: ${finishText('Right',1)}`,`Сторона 2: ${finishText('Right',2)}`,'Алюминиевый торец '+edgeText('Right')
+      `Левая ${doubleWidth('left')} мм / левое на себя`,`Правая ${doubleWidth('right')} мм / правое на себя`,
+      `Левая створка — Сторона 1: ${finishText('Left',1)}`,`Сторона 2: ${finishText('Left',2)}`,
+      `Правая створка — Сторона 1: ${finishText('Right',1)}`,`Сторона 2: ${finishText('Right',2)}`,
+      'Алюминиевый торец комплекта '+edgeText('Double')
     ].join(' / ');
   }
   return '';
@@ -421,7 +461,7 @@ function shortName(){
     return `Погонаж 42 | ${trim42Item()}`;
   }
   if(product()==='trim59')return `Погонаж 59 | ${trim59Item()}`;
-  if(product()==='double42')return `Двустворчатая 42 | ${$('frame').value==='Каркас из фанеры'?'Фанера':'Алюм.'} | H${currentHeight()} | ${doubleWidth('left')}+${doubleWidth('right')} | ${$('opening').value}`;
+  if(product()==='double42')return `Двустворчатая 42 | ${$('frame').value==='Каркас из фанеры'?'Фанера':'Алюм.'} | H${currentHeight()} | ${doubleWidth('left')}+${doubleWidth('right')} | обе створки на себя`;
   return '';
 }
 
@@ -443,11 +483,24 @@ function canonical(){
     if(trim42Item()==='Профиль дверного короба 42'&&sale==='Под конкретную дверь'){
       const s=trim42DoorOrderState();
       parts.push(s.mode,s.opening,s.height,s.width,s.part,s.verticalLength,s.topLength);
+    }else if((trim42Item()==='Торец BC3'||trim42Item()==='Торец C4')&&sale==='Под конкретную дверь'){
+      const s=trim42EdgeDoorOrderState();
+      parts.push(s.height,s.width,s.verticalLength,s.horizontalLength,s.totalLength);
     }
   }
-  if(product()==='trim59')parts.push(trim59Item(),$('trim59Color')?.value||'', $('trim59Sale')?.value||'');
-  if(product()==='double42')parts.push('42',$('frame').value,currentHeight(),doubleWidth('left'),doubleWidth('right'),$('opening').value,
-    finishText('Left',1),finishText('Left',2),edgeText('Left'),finishText('Right',1),finishText('Right',2),edgeText('Right'));
+  if(product()==='trim59'){
+    const sale=$('trim59Sale')?.value||'';
+    parts.push(trim59Item(),$('trim59Color')?.value||'',sale);
+    if(trim59Item()==='Профиль дверного короба 59'&&sale==='Под конкретную дверь'){
+      const s=trim59DoorOrderState();
+      parts.push(s.height,s.width,s.verticalLength,s.topLength,s.totalLength);
+    }else if(trim59Item()==='Торец 59 с четвертью'&&sale==='Под конкретную дверь'){
+      const s=price59TrimEdgeDoorOrderState();
+      parts.push(s.height,s.width,s.verticalLength,s.horizontalLength,s.totalLength);
+    }
+  }
+  if(product()==='double42')parts.push('42',$('frame').value,currentHeight(),doubleWidth('left'),doubleWidth('right'),'LEFT-IN','RIGHT-IN',
+    finishText('Left',1),finishText('Left',2),finishText('Right',1),finishText('Right',2),edgeText('Double'));
   return parts.join('|').toUpperCase().replace(/\s+/g,' ').trim();
 }
 
@@ -463,8 +516,8 @@ function renderRecommendations(){
   box.innerHTML=`
     <div class="section">
       <div class="section-title">Сопутствующие товары</div>
-      <div class="rec"><b>Профиль короба 42 мм</b><span class="badge">автокомплект</span> Две петлевые стойки по H+100 мм и верхняя перемычка по сумме ширин створок +100 мм. Ответной стойки короба нет.</div>
-      <div class="rec"><b>Ригель</b><span class="badge">по выбору</span> Можно выбрать отдельно для левой, правой или обеих створок. Отдельный товар, не влияет на SKU полотен.</div>
+      <div class="rec"><b>Профиль короба 42 мм</b><span class="badge">автокомплект</span> Две петлевые стойки по H+100 мм и верхняя перемычка по сумме ширин створок +10 мм. Ответной стойки короба нет.</div>
+      <div class="rec"><b>Ригель</b><span class="badge">по умолчанию</span> Один ригель на пассивную створку; включён по умолчанию, галочку можно снять. Отдельный товар, не влияет на SKU полотен.</div>
     </div>`;
 }
 
@@ -487,18 +540,34 @@ function selectedOrderExtras(){
     ['Цилиндр','doorCylinder'],['Стопор','doorStopper'],['Автопорог','doorThreshold'],['Доводчик','doorCloser'],
     ['Система открывания','doorOpeningSystem'],['Вентрешётка','doorVent'],['Доп. элемент','doorExtra']
   ];
-  const filteredIds=['single42','single59'].includes(product())?ids.filter(([label])=>label!=='Петли'):ids;
+  let filteredIds=['single42','single59'].includes(product())?ids.filter(([label])=>label!=='Петли'):ids;
+  if(product()==='double42')filteredIds=filteredIds.filter(([label])=>!['Петли','Ручка','Завертка','Вентрешётка','Доп. элемент'].includes(label));
   const out=filteredIds.map(([label,id])=>[label,$(id)?.value?.trim()||'']).filter(([,v])=>v && v!=='Не требуется');
-  if(['single42','single59'].includes(product()) && boxMiter45Selected())out.push(['Запил короба под 45°','Да']);
+  if(['single42','single59','double42'].includes(product()) && boxMiter45Selected())out.push(['Запил короба под 45°','Да']);
   if(product()==='double42'){
+    const activeLeaf=$('doubleLockLeaf')?.value||'Левая створка';
+    const passiveLeaf=activeLeaf==='Левая створка'?'Правая створка':'Левая створка';
+    out.push(['Активная створка',activeLeaf]);
+    out.push(['Пассивная створка',passiveLeaf]);
     const lock=$('doorLock')?.value?.trim()||'';
     if(lock){
-      const leaf=$('doubleLockLeaf')?.value||'Левая створка';
-      out.push(['Створка с замком',leaf]);
-      out.push(['Ответная часть замка',leaf==='Левая створка'?'Правая створка':'Левая створка']);
+      out.push(['Ответная часть замка',passiveLeaf]);
     }
-    if($('doubleBoltLeft')?.value==='Ригель для двери')out.push(['Ригель','Левая створка']);
-    if($('doubleBoltRight')?.value==='Ригель для двери')out.push(['Ригель','Правая створка']);
+    if($('doubleBolt')?.checked){
+      out.push(['Ригель',passiveLeaf]);
+    }
+    const handleLeft=$('doubleHandleLeftSelect')?.value||'Без ручки';
+    const handleRight=$('doubleHandleRightSelect')?.value||'Без ручки';
+    if(handleLeft&&handleLeft!=='Без ручки')out.push(['Ручка · левая створка',handleLeft]);
+    if(handleRight&&handleRight!=='Без ручки')out.push(['Ручка · правая створка',handleRight]);
+    const ventLeft=$('doubleVentLeft')?.value||'';
+    const ventRight=$('doubleVentRight')?.value||'';
+    if(ventLeft&&ventLeft!=='Не требуется')out.push(['Вентрешётка · левая створка',ventLeft]);
+    if(ventRight&&ventRight!=='Не требуется')out.push(['Вентрешётка · правая створка',ventRight]);
+    const extraLeft=$('doubleExtraLeft')?.value?.trim()||'';
+    const extraRight=$('doubleExtraRight')?.value?.trim()||'';
+    if(extraLeft)out.push(['Доп. элемент · левая створка',extraLeft]);
+    if(extraRight)out.push(['Доп. элемент · правая створка',extraRight]);
   }
   return out;
 }
@@ -510,11 +579,23 @@ function renderOrderExtras(){
   const pricedExtraLabels=new Set();
   if(companions.some(x=>x.key==='DOOR-LOCK'))pricedExtraLabels.add('Замок');
   if(companions.some(x=>x.key==='DOOR-HANDLE'||x.key==='SLIDE42-HANDLE'))pricedExtraLabels.add('Ручка');
+  if(companions.some(x=>x.key==='DOUBLE42-HANDLE-LEFT'))pricedExtraLabels.add('Ручка · левая створка');
+  if(companions.some(x=>x.key==='DOUBLE42-HANDLE-RIGHT'))pricedExtraLabels.add('Ручка · правая створка');
   if(companions.some(x=>x.key==='DOOR-TURN'))pricedExtraLabels.add('Завертка');
   if(companions.some(x=>x.key==='DOOR-CYLINDER'))pricedExtraLabels.add('Цилиндр');
-  if(companions.some(x=>x.key==='DOOR-STOPPER'))pricedExtraLabels.add('Стопор');
-  if(companions.some(x=>x.key==='DOOR-THRESHOLD'))pricedExtraLabels.add('Автопорог');
+  if(companions.some(x=>(x.baseKey||x.key)==='DOOR-STOPPER'))pricedExtraLabels.add('Стопор');
+  if(companions.some(x=>(x.baseKey||x.key)==='DOOR-THRESHOLD'))pricedExtraLabels.add('Автопорог');
   if(companions.some(x=>x.key==='DOOR-CLOSER'))pricedExtraLabels.add('Доводчик');
+  if(companions.some(x=>(x.baseKey||x.key)==='DOOR-VENT-GRILLE')){
+    pricedExtraLabels.add('Вентрешётка');
+    pricedExtraLabels.add('Вентрешётка · левая створка');
+    pricedExtraLabels.add('Вентрешётка · правая створка');
+  }
+  if(companions.some(x=>(x.baseKey||x.key)==='DOOR-ADDITIONAL-ELEMENT')){
+    pricedExtraLabels.add('Доп. элемент');
+    pricedExtraLabels.add('Доп. элемент · левая створка');
+    pricedExtraLabels.add('Доп. элемент · правая створка');
+  }
   if(companions.some(x=>x.key==='SLIDE42-SYSTEM'))pricedExtraLabels.add('Система открывания');
   const renderedExtras=extras.filter(([k])=>!pricedExtraLabels.has(k));
   renderedExtras.forEach(([k,v])=>lines.push(`<div><b>${escapeHtml(k)}:</b> ${escapeHtml(v)}</div>`));
@@ -535,7 +616,7 @@ function stockMatch(){
   if(product()==='single42'||product()==='single59'||product()==='sliding42')dims=`${currentHeight()}x${currentWidth()}`;
   if(product()==='leaf36')dims=`${$('height36')?.value}x${width36()}`;
   if(product()==='trim36')dims=$('trimFixedSize')?.value||String(doborWidth());
-  const opening=product()==='sliding42'?($('slidingDirection')?.value||''):($('opening')?.value||'');
+  const opening=product()==='sliding42'?($('slidingDirection')?.value||''):(product()==='double42'?'':($('opening')?.value||''));
   return candidates.find(x=>{
     const n=x.name.toLowerCase();
     return (!dims||n.includes(dims.toLowerCase())) && (!opening||n.includes(opening.toLowerCase()));
@@ -570,7 +651,7 @@ function render(){
   if(v.errs.length){box.className='status err';box.innerHTML='<b>Нельзя создать:</b><br>'+v.errs.map(x=>'• '+escapeHtml(x)).join('<br>')}
   else if(v.warns.length){box.className='status warn';box.innerHTML='<b>Допустимо с предупреждением:</b><br>'+v.warns.map(x=>'• '+escapeHtml(x)).join('<br>')}
   else{box.className='status ok';box.innerHTML='<b>Конфигурация проходит текущие согласованные правила.</b>'}
-  $('createBtn').disabled=role()==='manager'||v.errs.length>0;
+  $('createBtn').disabled=!can('createSku')||v.errs.length>0;
   $('duplicateBox').classList.add('hidden');
   updateRoleUI();
 }
@@ -589,7 +670,7 @@ function findDuplicate(show=true){
   return hit;
 }
 function createSku(){
-  const v=validate();if(v.errs.length||role()==='manager')return;
+  const v=validate();if(v.errs.length||!can('createSku'))return;
   const reg=getRegistry(),hit=findDuplicate(false),b=$('duplicateBox');b.classList.remove('hidden');
   if(hit){
     b.className='status ok';b.innerHTML=`Дубль не создан. Уже существует: <b>${hit.sku}</b><br>${escapeHtml(hit.name)}`;
@@ -609,7 +690,7 @@ function renderRegistry(){
     '<tr><td colspan="4" style="color:#6b7280">Пока нет созданных позиций.</td></tr>';
 }
 function clearRegistry(){
-  if(role()!=='admin')return;
+  if(!can('pricingAdmin'))return;
   if(confirm('Очистить тестовый реестр v6?')){saveRegistry([]);renderRegistry()}
 }
 function exportCsv(){
@@ -623,9 +704,21 @@ function copyText(id){
   navigator.clipboard?.writeText(t).catch(()=>prompt('Скопируйте:',t));
 }
 function updateRoleUI(){
-  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',role()!=='admin'));
-  document.querySelectorAll('.stock-write,.catalog-write').forEach(el=>el.classList.toggle('hidden',!catalogWriteAllowed()));
+  const runtime=runtimeRoleContext();
+  const devBox=$('devRoleBox'),runtimeBox=$('runtimeRoleBox'),runtimeValue=$('runtimeRoleValue');
+  if(devBox)devBox.classList.toggle('hidden',!!runtime);
+  if(runtimeBox)runtimeBox.classList.toggle('hidden',!runtime);
+  if(runtimeValue&&runtime){
+    const userLabel=String(runtime.userName||runtime.userLabel||runtime.userId||'Пользователь Bitrix24');
+    runtimeValue.textContent=userLabel+' · '+roleLabel();
+  }
+  document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',!can('pricingAdmin')));
+  document.querySelectorAll('.stock-write').forEach(el=>el.classList.toggle('hidden',!can('stockWrite')));
+  document.querySelectorAll('.stock-delete').forEach(el=>el.classList.toggle('hidden',!can('stockDelete')));
+  document.querySelectorAll('.stock-demo-clear').forEach(el=>el.classList.toggle('hidden',!can('stockDemoClear')));
+  document.querySelectorAll('.stock-export').forEach(el=>el.classList.toggle('hidden',!can('stockExport')));
+  document.querySelectorAll('.catalog-write').forEach(el=>el.classList.toggle('hidden',!catalogWriteAllowed()));
   document.querySelectorAll('.manager-workflow').forEach(el=>el.classList.toggle('hidden',!managerWorkflowVisible()));
   document.querySelectorAll('.bitrix-deal-action').forEach(el=>el.classList.toggle('hidden',!bitrixDealActionAllowed()));
-  if(role()!=='admin'&&!$('viewPricing')?.classList.contains('hidden'))showView('configurator');
+  if(!can('pricingAdmin')&&!$('viewPricing')?.classList.contains('hidden'))showView('configurator');
 }
