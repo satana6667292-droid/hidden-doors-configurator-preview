@@ -153,6 +153,7 @@ const SALES_PRICE_COVERAGE=Object.freeze([
   Object.freeze({block:'59 мм',area:'Полотно / короб / стекло-зеркало',status:'connected',note:'Опт 2 подключён: полотно 19 863 / 20 539 ₽, короб 7 971 / 8 776 ₽; H≤2000 без уменьшения, выше — высотная шкала; полотно W≤900 ×1, W>900 ×W/900; Опт 1 +12,5%, Розница +50%'}),
   Object.freeze({block:'Погонаж 59',area:'Профиль короба 59 + торец 59 с четвертью',status:'connected',note:'Короб 59: метраж / хлыст / под дверь. Торец 59: серебро закуп 2 052 ₽/6 м, чёрный/золотой 2 322 ₽/6 м; Opt 2 = закуп +60%, далее Opt 1 +12,5%, Розница +50%; под дверь 2×(H+20)+3×(W+20)'}),
   Object.freeze({block:'Фурнитура',area:'K8060 / K6360/38 / K2760 / Vantage',status:'connected',note:'Весь каталог фурнитуры по рознице. Для K8060, K6360/38, K2760 и магнитных Vantage действует лестница Опт 2 → Опт 1 → Розница. Для стандартных Vantage чёрный/серый/хром Опт 2 = 603 ₽ по партнёрскому прайсу; остальные Vantage рассчитываются от текущей розницы /1,50'}),
+  Object.freeze({block:'Стеновые панели',area:'Глухие панели в ПВХ + запил 45°',status:'connected',note:'6 / 8 / 10 / 16 / 19 / 22 мм: ставка за м² по прайсу мебельных фасадов. Одна цена для Opt 2 / Opt 1 / Розницы. Запил 45° — 90 ₽/м.п. выбранной стороны.'}),
   Object.freeze({block:'Доп. работы',area:'Фрезеровки / врезки / стекло / RAL короба и прочее',status:'pending',note:'ПВХ и эмаль полотна 42 уже подключены в блоке двери; остальные дополнительные работы подключаются отдельно'}),
   Object.freeze({block:'Себестоимость',area:'36 мм · полотно ПВХ + короб',status:'connected',note:'Полотно и покупной короб считаются отдельными объектами по схеме закупка → списание → норма → тех. отход → факт → отклонение'})
 ]);
@@ -611,7 +612,7 @@ function renderPricingAdmin(){
 
 
 // v111: one transparent price card for configured door assemblies.
-const CONFIGURED_PRICE_CARD_PRODUCTS=Object.freeze(['leaf36','trim42','trim59','single42','sliding42','single59','double42','additionalElement','installation']);
+const CONFIGURED_PRICE_CARD_PRODUCTS=Object.freeze(['leaf36','trim42','trim59','single42','sliding42','single59','double42','wallPanel','additionalElement','installation']);
 
 function configuredPriceRound(value){
   const n=Number(value);
@@ -835,6 +836,35 @@ function configuredPriceBreakdown(){
         ?'Погонаж 59 · торец с четвертью. Источник: счёт АЛКОР №1186 от 19.08.2026. Серебро 2 052 ₽/6 м, золото 2 322 ₽/6 м; чёрный временно по золотой базе. Opt 2 = закупка +60%; Opt 1 = Opt 2 +12,5%; Розница = Opt 2 +50%.'
         :'Погонаж 59 · профиль короба. Opt 2 считается по фактической длине из стандартного короба H=2000 / W=900: серый '+PRICE59_TRIM_BOX_LINEAR_OPT2.gray+' ₽/м, чёрный/золотой '+PRICE59_TRIM_BOX_LINEAR_OPT2.black+' ₽/м. Opt 1 = Opt 2 +12,5%; Розница = Opt 2 +50%.')
       :'Погонаж 59 · цена выбранной позиции не рассчитана.';
+  }
+
+  if(productKey==='wallPanel'){
+    const calc=typeof wallPanelPriceCalculation==='function'?wallPanelPriceCalculation(requestedType):null;
+    lines.push(configuredPriceLine({
+      key:'wall-panel-base',
+      label:calc?.ok?'Стеновая панель МДФ '+calc.thickness+' мм · глухая · ПВХ':'Стеновая панель',
+      qty:1,
+      unit:'шт.',
+      unitPrice:calc?.ok?calc.panelPrice:null,
+      priceKnown:!!calc?.ok,
+      actualPriceType:calc?.ok?requestedType:null,
+      note:calc?.ok
+        ?'Площадь '+calc.areaM2.toFixed(3)+' м² × '+calc.ratePerM2.toLocaleString('ru-RU')+' ₽/м². Ставка одинакова для всех типов цен.'
+        :(calc?.reason||'Цена стеновой панели требует уточнения.')
+    }));
+    if(calc?.ok&&calc.miterMeters>0){
+      lines.push(configuredPriceLine({
+        key:'wall-panel-miter45',
+        label:'Запил 45°',
+        qty:1,
+        unit:'услуга',
+        unitPrice:calc.miterPrice,
+        priceKnown:true,
+        actualPriceType:requestedType,
+        note:calc.miterMeters.toFixed(3)+' м.п. × '+calc.miterRatePerM+' ₽/м.п. · одинаково для внутреннего и внешнего запила.'
+      }));
+    }
+    sourceNote='Hidden Doors / Мебельные фасады - Прайс: глухие стеновые панели в ПВХ. Ставки одинаковы для Opt 2 / Opt 1 / Розницы. Фрезеровка и эмаль на первом этапе отключены.';
   }
 
   if(productKey==='installation'){
