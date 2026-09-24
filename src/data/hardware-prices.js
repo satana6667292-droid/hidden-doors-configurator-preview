@@ -1839,6 +1839,7 @@ function configuredCatalogUnitPrice(){
     const p=hardwareSalesPrice('Доп.фурнитура',name,'retail');
     if(p!==null)return p;
   }
+  if(product()==='wallPanel'&&typeof configuredWallPanelUnitPrice==='function')return configuredWallPanelUnitPrice(activeSalesPriceType());
   if(product()==='trim42'&&typeof configuredTrim42UnitPrice==='function')return configuredTrim42UnitPrice(activeSalesPriceType());
   if(product()==='trim59'&&typeof configuredTrim59UnitPrice==='function')return configuredTrim59UnitPrice(activeSalesPriceType());
   if(['single42','sliding42'].includes(product())&&typeof configured42StandardUnitPrice==='function')return configured42StandardUnitPrice();
