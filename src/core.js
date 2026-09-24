@@ -13,7 +13,8 @@ const HD_ROLE_PERMISSIONS=Object.freeze({
     managerWorkflow:true,
     bitrixDeal:true,
     cartDiscount:true,
-    pricingAdmin:false
+    pricingAdmin:false,
+    bitrixAdminAudit:false
   }),
   supply:Object.freeze({
     label:'Снабжение',
@@ -27,7 +28,8 @@ const HD_ROLE_PERMISSIONS=Object.freeze({
     managerWorkflow:true,
     bitrixDeal:false,
     cartDiscount:true,
-    pricingAdmin:false
+    pricingAdmin:false,
+    bitrixAdminAudit:false
   }),
   admin:Object.freeze({
     label:'Администратор',
@@ -41,7 +43,8 @@ const HD_ROLE_PERMISSIONS=Object.freeze({
     managerWorkflow:true,
     bitrixDeal:true,
     cartDiscount:true,
-    pricingAdmin:true
+    pricingAdmin:true,
+    bitrixAdminAudit:true
   })
 });
 function normalizeRole(value){
