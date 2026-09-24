@@ -175,6 +175,7 @@ const PRICING_ADMIN_SECTIONS=Object.freeze([
   Object.freeze({id:'trim',label:'Погонаж'}),
   Object.freeze({id:'hardware',label:'Фурнитура'}),
   Object.freeze({id:'extras',label:'Доп. работы'}),
+  Object.freeze({id:'bitrix',label:'Bitrix24'}),
   Object.freeze({id:'cost',label:'Себестоимость'})
 ]);
 function activePricingAdminSection(){
@@ -378,6 +379,7 @@ function renderPricingAdminBody(section){
   if(section==='door42')return renderPricing42Admin();
   if(section==='door59')return renderPricing59Admin();
   if(section==='hardware')return renderPricingHardwareAdmin();
+  if(section==='bitrix'&&typeof renderBitrixAdmin==='function')return renderBitrixAdmin();
   if(section==='cost'&&typeof renderCostAdmin==='function')return renderCostAdmin();
   if(section==='cost'&&typeof renderCost36Admin==='function')return renderCost36Admin();
   return renderPricingSimpleSection(section);
