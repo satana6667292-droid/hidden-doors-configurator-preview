@@ -1152,9 +1152,11 @@ function addConfiguredToCart(){
   const stock=match?match.qty:null;
   const configuredUnitPrice=configuredCatalogUnitPrice();
   const configuredPriceType=typeof configuredSalesPriceType==='function'?configuredSalesPriceType():null;
-  const configuredPriceNote=product()==='single59'&&typeof configured59PriceNote==='function'
-    ?configured59PriceNote(configuredPriceType||activeSalesPriceType())
-    :product()==='trim59'&&typeof configuredTrim59PriceNote==='function'
+  const configuredPriceNote=product()==='wallPanel'&&typeof configuredWallPanelPriceNote==='function'
+    ?configuredWallPanelPriceNote(configuredPriceType||activeSalesPriceType())
+    :product()==='single59'&&typeof configured59PriceNote==='function'
+      ?configured59PriceNote(configuredPriceType||activeSalesPriceType())
+      :product()==='trim59'&&typeof configuredTrim59PriceNote==='function'
       ?configuredTrim59PriceNote(configuredPriceType||activeSalesPriceType())
       :product()==='trim42'&&typeof configuredTrim42PriceNote==='function'
         ?configuredTrim42PriceNote(configuredPriceType||activeSalesPriceType())
