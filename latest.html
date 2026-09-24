@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hidden Doors — Личный кабинет · v195 · Стеновые панели + актуальные цены</title>
+<title>Hidden Doors — Личный кабинет · v200 · Bitrix24 аудит + ручные связи</title>
 <style>
-@import url('./src/styles.css');
+@import url('./src/styles.css?v=200');
 </style>
 </head>
 <body>
@@ -24,7 +24,7 @@
     </div>
     <div class="brand-header-side">
       <div class="brand-header-controls">
-        <div class="version-chip"><span>HD</span> v195 · Стеновые панели + актуальные цены</div>
+        <div class="version-chip"><span>HD</span> v200 · Bitrix24 аудит + ручные связи</div>
         <div id="devRoleBox" class="rolebox">
           <label for="role">Роль · DEV</label>
           <select id="role">
@@ -72,7 +72,7 @@
       <span id="stockNavCount" class="stock-cta-count">0 дверей</span>
     </button>
     <button id="navDictionaries" onclick="showView('dictionaries')">Справочники</button>
-    <button id="navPricing" class="admin-only hidden" onclick="showView('pricing')">Цены и себестоимость</button>
+    <button id="navPricing" class="admin-only hidden" onclick="showView('pricing')">Администрирование</button>
   </div>
 
   <section id="catalogHero" class="catalog-hero" aria-label="Разделы каталога">
@@ -448,8 +448,8 @@
     <section class="card pricing-admin-shell">
       <div class="top" style="margin-bottom:14px">
         <div>
-          <h2 style="font-size:20px;margin-bottom:4px">Цены и себестоимость</h2>
-          <div class="mini">Административный контур. Здесь управляются продажные цены и отдельный прозрачный слой себестоимости: нормы, закупочные цены, геометрия и формулы.</div>
+          <h2 style="font-size:20px;margin-bottom:4px">Административное управление</h2>
+          <div class="mini">Продажные цены, себестоимость и контроль интеграции с Bitrix24 в одном административном контуре.</div>
         </div>
         <div class="pricing-admin-lock">Только администратор</div>
       </div>
@@ -579,33 +579,34 @@
   </div>
 </div>
 
-<script src="./src/data/films.js?v=195"></script>
-<script src="./src/data/sales-pricing.js?v=195"></script>
-<script src="./src/data/prices36.js?v=195"></script>
-<script src="./src/data/prices42.js?v=195"></script>
-<script src="./src/data/prices59.js?v=195"></script>
-<script src="./src/data/packaging-cost.js?v=195"></script>
-<script src="./src/data/cost36.js?v=195"></script>
-<script src="./src/data/production-bom.js?v=195"></script>
-<script src="./src/data/cost-additional.js?v=195"></script>
-<script src="./src/data/cost-production-v89.js?v=195"></script>
-<script src="./src/data/bitrix-catalog.js?v=195"></script>
-<script src="./src/data/handle-prices.js?v=195"></script>
-<script src="./src/data/hardware-prices.js?v=195"></script>
-<script src="./src/data/catalog36.js?v=195"></script>
-<script src="./src/data/catalog36-images.js?v=195"></script>
-<script src="./src/core.js?v=195"></script>
-<script src="./src/catalog-images.js?v=195"></script>
-<script src="./src/door-ui.js?v=195"></script>
-<script src="./src/hardware.js?v=195"></script>
-<script src="./src/product-core.js?v=195"></script>
-<script src="./src/wall-panels.js?v=195"></script>
-<script src="./src/doors.js?v=195"></script>
-<script src="./src/trim.js?v=195"></script>
-<script src="./src/sliding-double.js?v=195"></script>
-<script src="./src/configurator-runtime.js?v=195"></script>
-<script src="./src/order.js?v=195"></script>
-<script src="./src/dictionaries.js?v=195"></script>
-<script src="./src/app.js?v=195"></script>
+<script src="./src/data/films.js?v=200"></script>
+<script src="./src/data/sales-pricing.js?v=200"></script>
+<script src="./src/data/prices36.js?v=200"></script>
+<script src="./src/data/prices42.js?v=200"></script>
+<script src="./src/data/prices59.js?v=200"></script>
+<script src="./src/data/packaging-cost.js?v=200"></script>
+<script src="./src/data/cost36.js?v=200"></script>
+<script src="./src/data/production-bom.js?v=200"></script>
+<script src="./src/data/cost-additional.js?v=200"></script>
+<script src="./src/data/cost-production-v89.js?v=200"></script>
+<script src="./src/data/bitrix-catalog.js?v=200"></script>
+<script src="./src/data/handle-prices.js?v=200"></script>
+<script src="./src/data/hardware-prices.js?v=200"></script>
+<script src="./src/data/catalog36.js?v=200"></script>
+<script src="./src/data/catalog36-images.js?v=200"></script>
+<script src="./src/core.js?v=200"></script>
+<script src="./src/bitrix-admin.js?v=200"></script>
+<script src="./src/catalog-images.js?v=200"></script>
+<script src="./src/door-ui.js?v=200"></script>
+<script src="./src/hardware.js?v=200"></script>
+<script src="./src/product-core.js?v=200"></script>
+<script src="./src/wall-panels.js?v=200"></script>
+<script src="./src/doors.js?v=200"></script>
+<script src="./src/trim.js?v=200"></script>
+<script src="./src/sliding-double.js?v=200"></script>
+<script src="./src/configurator-runtime.js?v=200"></script>
+<script src="./src/order.js?v=200"></script>
+<script src="./src/dictionaries.js?v=200"></script>
+<script src="./src/app.js?v=200"></script>
 </body>
 </html>
