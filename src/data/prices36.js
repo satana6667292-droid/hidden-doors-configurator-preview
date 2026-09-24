@@ -338,7 +338,7 @@ function is36SalesCatalogItem(item){
     /^BUNDLE-P36-/.test(baseKey)||/телескопический 36|планка.*36/i.test(name);
 }
 function configuredSalesPriceType(){
-  if(['leaf36','trim36','trim42','trim59','single42','sliding42','single59','double42'].includes(product()))return activeSalesPriceType();
+  if(['leaf36','trim36','trim42','trim59','single42','sliding42','single59','double42','wallPanel'].includes(product()))return activeSalesPriceType();
   if(product()==='hardware'&&typeof hardwareSalesPriceType==='function'){
     const uiCategory=$('hardwareCategory')?.value||'';
     const category=(typeof HARDWARE_MAP!=='undefined'?(HARDWARE_MAP[uiCategory]||uiCategory):uiCategory);
